@@ -1,0 +1,19 @@
+{
+  "name": "stratlan",
+  "version": "0.0.1",
+  "description": "",
+  "author": "Peter West",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/peterjwest/stratlan#readme",
+  "bugs": {
+    "url": "https://github.com/peterjwest/stratlan/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peterjwest/stratlan.git"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0"
+  }
+}
