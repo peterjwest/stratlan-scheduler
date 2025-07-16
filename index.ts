@@ -8,7 +8,7 @@ import sessionStore from 'connect-pg-simple';
 import SteamAuth from 'node-steam-openid';
 import zod from 'zod';
 
-import { regenerateSession, saveSession } from './util';
+import { regenerateSession, saveSession, destroySession } from './util';
 import setupCommands from './commands';
 import environment from './environment';
 import { getDatabaseClient, getUser, getOrCreateUserByDiscordId, updateUser } from './database';
@@ -121,6 +121,12 @@ app.get('/login', async (request, response) => {
     await regenerateSession(request);
     request.session.userId = user.id;
     await saveSession(request);
+
+    response.redirect('/');
+});
+
+app.get('/logout', async (request, response) => {
+    await destroySession(request);
 
     response.redirect('/');
 });

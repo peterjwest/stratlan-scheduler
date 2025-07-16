@@ -11,3 +11,7 @@ export async function regenerateSession(request: Request) {
 export async function saveSession(request: Request) {
     return promisify(request.session.save.bind(request.session))();
 }
+
+export async function destroySession(request: Request) {
+    return promisify(request.session.destroy.bind(request.session))();
+}
