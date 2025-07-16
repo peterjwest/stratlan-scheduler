@@ -152,4 +152,10 @@ app.get('/steam/authenticate', async (request, response) => {
     response.redirect('/');
 });
 
-app.listen(PORT, () => console.log(`Server listening at ${HOST}`));
+app.listen(PORT, () => {
+    console.log(`Server listening at ${HOST}`);
+
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled rejection:', reason, promise);
+    });
+});
