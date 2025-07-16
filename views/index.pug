@@ -1,0 +1,14 @@
+doctype html
+html(lang="en")
+    head
+        title StratLAN scheduler
+    body
+        if user
+            h1 Hello #{user.discordUsername}
+            if user.steamUsername
+                h2 Steam account #{user.steamUsername}
+            else
+                a(href='/steam') Link Steam account
+            a(href='/logout') Logout
+        else
+            a(href=discordAuthUrl) Login with Discord

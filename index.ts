@@ -1,3 +1,5 @@
+import querystring from 'node:querystring';
+
 import { REST, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -33,6 +35,13 @@ const {
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 const HOST = `http://localhost:${PORT}`;
 const MODERATOR_ROLES = new Set(['Staff', 'Moderator']);
+const DISCORD_RETURN_URL = `${HOST}/login`;
+const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
+    client_id: DISCORD_CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: DISCORD_RETURN_URL,
+    scope: 'identify',
+});
 
 declare module 'express-session' {
     interface SessionData {
@@ -81,10 +90,11 @@ app.use(expressSession({
   store: new SessionStore({ conString: POSTGRES_URL, tableName : 'sessions' }),
 }));
 
-app.get('/', (request, response) => {
-    // TODO: Render details
-    console.log(request.session);
-	return response.sendFile('index.html', { root: '.' });
+app.set('view engine', 'pug');
+
+app.get('/', async (request, response) => {
+    const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
+    response.render('index', { user, discordAuthUrl: DISCORD_AUTH_URL });
 });
 
 app.get('/login', async (request, response) => {
@@ -94,7 +104,7 @@ app.get('/login', async (request, response) => {
     const accessToken = await getDiscordAccessToken(
         DISCORD_CLIENT_ID,
         DISCORD_CLIENT_SECRET,
-        `${HOST}/login`,
+        DISCORD_RETURN_URL,
         query.code,
     );
     const discordUser = await getDiscordUser(accessToken);
