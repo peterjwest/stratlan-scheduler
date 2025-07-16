@@ -19,7 +19,4 @@
   "include": [
     "**/*.ts"
   ],
-  "exclude": [
-    "tests/snippets/**"
-  ]
 }
