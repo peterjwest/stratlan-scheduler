@@ -90,6 +90,8 @@ app.use(expressSession({
   store: new SessionStore({ conString: POSTGRES_URL, tableName : 'sessions' }),
 }));
 
+app.use(express.urlencoded());
+
 app.set('view engine', 'pug');
 
 app.get('/', async (request, response) => {
