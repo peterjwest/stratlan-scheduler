@@ -44,6 +44,7 @@ const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.e
     scope: 'identify',
 });
 
+/** Augments the session with userId */
 declare module 'express-session' {
     interface SessionData {
         userId: number;
