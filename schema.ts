@@ -21,7 +21,14 @@ export const Session = pgTable('sessions', {
 ]);
 export type Session = typeof Session.$inferSelect;
 
+export const Team = pgTable('teams', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull().unique(),
+});
+export type Team = typeof Team.$inferSelect;
+
 export default {
     User,
     Session,
+    Team,
 };

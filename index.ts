@@ -11,7 +11,7 @@ import zod from 'zod';
 import { regenerateSession, saveSession, destroySession } from './util';
 import setupCommands from './commands';
 import environment from './environment';
-import { getDatabaseClient, getUser, getOrCreateUserByDiscordId, updateUser } from './database';
+import { createTeams, getDatabaseClient, getUser, getOrCreateUserByDiscordId, updateUser } from './database';
 import {
     getGuildRoles,
     mapRoleIds,
@@ -35,6 +35,7 @@ const {
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 const HOST = `http://localhost:${PORT}`;
 const MODERATOR_ROLES = new Set(['Staff', 'Moderator']);
+const TEAMS = ['Red', 'Blue'];
 const DISCORD_RETURN_URL = `${HOST}/login`;
 const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
     client_id: DISCORD_CLIENT_ID,
@@ -50,6 +51,8 @@ declare module 'express-session' {
 }
 
 const db = await getDatabaseClient(POSTGRES_URL);
+
+await createTeams(db, TEAMS);
 
 const client = new Client({
     intents: [
