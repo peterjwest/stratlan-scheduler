@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { users, User } from './schema';
+import schema, { User, Team } from './schema';
 
 type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -17,21 +17,25 @@ export function getDatabaseClient(postgresUrl: string): DatabaseClient {
 }
 
 export async function getUser(db: DatabaseClient, id: number): Promise<User | undefined> {
-    return db.query.users.findFirst({ where: eq(users.id, id) });
+    return db.query.User.findFirst({ where: eq(User.id, id) });
 }
 
 export async function getUserByDiscordId(db: DatabaseClient, discordId: string): Promise<User | undefined> {
-    return db.query.users.findFirst({ where: eq(users.discordId, discordId) });
+    return db.query.User.findFirst({ where: eq(User.discordId, discordId) });
+}
+
+export async function getMinimalUsers(db: DatabaseClient): Promise<{ id: number, discordUsername: string }[]> {
+    return db.query.User.findMany({ columns: { id: true, discordUsername: true }});
 }
 
 export async function getOrCreateUserByDiscordId(db: DatabaseClient, discordId: string, data: UserData): Promise<User> {
     const existingUser = await getUserByDiscordId(db, discordId);
     if (existingUser) {
-        return (await db.update(users).set(data).where(eq(users.id, existingUser.id)).returning())[0];
+        return (await db.update(User).set(data).where(eq(User.id, existingUser.id)).returning())[0];
     }
-    return (await db.insert(users).values({ discordId, ...data }).returning())[0];
+    return (await db.insert(User).values({ discordId, ...data }).returning())[0];
 }
 
 export async function updateUser(db: DatabaseClient, userId: number, data: Partial<User>) {
-    await db.update(users).set(data).where(eq(users.id, userId));
+    await db.update(User).set(data).where(eq(User.id, userId));
 }
