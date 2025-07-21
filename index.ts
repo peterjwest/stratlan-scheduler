@@ -139,14 +139,14 @@ const steamAuth = new SteamAuth({
 
 app.get('/steam', async (request, response) => {
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    if (!user) throw new Error('Please login with Discord first');
+    if (!user) return response.status(403).send('Please login with Discord first');
 
     return response.redirect(await steamAuth.getRedirectUrl());
 });
 
 app.get('/steam/authenticate', async (request, response) => {
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    if (!user) throw new Error('Please login with Discord first');
+    if (!user) return response.status(403).send('Please login with Discord first');
 
     const steamUser = await steamAuth.authenticate(request);
     await updateUser(db, user.id, {
