@@ -42,9 +42,9 @@ Objectives:
 
 https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?appid=440&key=12B147D46A513F406504BE202991C520&steamid=76561197961493121
 
-npx tsx --env-file=.env index.ts
-npx drizzle-kit generate --name=add_users
-npx drizzle-kit migrate
+pnpm start
+pnpm run db:generate --name=add_users
+pnpm run db:migrate
 
 Notes:
 - If someone becomes Staff, they will need to login again to get admin access

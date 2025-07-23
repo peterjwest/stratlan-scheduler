@@ -13,6 +13,11 @@
     "type": "git",
     "url": "git+https://github.com/peterjwest/stratlan.git"
   },
+  "scripts": {
+    "start": "tsx --env-file=.env index.ts",
+    "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
   "devDependencies": {
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
