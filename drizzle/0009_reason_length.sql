@@ -1,0 +1,1 @@
+ALTER TABLE "scores" ALTER COLUMN "reason" SET DATA TYPE varchar(256);

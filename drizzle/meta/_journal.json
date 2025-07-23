@@ -47,8 +47,29 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1753124642591,
+      "when": 1753136122570,
       "tag": "0006_add_score",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1753136309298,
+      "tag": "0007_add_reason",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1753136787182,
+      "tag": "0008_add_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1753137417447,
+      "tag": "0009_reason_length",
       "breakpoints": true
     }
   ]

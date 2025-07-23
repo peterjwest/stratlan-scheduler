@@ -1,6 +1,6 @@
 {
-  "id": "b019177f-770f-4c45-b62d-ffefbb9518f0",
-  "prevId": "d0f1e616-0bda-4fa7-aaad-0c978f7eace1",
+  "id": "97711338-38b3-42f6-b7b9-9720965a63dd",
+  "prevId": "be156476-bb53-4415-b4ca-2bfeb5f0fc6e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -47,6 +47,18 @@
         "assignerId": {
           "name": "assignerId",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },

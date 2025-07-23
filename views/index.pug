@@ -5,10 +5,16 @@ html(lang="en")
     body
         if user
             h1 Hello #{user.discordUsername}
-            if user.steamUsername
-                h2 Steam account #{user.steamUsername}
-            else
-                a(href='/steam') Link Steam account
-            a(href='/logout') Logout
+            ul
+                if user.isAdmin
+                    li
+                        a(href='/admin') Admin
+                li
+                    if user.steamUsername
+                        span Steam account #{user.steamUsername}
+                    else
+                        a(href='/steam') Link Steam account
+                li
+                    a(href='/logout') Logout
         else
             a(href=discordAuthUrl) Login with Discord

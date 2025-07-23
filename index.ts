@@ -1,7 +1,5 @@
-import querystring from 'node:querystring';
-
 import { REST, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
@@ -11,7 +9,15 @@ import zod from 'zod';
 import { regenerateSession, saveSession, destroySession } from './util';
 import setupCommands from './commands';
 import environment from './environment';
-import { createTeams, getDatabaseClient, getUser, getOrCreateUserByDiscordId, updateUser } from './database';
+import { User } from './schema';
+import adminRouter from './admin';
+import {
+    createTeams,
+    getDatabaseClient,
+    getUser,
+    getOrCreateUserByDiscordId,
+    updateUser,
+} from './database';
 import {
     getGuildRoles,
     mapRoleIds,
@@ -19,6 +25,16 @@ import {
     getDiscordUser,
     getDiscordGuildMember,
 } from './discordApi';
+
+// TODO: Tidy constants vs. environment
+import {
+    COOKIE_MAX_AGE,
+    HOST,
+    MODERATOR_ROLES,
+    TEAMS,
+    DISCORD_RETURN_URL,
+    DISCORD_AUTH_URL,
+} from './constants';
 
 const {
     PORT,
@@ -32,18 +48,6 @@ const {
     POSTGRES_URL,
 } = environment;
 
-const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
-const HOST = `http://localhost:${PORT}`;
-const MODERATOR_ROLES = new Set(['Staff', 'Moderator']);
-const TEAMS = ['Red', 'Blue'];
-const DISCORD_RETURN_URL = `${HOST}/login`;
-const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
-    client_id: DISCORD_CLIENT_ID,
-    response_type: 'code',
-    redirect_uri: DISCORD_RETURN_URL,
-    scope: 'identify',
-});
-
 /** Augments the session with userId */
 declare module 'express-session' {
     interface SessionData {
@@ -51,9 +55,23 @@ declare module 'express-session' {
     }
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      user: User
+    }
+  }
+}
+
+declare namespace Express {
+   export interface Request {
+      user: User
+   }
+}
+
 const db = await getDatabaseClient(POSTGRES_URL);
 
-await createTeams(db, TEAMS);
+const teams = await createTeams(db, TEAMS);
 
 const client = new Client({
     intents: [
@@ -121,7 +139,7 @@ app.get('/login', async (request, response) => {
     const user = await getOrCreateUserByDiscordId(db, discordUser.id, {
         accessToken,
         discordUsername: discordUser.username,
-        isAdmin: Boolean(roles.find((role) => MODERATOR_ROLES.has(role.name))),
+        isAdmin: Boolean(roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role.name))),
     });
 
     await regenerateSession(request);
@@ -143,25 +161,33 @@ const steamAuth = new SteamAuth({
     apiKey: STEAM_API_KEY,
 });
 
-app.get('/steam', async (request, response) => {
+app.use(async (request, response, next) => {
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
     if (!user) return response.status(403).send('Please login with Discord first');
+    request.user = user;
+    next();
+})
 
+app.get('/steam', async (request, response) => {
     return response.redirect(await steamAuth.getRedirectUrl());
 });
 
 app.get('/steam/authenticate', async (request, response) => {
-    const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    if (!user) return response.status(403).send('Please login with Discord first');
-
     const steamUser = await steamAuth.authenticate(request);
-    await updateUser(db, user.id, {
+    await updateUser(db, request.user.id, {
         steamId: steamUser.steamid,
         steamUsername: steamUser.username,
         steamAvatar: steamUser.avatar.large,
     });
 
     response.redirect('/');
+});
+
+app.use('/admin', adminRouter(db, teams));
+
+app.use((error: any, request: Request, response: Response, next: NextFunction) => {
+    console.error('Server error', error);
+    response.status(500).send('An unexpected error occurred');
 });
 
 app.listen(PORT, () => {
