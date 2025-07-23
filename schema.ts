@@ -8,6 +8,7 @@ export const User = pgTable('users', {
     teamId: integer().references(() => Team.id),
     discordId: varchar().notNull().unique(),
     discordUsername: varchar().notNull(),
+    discordNickname: varchar(),
     accessToken: varchar(),
     steamId: varchar(),
     steamUsername: varchar(),

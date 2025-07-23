@@ -140,6 +140,7 @@ app.get('/login', async (request, response) => {
     const user = await getOrCreateUserByDiscordId(db, discordUser.id, {
         accessToken,
         discordUsername: discordUser.username,
+        discordNickname: discordMember.nick || undefined,
         isAdmin: Boolean(roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role.name))),
     });
 

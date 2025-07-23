@@ -10,6 +10,7 @@ export type DatabaseClient = NodePgDatabase<typeof schema>;
 type UserData = {
     accessToken: string,
     discordUsername: string,
+    discordNickname: string | undefined,
     isAdmin: boolean,
 };
 

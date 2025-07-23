@@ -71,6 +71,13 @@
       "when": 1753137417447,
       "tag": "0009_reason_length",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1753311700642,
+      "tag": "0010_add_nickname",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import zod from 'zod';
 
-import { parseInteger, formatDate } from './util';
+import { parseInteger, formatDate, formatName } from './util';
 import { Team } from './schema';
 import { getUser, getMinimalUsers, getAssignedScores, createScore, DatabaseClient } from './database';
 import { TEAMS } from './constants';
@@ -48,6 +48,7 @@ export default function (db: DatabaseClient, teams: Team[]) {
             users,
             assignedScores,
             formatDate,
+            formatName,
             getTeam: (teamId: number) => teams.find((team) => team.id === teamId),
         });
     });
