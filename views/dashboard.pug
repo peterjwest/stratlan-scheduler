@@ -1,0 +1,8 @@
+doctype html
+html(lang="en")
+    head
+        title StratLAN scheduler
+    body
+        ul
+            for team in teamPoints
+                li= `${team.team.name} points: ${team.points}`

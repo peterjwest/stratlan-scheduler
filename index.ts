@@ -9,7 +9,7 @@ import zod from 'zod';
 import { regenerateSession, saveSession, destroySession } from './util';
 import setupCommands from './commands';
 import environment from './environment';
-import { User } from './schema';
+import { User, Team } from './schema';
 import adminRouter from './admin';
 import {
     createTeams,
@@ -17,6 +17,7 @@ import {
     getUser,
     getOrCreateUserByDiscordId,
     updateUser,
+    getTeamPoints,
 } from './database';
 import {
     getGuildRoles,
@@ -169,7 +170,7 @@ app.use(async (request, response, next) => {
 })
 
 app.get('/steam', async (request, response) => {
-    return response.redirect(await steamAuth.getRedirectUrl());
+    response.redirect(await steamAuth.getRedirectUrl());
 });
 
 app.get('/steam/authenticate', async (request, response) => {
@@ -181,6 +182,14 @@ app.get('/steam/authenticate', async (request, response) => {
     });
 
     response.redirect('/');
+});
+
+app.use('/dashboard', async (request, response) => {
+    const teamPoints: Array<{ team: Team, points: number }> = [];
+    for (const team of teams) {
+        teamPoints.push({ team, points: await getTeamPoints(db, team) });
+    }
+    response.render('dashboard', { teamPoints });
 });
 
 app.use('/admin', adminRouter(db, teams));

@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull } from 'drizzle-orm' ;
+import { eq, isNotNull, sql } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import schema, { User, Team, Score } from './schema';
@@ -75,4 +75,9 @@ export async function createScore(
 
 export async function getAssignedScores(db: DatabaseClient): Promise<Score[]> {
     return db.query.Score.findMany({ where: isNotNull(Score.assignerId), with: { user: true, assigner: true } });
+}
+
+export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
+    const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.teamId, team.id));
+    return results[0].total;
 }
