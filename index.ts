@@ -114,6 +114,7 @@ app.use(expressSession({
 }));
 
 app.use(express.urlencoded());
+app.use(express.static('build/public'));
 
 app.set('view engine', 'pug');
 
@@ -190,7 +191,7 @@ app.use('/dashboard', async (request, response) => {
     for (const team of teams) {
         teamPoints.push({ team, points: await getTeamPoints(db, team) });
     }
-    response.render('dashboard', { teamPoints });
+    response.render('dashboard', { user: request.user, teamPoints });
 });
 
 app.use('/admin', adminRouter(db, teams));

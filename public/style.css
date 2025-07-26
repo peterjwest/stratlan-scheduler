@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@import "./font.css";
+
+html,
+body {
+    height: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+@theme {
+    --default-font-family: InterVariable;
+    --color-bg-red: rgba(58, 25, 52, 1);
+    --color-bg-purple: rgba(48, 25, 62, 1);
+    --color-bg-blue: rgba(73, 39, 186, 1);
+}

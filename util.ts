@@ -2,6 +2,8 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
+import { User } from './schema';
+
 export async function regenerateSession(request: Request) {
     const data = lodash.omit(request.session, 'cookie');
     await promisify(request.session.regenerate.bind(request.session))();
@@ -41,4 +43,9 @@ export function formatDate(dateTime: Date) {
     const day = DAYS[dateTime.getDay()];
     const date = `${dateTime.getFullYear()}-${padNumber(dateTime.getMonth() + 1)}-${padNumber(dateTime.getDate())}`;
     return `${time} ${day} ${date}`;
+}
+
+export function formatName(user: User) {
+    if (user.discordNickname) return `${user.discordNickname} (${user.discordUsername})`;
+    return user.discordUsername;
 }

@@ -1,22 +1,4 @@
-doctype html
-html(lang="en")
-    head
-        title StratLAN scheduler
-    body
-        if user
-            h1 Hello #{user.discordUsername}
-            ul
-                if user.isAdmin
-                    li
-                        a(href='/admin') Admin
-                li
-                    a(href='/dashboard') Dashboard
-                li
-                    if user.steamUsername
-                        span Steam account #{user.steamUsername}
-                    else
-                        a(href='/steam') Link Steam account
-                li
-                    a(href='/logout') Logout
-        else
-            a(href=discordAuthUrl) Login with Discord
+extends layout.pug
+
+block body
+    h2 Hello!

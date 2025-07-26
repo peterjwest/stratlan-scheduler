@@ -46,7 +46,5 @@ pnpm start
 pnpm run db:generate --name=add_users
 pnpm run db:migrate
 
-#301934
-
 Notes:
 - If someone becomes Staff, they will need to login again to get admin access

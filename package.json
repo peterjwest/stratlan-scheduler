@@ -15,6 +15,8 @@
   },
   "scripts": {
     "start": "tsx --env-file=.env index.ts",
+    "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
+    "css:watch": "pnpm run css:build --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
@@ -30,6 +32,7 @@
     "tsx": "^4.20.3"
   },
   "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "discord.js": "^14.21.0",
@@ -41,6 +44,7 @@
     "pg": "^8.16.3",
     "pug": "^3.0.3",
     "session-file-store": "^1.5.0",
+    "tailwindcss": "^4.1.11",
     "zod": "^4.0.5"
   }
 }

@@ -1,59 +1,57 @@
-doctype html
-html(lang="en")
-    head
-        title StratLAN scheduler admin
-    body
-        form(action="/admin/assign" method="post")
-            h2 Assign points
+extends ../layout.pug
 
-            ul
-                li
-                    label
-                        span Red
-                        input(name="type" type="radio" value="Red" required)
-                li
-                    label
-                        span Blue
-                        input(name="type" type="radio" value="Blue" required)
-                li
-                    label
-                        span Player
-                        input(name="type" type="radio" value="Player" required)
+block body
+    form(action="/admin/assign" method="post")
+        h2 Assign points
 
-                    //- TODO: Required if Player
-                    select(name="userId")
-                        option(value="") Select user...
-                        each user in users
-                            option(value=user.id)=user.discordUsername
+        ul
+            li
+                label
+                    span Red
+                    input(name="type" type="radio" value="Red" required)
+            li
+                label
+                    span Blue
+                    input(name="type" type="radio" value="Blue" required)
+            li
+                label
+                    span Player
+                    input(name="type" type="radio" value="Player" required)
 
-                li
-                    label
-                        span Points
-                        input(name="points" type="number" step="10" min="10" required)
+                //- TODO: Required if Player
+                select(name="userId")
+                    option(value="") Select user...
+                    each user in users
+                        option(value=user.id)=user.discordUsername
 
-                li
-                    label
-                        span Reason
-                        input(name="reason" type="text" required maxlength="256")
+            li
+                label
+                    span Points
+                    input(name="points" type="number" step="10" min="10" required)
 
-                li
-                    input(type="submit" name="submit" value="Submit")
+            li
+                label
+                    span Reason
+                    input(name="reason" type="text" required maxlength="256")
 
-        table
+            li
+                input(type="submit" name="submit" value="Submit")
+
+    table
+        tr
+            th Type
+            th Points
+            th Team
+            th User
+            th Reason
+            th Assigned by
+            th Date
+        for score in assignedScores
             tr
-                th Type
-                th Points
-                th Team
-                th User
-                th Reason
-                th Assigned by
-                th Date
-            for score in assignedScores
-                tr
-                    td= score.type
-                    td= score.points
-                    td= getTeam(score.teamId).name
-                    td= score.user ? formatName(score.user) : ''
-                    td= score.reason
-                    td= score.assigner ? score.assigner.discordUsername : ''
-                    td= formatDate(score.createdAt)
+                td= score.type
+                td= score.points
+                td= getTeam(score.teamId).name
+                td= score.user ? formatName(score.user) : ''
+                td= score.reason
+                td= score.assigner ? score.assigner.discordUsername : ''
+                td= formatDate(score.createdAt)

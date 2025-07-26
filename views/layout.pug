@@ -1,0 +1,33 @@
+doctype html
+html(lang="en")
+    head
+        title StratLAN Scheduler
+        link(rel="stylesheet" href="/style.css")
+    body(class="bg-linear-150 from-bg-red via-bg-purple to-bg-blue text-white")
+        nav(class="w-60 h-screen fixed backdrop-blur-md backdrop-brightness-130")
+            h1(class="px-2 py-4")
+                a(href="/")
+                    img(src="/stratlan-logo.webp", alt="StratLAN")
+                    div(class="text-center font-semibold text-2xl") Scheduler
+            div(class="px-4")
+                if user
+                    ul
+                        if user.isAdmin
+                            li
+                                a(href='/admin') Admin
+                            li
+                                a(href="/admin/assign") Assign points
+                        li
+                            a(href='/dashboard') Dashboard
+                        //- li
+                        //-     if user.steamUsername
+                        //-         span Steam account #{user.steamUsername}
+                        //-     else
+                        //-         a(href='/steam') Link Steam account
+                        li
+                            a(href='/logout') Logout
+                else
+                    a(href=discordAuthUrl) Login with Discord
+        main(class="pl-60")
+            div(class="container")
+                block body
