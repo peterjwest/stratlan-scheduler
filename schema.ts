@@ -9,6 +9,7 @@ export const User = pgTable('users', {
     discordId: varchar().notNull().unique(),
     discordUsername: varchar().notNull(),
     discordNickname: varchar(),
+    discordAvatarId: varchar(),
     accessToken: varchar(),
     steamId: varchar(),
     steamUsername: varchar(),
