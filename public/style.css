@@ -4,14 +4,18 @@
 
 html,
 body {
-    height: 100%;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
 }
 
 @theme {
     --default-font-family: InterVariable;
-    --color-bg-red: rgba(58, 25, 52, 1);
-    --color-bg-purple: rgba(48, 25, 62, 1);
-    --color-bg-blue: rgba(73, 39, 186, 1);
+    --color-bg-red: #3a1934;
+    --color-bg-purple: #30193e;
+    --color-bg-blue: #4927ba;
+    --color-highlight: #5c4299;
+    --color-discord: #5865F2;
+    --color-red: var(--color-rose-800);
+    --color-blue: var(--color-indigo-800);
+    --color-border: var(--color-violet-300);
 }

@@ -1,5 +1,7 @@
 import querystring from 'node:querystring';
 
+import zod from 'zod';
+
 import environment from './environment';
 
 const {
@@ -16,6 +18,7 @@ export const TEAMS = ['Red', 'Blue'] as const;
 export type TeamName = typeof TEAMS[number];
 
 export const SCORE_TYPES =  ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement'] as const;
+export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
 
 export const DISCORD_RETURN_URL = `${HOST}/login`;

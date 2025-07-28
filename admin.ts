@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import zod from 'zod';
 
-import { parseInteger, formatDate, formatName } from './util';
+import { parseInteger } from './util';
 import { Team } from './schema';
-import { getUser, getMinimalUsers, getAssignedScores, createScore, DatabaseClient } from './database';
-import { TEAMS } from './constants';
+import { getUser, getMinimalUsers, getScores, createScore, DatabaseClient } from './database';
+import { TEAMS, ScoreType } from './constants';
 
 
 const AssignPoints = zod.object({
@@ -24,6 +24,10 @@ const AssignPlayerPoints = AssignPoints.extend({
 
 const AssignPointsData = zod.union([AssignTeamPoints, AssignPlayerPoints]);
 
+const PointsQuery = zod.object({
+    type: zod.union([ScoreType, zod.undefined()]),
+    assigned: zod.union([zod.string(), zod.undefined()]).transform((value) => value === 'true'),
+});
 
 export default function (db: DatabaseClient, teams: Team[]) {
     const router = Router();
@@ -34,22 +38,31 @@ export default function (db: DatabaseClient, teams: Team[]) {
     });
 
     router.get('/', async (request, response) => {
-        const users = await getMinimalUsers(db);
+        response.render('admin/index', request.context);
+    });
 
-        response.render('admin/index', { user: request.user, users });
+    router.get('/points', async (request, response) => {
+        const query = PointsQuery.parse(request.query);
+        const filters = [
+            { name: 'All', url: '/admin/points' },
+            { name: 'Awarded', url: '/admin/points?type=Awarded' },
+            { name: 'Community game', url: '/admin/points?type=CommunityGame' },
+            { name: 'Achievement', url: '/admin/points?type=Achievement' },
+            { name: 'One time code', url: '/admin/points?type=OneTimeCode' },
+            { name: 'Manually assigned', url: '/admin/points?assigned=true' },
+        ]
+        response.render('admin/points', {
+            ...request.context,
+            filters,
+            path: request.originalUrl,
+            assignedScores: await getScores(db, query.type, query.assigned),
+        });
     });
 
     router.get('/assign', async (request, response) => {
-        const users = await getMinimalUsers(db);
-        const assignedScores = await getAssignedScores(db);
-
         response.render('admin/assign', {
-            user: request.user,
-            users,
-            assignedScores,
-            formatDate,
-            formatName,
-            getTeam: (teamId: number) => teams.find((team) => team.id === teamId),
+            ...request.context,
+            users: await getMinimalUsers(db),
         });
     });
 
@@ -82,7 +95,7 @@ export default function (db: DatabaseClient, teams: Team[]) {
             );
         }
 
-        response.redirect('/admin/assign');
+        response.redirect('/admin/points');
     });
 
     return router;

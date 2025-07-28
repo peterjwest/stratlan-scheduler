@@ -11,6 +11,7 @@ import setupCommands from './commands';
 import environment from './environment';
 import { User, Team } from './schema';
 import adminRouter from './admin';
+import helpers from './helpers';
 import {
     createTeams,
     getDatabaseClient,
@@ -59,15 +60,16 @@ declare module 'express-session' {
 declare global {
   namespace Express {
     interface Request {
-      user: User
+        maybeUser: User | undefined;
+        user: User;
+        context: {
+            teams: Team[];
+            user: User | undefined;
+            discordAuthUrl: string;
+            helpers: typeof helpers;
+        },
     }
   }
-}
-
-declare namespace Express {
-   export interface Request {
-      user: User
-   }
 }
 
 const db = await getDatabaseClient(POSTGRES_URL);
@@ -118,9 +120,20 @@ app.use(express.static('build/public'));
 
 app.set('view engine', 'pug');
 
-app.get('/', async (request, response) => {
+app.use(async (request, response, next) => {
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    response.render('index', { user, discordAuthUrl: DISCORD_AUTH_URL });
+    request.maybeUser = user
+    request.context = {
+        teams,
+        user,
+        discordAuthUrl: DISCORD_AUTH_URL,
+        helpers,
+    }
+    next();
+});
+
+app.get('/', async (request, response) => {
+    response.render('index', request.context);
 });
 
 app.get('/login', async (request, response) => {
@@ -141,7 +154,8 @@ app.get('/login', async (request, response) => {
     const user = await getOrCreateUserByDiscordId(db, discordUser.id, {
         accessToken,
         discordUsername: discordUser.username,
-        discordNickname: discordMember.nick || undefined,
+        discordNickname: discordMember.nick,
+        discordAvatarId: discordUser.avatar,
         isAdmin: Boolean(roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role.name))),
     });
 
@@ -158,18 +172,25 @@ app.get('/logout', async (request, response) => {
     response.redirect('/');
 });
 
+app.use('/dashboard', async (request, response) => {
+    const teamPoints: Array<{ team: Team, points: number }> = [];
+    for (const team of teams) {
+        teamPoints.push({ team, points: await getTeamPoints(db, team) });
+    }
+    response.render('dashboard', { ...request.context, teamPoints });
+});
+
+app.use(async (request, response, next) => {
+    if (!request.maybeUser) return response.status(403).send('Please login with Discord first');
+    request.user = request.maybeUser;
+    next();
+});
+
 const steamAuth = new SteamAuth({
     realm: HOST,
     returnUrl: `${HOST}/steam/authenticate`,
     apiKey: STEAM_API_KEY,
 });
-
-app.use(async (request, response, next) => {
-    const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    if (!user) return response.status(403).send('Please login with Discord first');
-    request.user = user;
-    next();
-})
 
 app.get('/steam', async (request, response) => {
     response.redirect(await steamAuth.getRedirectUrl());
@@ -184,14 +205,6 @@ app.get('/steam/authenticate', async (request, response) => {
     });
 
     response.redirect('/');
-});
-
-app.use('/dashboard', async (request, response) => {
-    const teamPoints: Array<{ team: Team, points: number }> = [];
-    for (const team of teams) {
-        teamPoints.push({ team, points: await getTeamPoints(db, team) });
-    }
-    response.render('dashboard', { user: request.user, teamPoints });
 });
 
 app.use('/admin', adminRouter(db, teams));

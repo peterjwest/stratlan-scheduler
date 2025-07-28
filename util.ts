@@ -2,7 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User } from './schema';
+import { User, Team } from './schema';
 
 export async function regenerateSession(request: Request) {
     const data = lodash.omit(request.session, 'cookie');
@@ -41,11 +41,15 @@ function padNumber(value: number) {
 export function formatDate(dateTime: Date) {
     const time = `${padNumber(dateTime.getHours())}:${padNumber(dateTime.getMinutes())}:${padNumber(dateTime.getSeconds())}`;
     const day = DAYS[dateTime.getDay()];
-    const date = `${dateTime.getFullYear()}-${padNumber(dateTime.getMonth() + 1)}-${padNumber(dateTime.getDate())}`;
-    return `${time} ${day} ${date}`;
+    // const date = `${dateTime.getFullYear()}-${padNumber(dateTime.getMonth() + 1)}-${padNumber(dateTime.getDate())}`;
+    return `${time} ${day}`;
 }
 
 export function formatName(user: User) {
     if (user.discordNickname) return `${user.discordNickname} (${user.discordUsername})`;
     return user.discordUsername;
+}
+
+export function getTeam(teams: Team[], teamId: number) {
+    return teams.find((team) => team.id === teamId);
 }

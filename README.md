@@ -3,6 +3,8 @@
 Objectives:
 - Dashboard page
   - Teams
+- Assign teams (Red vs. Blue)
+- Check LAN eligibility
 - Schedule
   - CRUD
     - Model: Event
@@ -13,9 +15,11 @@ Objectives:
       - gameId
   - Schedule page
   - Schedule commands
-- Assign points (e.g. winners)
-  - Assign to player or team
+  - Discord integration / sync
+  - LTG integration
+- Assign points
   - Set event optional
+  - Better player select
 - QR code setup
   - Set event optional
   - Assign points

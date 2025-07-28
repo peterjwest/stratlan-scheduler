@@ -2,56 +2,34 @@ extends ../layout.pug
 
 block body
     form(action="/admin/assign" method="post")
-        h2 Assign points
+        h2(class="text-2xl mb-3") Assign points
 
-        ul
-            li
-                label
-                    span Red
-                    input(name="type" type="radio" value="Red" required)
-            li
-                label
-                    span Blue
-                    input(name="type" type="radio" value="Blue" required)
-            li
-                label
-                    span Player
-                    input(name="type" type="radio" value="Player" required)
-
-                //- TODO: Required if Player
-                select(name="userId")
-                    option(value="") Select user...
+        div(class="flex space-x-3 items-center mb-3")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-md border border-border/50 has-[:checked]:bg-highlight has-[:focus]:border-white")
+                span Red
+                input(name="type" type="radio" value="Red" required class="w-0")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-md border border-border/50 has-[:checked]:bg-highlight has-[:focus]:border-white")
+                span Blue
+                input(name="type" type="radio" value="Blue" required class="w-0")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-md border border-border/50 has-[:checked]:bg-highlight has-[:focus]:border-white")
+                span Player
+                input(name="type" type="radio" value="Player" required class="w-0")
+        //- TODO: Required if Player
+        div(class="grid grid-cols-[repeat(2,min-content)]")
+            label(data-player-field class="py-2 px-3 grid grid-cols-subgrid col-span-2 hidden")
+                span(class="py-1 pr-3") Player
+                select(data-player-input name="userId" class="py-1 px-2 border border-border/50 rounded-xs")
+                    option(value="") Select player
                     each user in users
                         option(value=user.id)=user.discordUsername
 
-            li
-                label
-                    span Points
-                    input(name="points" type="number" step="10" min="10" required)
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-2")
+                span(class="py-1 pr-3") Points
+                input(name="points" type="number" step="10" min="10" required class="py-1 px-2 border border-border/50 rounded-xs")
 
-            li
-                label
-                    span Reason
-                    input(name="reason" type="text" required maxlength="256")
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-2")
+                span(class="py-1 pr-3") Reason
+                input(name="reason" type="text" required maxlength="256" class="py-1 px-2 border border-border/50 rounded-xs")
 
-            li
-                input(type="submit" name="submit" value="Submit")
-
-    table
-        tr
-            th Type
-            th Points
-            th Team
-            th User
-            th Reason
-            th Assigned by
-            th Date
-        for score in assignedScores
-            tr
-                td= score.type
-                td= score.points
-                td= getTeam(score.teamId).name
-                td= score.user ? formatName(score.user) : ''
-                td= score.reason
-                td= score.assigner ? score.assigner.discordUsername : ''
-                td= formatDate(score.createdAt)
+            div(class="mt-2")
+                input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/50 bg-blue-400/70")
