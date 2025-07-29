@@ -3,7 +3,7 @@ import { relations } from 'drizzle-orm';
 
 import { SCORE_TYPES } from './constants';
 
-export const User = pgTable('users', {
+export const User = pgTable('User', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     teamId: integer().references(() => Team.id),
     discordId: varchar().notNull().unique(),
@@ -22,7 +22,7 @@ export const usersRelations = relations(User, ({ many }) => ({
     assignedScores: many(Score),
 }));
 
-export const Session = pgTable('sessions', {
+export const Session = pgTable('Session', {
     sid: varchar().primaryKey().notNull(),
     sess: json().notNull(),
     expire: timestamp().notNull(),
@@ -31,7 +31,7 @@ export const Session = pgTable('sessions', {
 ]);
 export type Session = typeof Session.$inferSelect;
 
-export const Team = pgTable('teams', {
+export const Team = pgTable('Team', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull().unique(),
 });
@@ -39,7 +39,7 @@ export type Team = typeof Team.$inferSelect;
 
 export const ScoreTypeEnum = pgEnum('ScoreType', SCORE_TYPES);
 
-export const Score = pgTable('scores', {
+export const Score = pgTable('Score', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     teamId: integer().references(() => Team.id),
     type: ScoreTypeEnum().notNull(),
@@ -67,7 +67,7 @@ export const scoreRelations = relations(Score, ({ one }) => ({
     }),
 }));
 
-export const Event = pgTable('events', {
+export const Event = pgTable('Event', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
     description: varchar().notNull(),

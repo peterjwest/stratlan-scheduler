@@ -113,7 +113,7 @@ app.use(expressSession({
   resave: false,
   saveUninitialized: true,
   cookie: { httpOnly: true, secure: SECURE_COOKIE, maxAge: COOKIE_MAX_AGE },
-  store: new SessionStore({ conString: POSTGRES_URL, tableName : 'sessions' }),
+  store: new SessionStore({ conString: POSTGRES_URL, tableName : 'Session' }),
 }));
 
 app.use(express.urlencoded());

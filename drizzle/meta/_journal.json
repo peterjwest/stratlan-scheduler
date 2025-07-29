@@ -99,6 +99,13 @@
       "when": 1753729124986,
       "tag": "0013_add_is_official",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1753816779516,
+      "tag": "0014_rename_tables",
+      "breakpoints": true
     }
   ]
 }
