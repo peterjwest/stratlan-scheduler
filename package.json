@@ -36,15 +36,15 @@
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "discord.js": "^14.21.0",
-    "drizzle-orm": "^0.44.3",
+    "drizzle-orm": "^0.44.4",
     "express": "^5.1.0",
-    "express-session": "^1.18.1",
+    "express-session": "^1.18.2",
     "lodash": "^4.17.21",
     "node-steam-openid": "^2.0.0",
     "pg": "^8.16.3",
     "pug": "^3.0.3",
     "session-file-store": "^1.5.0",
     "tailwindcss": "^4.1.11",
-    "zod": "^4.0.5"
+    "zod": "^4.0.13"
   }
 }
