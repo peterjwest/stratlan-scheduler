@@ -2,7 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, Team } from './schema';
+import { User, Team, Event } from './schema';
 
 export async function regenerateSession(request: Request) {
     const data = lodash.omit(request.session, 'cookie');
@@ -52,4 +52,45 @@ export function formatName(user: User) {
 
 export function getTeam(teams: Team[], teamId: number) {
     return teams.find((team) => team.id === teamId);
+}
+
+export function last<Type>(list: Type[]): Type | undefined {
+    return list[list.length - 1];
+}
+
+export function addMinutes(date: Date, minutes: number): Date {
+    return new Date(date.getTime() + minutes * 60000);
+}
+
+export function eventEnd(event: Event): Date {
+    return addMinutes(event.startTime, event.duration);
+}
+
+export function groupEvents(events: Event[]): Event[][][] {
+    if (events.length === 0) return [];
+
+    let groups = [];
+    let groupEnd = eventEnd(events[0]);
+    let columns: Event[][] = [];
+    for (const event of events) {
+        if (event.startTime >= groupEnd) {
+            groups.push(columns);
+            columns = [];
+            groupEnd = eventEnd(event);
+        }
+        for (let i = 0; i <= columns.length; i++) {
+            if (i == columns.length) {
+                columns.push([event]);
+                break
+            }
+            const lastEvent = last(columns[i]);
+            if (!lastEvent || event.startTime >= eventEnd(lastEvent)) {
+                columns[i].push(event);
+                break;
+            }
+        }
+        if (eventEnd(event) > groupEnd) groupEnd = eventEnd(event);
+    }
+    groups.push(columns);
+    return groups;
 }
