@@ -17,7 +17,7 @@ block body
         for score in assignedScores
             tr(class="hover:bg-highlight border-t border-border/50")
                 td(class="px-3 py-2")
-                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeam(teams, score.teamId).name === 'Red' ? 'bg-red' : 'bg-blue'}`)= helpers.getTeam(teams, score.teamId).name
+                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeam(teams, score.teamId).name === 'Red' ? 'bg-team-red' : 'bg-team-blue'}`)= helpers.getTeam(teams, score.teamId).name
                 td(class="px-3 py-2")= score.user ? helpers.formatName(score.user) : ''
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.reason
