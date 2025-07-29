@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, desc, and } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, and } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score } from './schema';
+import schema, { User, Team, Score, Event } from './schema';
 import { TeamName, ScoreType } from './constants';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
@@ -84,9 +84,16 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
         with: { user: true, assigner: true },
         orderBy: [desc(Score.createdAt)],
     });
-};
+}
 
 export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
     const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.teamId, team.id));
     return results[0].total;
 }
+
+export async function getEvents(db: DatabaseClient): Promise<Event[]> {
+    return db.query.Event.findMany({
+        where: eq(Event.isOfficial, true),
+        orderBy: [asc(Score.createdAt)],
+    });
+};

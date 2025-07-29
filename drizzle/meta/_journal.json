@@ -85,6 +85,20 @@
       "when": 1753547039766,
       "tag": "0011_add_avatar",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1753728950714,
+      "tag": "0012_add_event",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1753729124986,
+      "tag": "0013_add_is_official",
+      "breakpoints": true
     }
   ]
 }

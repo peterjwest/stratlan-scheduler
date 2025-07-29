@@ -67,6 +67,38 @@ export const scoreRelations = relations(Score, ({ one }) => ({
     }),
 }));
 
+export const Event = pgTable('events', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull(),
+    description: varchar().notNull(),
+    startTime: timestamp().notNull(),
+    duration: integer().notNull(),
+    isOfficial: boolean().notNull(),
+    createdBy: integer().references(() => User.id),
+    createdAt: timestamp().defaultNow(),
+});
+export type Event = typeof Event.$inferSelect;
+
+export const eventRelations = relations(Event, ({ one }) => ({
+    user: one(User, {
+        fields: [Event.createdBy],
+        references: [User.id],
+    }),
+}));
+
+// export const LanEvent = pgTable('LanEvent', {
+//     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+//     name: varchar().notNull(),
+//     description: varchar().notNull(),
+//     startTime: timestamp().notNull(),
+//     duration: integer().notNull(),
+//     isOfficial: boolean().notNull(),
+//     createdBy: integer().references(() => User.id),
+//     createdAt: timestamp().defaultNow(),
+// });
+// export type Event = typeof Event.$inferSelect;
+
+
 export default {
     User,
     usersRelations,
@@ -74,4 +106,6 @@ export default {
     Team,
     Score,
     scoreRelations,
+    Event,
+    eventRelations,
 };

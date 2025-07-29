@@ -19,6 +19,7 @@ import {
     getOrCreateUserByDiscordId,
     updateUser,
     getTeamPoints,
+    getEvents,
 } from './database';
 import {
     getGuildRoles,
@@ -133,7 +134,7 @@ app.use(async (request, response, next) => {
 });
 
 app.get('/', async (request, response) => {
-    response.render('index', request.context);
+    response.render('index', { ...request.context, events: await getEvents(db) });
 });
 
 app.get('/login', async (request, response) => {
