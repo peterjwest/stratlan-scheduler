@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, and } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, and, gt, lt } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score, Event } from './schema';
+import schema, { User, Team, Score, Event, Lan } from './schema';
 import { TeamName, ScoreType } from './constants';
+import { getDayStart, getDayEnd } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -91,9 +92,21 @@ export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<num
     return results[0].total;
 }
 
-export async function getEvents(db: DatabaseClient): Promise<Event[]> {
+export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event[]> {
+    if (!lan)  return [];
     return db.query.Event.findMany({
-        where: eq(Event.isOfficial, true),
-        orderBy: [asc(Score.createdAt)],
+        where: and(
+            eq(Event.isOfficial, true),
+            gt(Event.startTime, getDayStart(lan.startDate)),
+            lt(Event.startTime, getDayEnd(lan.endDate)),
+        ),
+        orderBy: [asc(Event.startTime)],
     });
 };
+
+export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined> {
+    return db.query.Lan.findFirst({
+        where: gt(Lan.endDate, new Date()),
+        orderBy: [asc(Lan.endDate)],
+    });
+}

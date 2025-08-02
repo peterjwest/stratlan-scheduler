@@ -28,3 +28,6 @@ export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querys
     redirect_uri: DISCORD_RETURN_URL,
     scope: 'identify',
 });
+
+export const SCHEDULE_START_TIME = 10;
+export const SCHEDULE_END_TIME = 26;

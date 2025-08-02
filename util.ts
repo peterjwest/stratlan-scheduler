@@ -2,7 +2,13 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, Team, Event } from './schema';
+import { User, Team, Event, Lan } from './schema';
+import { SCHEDULE_START_TIME, SCHEDULE_END_TIME } from './constants';
+
+type DayEvents = {
+    day: string;
+    events: Event[];
+}
 
 export async function regenerateSession(request: Request) {
     const data = lodash.omit(request.session, 'cookie');
@@ -21,28 +27,52 @@ export async function destroySession(request: Request) {
 export function parseInteger(value: string, radix = 10) {
     const number = parseInt(value, radix);
     if (Number.isInteger(number)) return number;
-    throw new Error(`Expected an integer, got "${value}"`);
+    throw new Error(`Expected an integer, got '${value}'`);
 }
 
 const DAYS = [
-    'Sun',
-    'Mon',
-    'Tues',
-    'Weds',
-    'Thurs',
-    'Fri',
-    'Sat',
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
 ];
 
-function padNumber(value: number) {
+export function getDay(date: Date) {
+    return DAYS[date.getDay()];
+}
+
+export function getDayStart(date: Date) {
+    const dayStart = new Date(date);
+    dayStart.setUTCHours(SCHEDULE_START_TIME, 0, 0, 0);
+    return dayStart;
+}
+
+export function getDayEnd(date: Date) {
+    const dayStart = new Date(date);
+    dayStart.setUTCHours(SCHEDULE_END_TIME, 0, 0, 0);
+    return dayStart;
+}
+
+export function getScheduleHours() {
+    return Array(SCHEDULE_END_TIME - SCHEDULE_START_TIME).fill(null).map((_, i) => SCHEDULE_START_TIME + i);
+}
+
+function padTimeComponent(value: number) {
     return String(value).padStart(2, '0');
 }
 
-export function formatDate(dateTime: Date) {
-    const time = `${padNumber(dateTime.getHours())}:${padNumber(dateTime.getMinutes())}:${padNumber(dateTime.getSeconds())}`;
-    const day = DAYS[dateTime.getDay()];
-    // const date = `${dateTime.getFullYear()}-${padNumber(dateTime.getMonth() + 1)}-${padNumber(dateTime.getDate())}`;
-    return `${time} ${day}`;
+export function formatTime(time: Date | number, withSeconds = false) {
+    if (typeof time === 'number') return `${padTimeComponent(time % 24)}:00`;
+    const hours = padTimeComponent(time.getHours());
+    const minutes = padTimeComponent(time.getMinutes());
+    return `${hours}:${minutes}${ withSeconds ? padTimeComponent(time.getSeconds()) : ''}`;
+}
+
+export function formatDate(date: Date) {
+    return `${formatTime(date, true)} ${getDay(date)}`;
 }
 
 export function formatName(user: User) {
@@ -60,6 +90,12 @@ export function last<Type>(list: Type[]): Type | undefined {
 
 export function addMinutes(date: Date, minutes: number): Date {
     return new Date(date.getTime() + minutes * 60000);
+}
+
+export function addDays(date: Date, days: number): Date {
+    const added = new Date(date);
+    added.setDate(added.getDate() + days);
+    return added;
 }
 
 export function eventEnd(event: Event): Date {
@@ -93,4 +129,35 @@ export function groupEvents(events: Event[]): Event[][][] {
     }
     groups.push(columns);
     return groups;
+}
+
+export function splitByDay(events: Event[], days: Date[]): DayEvents[] {
+    return days.map((date) => ({
+        day: getDay(date),
+        events: events.filter((event) => event.startTime > getDayStart(date) && event.startTime < getDayEnd(date)),
+    }));
+}
+
+export function getLanDays(lan?: Lan): Date[] {
+    if (!lan) return [];
+    let day = lan.startDate;
+    const days = [];
+    while (day <= lan.endDate) {
+        days.push(day);
+        day = addDays(day, 1);
+    }
+    return days;
+}
+
+export function getEventScheduleStyles(event: Event, column: number, columns: number, minWidth: number) {
+    const rangeMinutes = (SCHEDULE_END_TIME - SCHEDULE_START_TIME) * 60;
+    let startMinutes = (event.startTime.getHours() - SCHEDULE_START_TIME) * 60 + event.startTime.getMinutes();
+    if (startMinutes < 0) startMinutes += 24 * 60;
+
+    const width = `${100 / columns}%`;
+    const height = `${ 100 * event.duration / rangeMinutes }%`;
+    const top = `${ 100 * startMinutes / rangeMinutes }%`;
+    const left = `min(${100 * column  / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
+
+    return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`
 }

@@ -2,7 +2,7 @@ extends ../layout.pug
 
 block body
     div(class="flex mb-4 space-x-2")
-        for filter in filters
+        for filter of filters
             a(href=filter.url class=`py-1 px-2 rounded-md border border-border/50 ${filter.url == path ? 'bg-blue-400/70' : ''}`)= filter.name
 
     table(class="w-full text-left")
@@ -14,7 +14,7 @@ block body
             th(class="px-3 py-2") Type
             th(class="px-3 py-2") Assigned by
             th(class="px-3 py-2") Date
-        for score in assignedScores
+        for score of assignedScores
             tr(class="hover:bg-highlight border-t border-border/50")
                 td(class="px-3 py-2")
                     span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeam(teams, score.teamId).name === 'Red' ? 'bg-team-red' : 'bg-team-blue'}`)= helpers.getTeam(teams, score.teamId).name

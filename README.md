@@ -17,6 +17,7 @@ Objectives:
   - Schedule commands
   - Discord integration / sync
   - LTG integration
+- Full screen mode
 - Assign points
   - Set event optional
   - Better player select
