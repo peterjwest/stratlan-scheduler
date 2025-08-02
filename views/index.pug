@@ -1,4 +1,26 @@
 extends layout.pug
 
 block body
-    p= events.length
+    div(class="flex-none lg:flex")
+        div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
+            for hour of helpers.getScheduleHours()
+                div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatTime(hour)
+
+        for dayEvents of eventsByDay
+            div(class="flex-1 flex-grow h-[800px]")
+                div(class="flex h-full")
+                    div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
+                        for hour of helpers.getScheduleHours()
+                            div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatTime(hour)
+                    div(class="flex-grow flex flex-col")
+                        h2(class="font-semibold py-2")= dayEvents.day
+                        div(class="border-r border-b border-border/40 flex-grow flex flex-col relative")
+                            for hour of helpers.getScheduleHours()
+                                div(class="flex-1 flex-grow border-t border-border/40")
+                            for group of helpers.groupEvents(dayEvents.events)
+                                for [column, index] of group.map((column, index) => [column, index])
+                                    for event of column
+                                        div(class="absolute flex min-h-[45px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
+                                            div(class=`flex-grow px-2 py-1.5 mx-1 my-0.5 ${index === group.length - 1 ? 'mr-1' : 'mr-0' } bg-highlight rounded-lg border border-border-highlight`)
+                                                div(class="text-xs")= event.name
+                                                div(class="text-xs")= helpers.formatTime(event.startTime)

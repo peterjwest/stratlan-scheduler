@@ -1,4 +1,4 @@
-import { integer, pgTable, boolean, varchar, json, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
+import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 import { SCORE_TYPES } from './constants';
@@ -86,17 +86,13 @@ export const eventRelations = relations(Event, ({ one }) => ({
     }),
 }));
 
-// export const LanEvent = pgTable('LanEvent', {
-//     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-//     name: varchar().notNull(),
-//     description: varchar().notNull(),
-//     startTime: timestamp().notNull(),
-//     duration: integer().notNull(),
-//     isOfficial: boolean().notNull(),
-//     createdBy: integer().references(() => User.id),
-//     createdAt: timestamp().defaultNow(),
-// });
-// export type Event = typeof Event.$inferSelect;
+export const Lan = pgTable('Lan', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull(),
+    startDate: date({ mode: 'date' }).notNull(),
+    endDate: date({ mode: 'date' }).notNull(),
+});
+export type Lan = typeof Lan.$inferSelect;
 
 
 export default {
@@ -108,4 +104,5 @@ export default {
     scoreRelations,
     Event,
     eventRelations,
+    Lan,
 };

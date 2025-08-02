@@ -29,7 +29,7 @@ const PointsQuery = zod.object({
     assigned: zod.union([zod.string(), zod.undefined()]).transform((value) => value === 'true'),
 });
 
-export default function (db: DatabaseClient, teams: Team[]) {
+export default function (db: DatabaseClient) {
     const router = Router();
 
     router.use((request, response, next) => {
@@ -74,7 +74,7 @@ export default function (db: DatabaseClient, teams: Team[]) {
             const player = await getUser(db, body.userId);
             if (!player) return response.status(500).send('Player not found');
 
-            const playerTeam = teams.find((team) => team.id === player.teamId);
+            const playerTeam = request.context.teams.find((team) => team.id === player.teamId);
             if (!playerTeam) return response.status(500).send('Player does not have a team');
 
             await createScore(
@@ -91,7 +91,7 @@ export default function (db: DatabaseClient, teams: Team[]) {
                 request.user,
                 body.points,
                 body.reason,
-                teams.find((team) => team.name === body.type) as Team,
+                request.context.teams.find((team) => team.name === body.type) as Team,
             );
         }
 

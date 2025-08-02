@@ -6,10 +6,10 @@ import sessionStore from 'connect-pg-simple';
 import SteamAuth from 'node-steam-openid';
 import zod from 'zod';
 
-import { regenerateSession, saveSession, destroySession } from './util';
+import { regenerateSession, saveSession, destroySession, splitByDay, getLanDays } from './util';
 import setupCommands from './commands';
 import environment from './environment';
-import { User, Team } from './schema';
+import { User, Team, Lan } from './schema';
 import adminRouter from './admin';
 import helpers from './helpers';
 import {
@@ -19,7 +19,8 @@ import {
     getOrCreateUserByDiscordId,
     updateUser,
     getTeamPoints,
-    getEvents,
+    getLanEvents,
+    getCurrentLan,
 } from './database';
 import {
     getGuildRoles,
@@ -66,6 +67,7 @@ declare global {
         context: {
             teams: Team[];
             user: User | undefined;
+            lan: Lan | undefined;
             discordAuthUrl: string;
             helpers: typeof helpers;
         },
@@ -74,8 +76,6 @@ declare global {
 }
 
 const db = await getDatabaseClient(POSTGRES_URL);
-
-const teams = await createTeams(db, TEAMS);
 
 const client = new Client({
     intents: [
@@ -122,11 +122,14 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
+    const teams = await createTeams(db, TEAMS);
+    const lan = await getCurrentLan(db);
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
     request.maybeUser = user
     request.context = {
         teams,
         user,
+        lan,
         discordAuthUrl: DISCORD_AUTH_URL,
         helpers,
     }
@@ -134,7 +137,12 @@ app.use(async (request, response, next) => {
 });
 
 app.get('/', async (request, response) => {
-    response.render('index', { ...request.context, events: await getEvents(db) });
+    const events = await getLanEvents(db, request.context.lan);
+
+    response.render('index', {
+        ...request.context,
+        eventsByDay: splitByDay(events, getLanDays(request.context.lan)),
+    });
 });
 
 app.get('/login', async (request, response) => {
@@ -175,7 +183,7 @@ app.get('/logout', async (request, response) => {
 
 app.use('/dashboard', async (request, response) => {
     const teamPoints: Array<{ team: Team, points: number }> = [];
-    for (const team of teams) {
+    for (const team of request.context.teams) {
         teamPoints.push({ team, points: await getTeamPoints(db, team) });
     }
     response.render('dashboard', { ...request.context, teamPoints });
@@ -208,7 +216,7 @@ app.get('/steam/authenticate', async (request, response) => {
     response.redirect('/');
 });
 
-app.use('/admin', adminRouter(db, teams));
+app.use('/admin', adminRouter(db));
 
 app.use((error: any, request: Request, response: Response, next: NextFunction) => {
     console.error('Server error', error);

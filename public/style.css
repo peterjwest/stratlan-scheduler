@@ -6,6 +6,7 @@ html,
 body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
 }
 
 @theme {
@@ -14,6 +15,7 @@ body {
     --color-bg-purple: #30193e;
     --color-bg-blue: #4927ba;
     --color-highlight: #5c4299;
+    --color-border-highlight: #9267c0;
     --color-discord: #5865F2;
     --color-team-red: var(--color-rose-800);
     --color-team-blue: var(--color-indigo-800);
