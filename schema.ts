@@ -94,6 +94,32 @@ export const Lan = pgTable('Lan', {
 });
 export type Lan = typeof Lan.$inferSelect;
 
+export const GameActivity = pgTable('GameActivity', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer().references(() => User.id).notNull(),
+    gameId: varchar().references(() => Game.id).notNull(),
+    startTime: timestamp().notNull(),
+    endTime: timestamp(),
+});
+export type GameActivity = typeof GameActivity.$inferSelect;
+
+export const gameActivityRelations = relations(GameActivity, ({ one }) => ({
+    user: one(User, {
+        fields: [GameActivity.userId],
+        references: [User.id],
+    }),
+    game: one(Game, {
+        fields: [GameActivity.gameId],
+        references: [Game.id],
+    }),
+}));
+
+export const Game = pgTable('Game', {
+    id: varchar().primaryKey().notNull(),
+    name: varchar().notNull(),
+});
+export type Game = typeof Game.$inferSelect;
+
 
 export default {
     User,
@@ -105,4 +131,7 @@ export default {
     Event,
     eventRelations,
     Lan,
+    GameActivity,
+    gameActivityRelations,
+    Game,
 };

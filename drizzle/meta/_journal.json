@@ -113,6 +113,20 @@
       "when": 1753817316380,
       "tag": "0015_add_lan",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1754158681408,
+      "tag": "0016_game_activity",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1754159598854,
+      "tag": "0017_game_activity_end_null",
+      "breakpoints": true
     }
   ]
 }

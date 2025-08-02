@@ -1,0 +1,1 @@
+ALTER TABLE "GameActivity" ALTER COLUMN "endTime" DROP NOT NULL;

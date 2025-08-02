@@ -1,6 +1,6 @@
 import lodash from 'lodash';
 import zod from 'zod';
-import { REST, Routes } from 'discord.js';
+import { REST, Routes, Activity } from 'discord.js';
 import { User } from './schema';
 
 export const DiscordUser = zod.object({
@@ -80,4 +80,8 @@ export async function getDiscordAccessToken(
 export function getAvatarUrl(user: User, size: 32 | 64 | 128 = 128) {
     if (!user.discordAvatarId) return;
     return `https://cdn.discordapp.com/avatars/${user.discordId}/${user.discordAvatarId}.webp?size=${size}`;
+}
+
+export function getActivityIds(activities: Activity[]) {
+    return activities.map((activity) => activity.applicationId).filter((id): id is string => Boolean(id));
 }

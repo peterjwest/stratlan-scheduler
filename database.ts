@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, and, gt, lt } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, and, gt, lt, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score, Event, Lan } from './schema';
+import schema, { User, Team, Score, Event, Lan, Game, GameActivity } from './schema';
 import { TeamName, ScoreType } from './constants';
 import { getDayStart, getDayEnd } from './util';
 
@@ -109,4 +109,40 @@ export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined
         where: gt(Lan.endDate, new Date()),
         orderBy: [asc(Lan.endDate)],
     });
+}
+
+export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {
+    await db.update(GameActivity).set({ endTime: sql`NOW()` }).where(and(
+        eq(GameActivity.userId, user.id),
+        not(inArray(GameActivity.gameId, activityIds)),
+        isNull(GameActivity.endTime),
+    ));
+}
+
+export async function getOrCreateGame(db: DatabaseClient, gameId: string, gameName: string): Promise<Game> {
+    let game = await db.query.Game.findFirst({ where: eq(Game.id, gameId) });
+    if (game) return game;
+
+    return (await db.insert(Game).values({ id: gameId, name: gameName }).returning())[0];
+}
+
+export async function getGameActivity(db: DatabaseClient, gameId: string, startTime: Date): Promise<GameActivity | undefined> {
+    return db.query.GameActivity.findFirst({
+        where: and(eq(GameActivity.gameId, gameId), eq(GameActivity.startTime, startTime)),
+    });
+}
+
+export async function createGameActivity(db: DatabaseClient, user: User, gameId: string, gameName: string, startTime: Date) {
+    const game = await getOrCreateGame(db, gameId, gameName);
+    return (await db.insert(GameActivity).values({
+        userId: user.id,
+        gameId: game.id,
+        startTime: startTime,
+    }).returning())[0];
+}
+
+export async function getOrCreateGameActivity(db: DatabaseClient, user: User, gameId: string, gameName: string, startTime: Date) {
+    const gameActivity = await getGameActivity(db, gameId, startTime);
+    if (gameActivity) return gameActivity;
+    await createGameActivity(db, user, gameId, gameName, startTime);
 }

@@ -21,6 +21,9 @@ import {
     getTeamPoints,
     getLanEvents,
     getCurrentLan,
+    endFinishedActivities,
+    getOrCreateGameActivity,
+    getUserByDiscordId,
 } from './database';
 import {
     getGuildRoles,
@@ -28,6 +31,7 @@ import {
     getDiscordAccessToken,
     getDiscordUser,
     getDiscordGuildMember,
+    getActivityIds,
 } from './discordApi';
 
 // TODO: Tidy constants vs. environment
@@ -90,13 +94,21 @@ client.once(Events.ClientReady, readyClient => console.log(`Logged in as ${ready
 
 client.login(DISCORD_TOKEN);
 
-// client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
-//     console.log('PresenceUpdate', oldPresence, newPresence);
-// });
+client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
+    // TODO: Check we're in an active LAN
 
-// client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
-//     console.log('GuildMemberUpdate', oldMember, newMember);
-// });
+    const user = await getUserByDiscordId(db, newPresence.userId);
+    if (!user) return;
+
+    await endFinishedActivities(db, user, getActivityIds(newPresence.activities));
+
+    for (const activity of newPresence.activities) {
+        if (!activity.applicationId) continue;
+
+        const startTime = new Date(activity.createdTimestamp);
+        await getOrCreateGameActivity(db, user, activity.applicationId, activity.name, startTime);
+    }
+});
 
 const rest = new REST().setToken(DISCORD_TOKEN);
 await setupCommands(rest, DISCORD_CLIENT_ID, client);
