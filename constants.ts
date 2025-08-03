@@ -31,3 +31,5 @@ export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querys
 
 export const SCHEDULE_START_TIME = 10;
 export const SCHEDULE_END_TIME = 26;
+
+export const EVENT_TIMESLOT_MINUTES = 10;

@@ -2,8 +2,8 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, Team, Event, Lan } from './schema';
-import { SCHEDULE_START_TIME, SCHEDULE_END_TIME } from './constants';
+import { User, Team, Event, Lan, EventTimeslot } from './schema';
+import { SCHEDULE_START_TIME, SCHEDULE_END_TIME, EVENT_TIMESLOT_MINUTES } from './constants';
 
 type DayEvents = {
     day: string;
@@ -160,4 +160,10 @@ export function getEventScheduleStyles(event: Event, column: number, columns: nu
     const left = `min(${100 * column  / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
 
     return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`
+}
+
+export function getEventTimeslotEnd(eventTimeslot: EventTimeslot) {
+    const slotEnd = new Date(eventTimeslot.time);
+    slotEnd.setMinutes(slotEnd.getMinutes() + EVENT_TIMESLOT_MINUTES);
+    return slotEnd;
 }

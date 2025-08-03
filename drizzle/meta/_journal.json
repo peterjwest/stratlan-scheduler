@@ -127,6 +127,20 @@
       "when": 1754159598854,
       "tag": "0017_game_activity_end_null",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1754245383425,
+      "tag": "0018_event_game_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1754245466668,
+      "tag": "0019_event_timeslot",
+      "breakpoints": true
     }
   ]
 }

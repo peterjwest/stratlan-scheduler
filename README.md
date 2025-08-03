@@ -7,16 +7,10 @@ Objectives:
 - Check LAN eligibility
 - Schedule
   - CRUD
-    - Model: Event
-      - isOfficial
-      - ownerId
-      - startDate
-      - endDate
-      - gameId
-  - Schedule page
   - Schedule commands
   - Discord integration / sync
   - LTG integration
+  - Colour code by location
 - Full screen mode
 - Assign points
   - Set event optional

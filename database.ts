@@ -1,10 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, and, gt, lt, not, inArray, isNull } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score, Event, Lan, Game, GameActivity } from './schema';
+import schema, { User, Team, Score, Event, EventTimeslot, Lan, Game, GameActivity } from './schema';
 import { TeamName, ScoreType } from './constants';
-import { getDayStart, getDayEnd } from './util';
+import { getDayStart, getDayEnd, getEventTimeslotEnd } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -145,4 +145,17 @@ export async function getOrCreateGameActivity(db: DatabaseClient, user: User, ga
     const gameActivity = await getGameActivity(db, gameId, startTime);
     if (gameActivity) return gameActivity;
     await createGameActivity(db, user, gameId, gameName, startTime);
+}
+
+export async function getTimeslotActivities(db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot) {
+    if (!event.gameId) return [];
+    return db.select().from(GameActivity).where(and(
+        eq(GameActivity.gameId, event.gameId),
+        lt(GameActivity.startTime, getEventTimeslotEnd(eventTimeslot)),
+        or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
+    ));
+}
+
+export async function getTimeslot(db: DatabaseClient, timeslotId: number) {
+    return db.query.EventTimeslot.findFirst({ where: eq(EventTimeslot.id, timeslotId) });
 }

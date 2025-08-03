@@ -74,6 +74,8 @@ export const Event = pgTable('Event', {
     startTime: timestamp().notNull(),
     duration: integer().notNull(),
     isOfficial: boolean().notNull(),
+    gameId: varchar().references(() => Game.id),
+    points: integer().notNull().default(0),
     createdBy: integer().references(() => User.id),
     createdAt: timestamp().defaultNow(),
 });
@@ -85,6 +87,13 @@ export const eventRelations = relations(Event, ({ one }) => ({
         references: [User.id],
     }),
 }));
+
+export const EventTimeslot = pgTable('EventTimeslot', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    eventId: integer().references(() => Event.id).notNull(),
+    time: timestamp().notNull(),
+});
+export type EventTimeslot = typeof EventTimeslot.$inferSelect;
 
 export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -120,7 +129,6 @@ export const Game = pgTable('Game', {
 });
 export type Game = typeof Game.$inferSelect;
 
-
 export default {
     User,
     usersRelations,
@@ -130,6 +138,7 @@ export default {
     scoreRelations,
     Event,
     eventRelations,
+    EventTimeslot,
     Lan,
     GameActivity,
     gameActivityRelations,
