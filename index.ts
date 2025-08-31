@@ -75,7 +75,7 @@ declare global {
             lan: Lan | undefined;
             discordAuthUrl: string;
             helpers: typeof helpers;
-        },
+        };
     }
   }
 }
