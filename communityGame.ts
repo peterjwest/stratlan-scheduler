@@ -47,9 +47,11 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
 }
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
+    console.log('Processing community games:');
     try {
         const events = await getIncompleteCommunityEvents(db);
         for (const event of events) {
+            console.log(`Processing game ${event.name}`);
             await db.transaction(async (tx) => {
                 const expectedTimeslots = getExpectedTimeslots(event);
                 const missingTimeslots = getMissingTimeslots(event, expectedTimeslots);
@@ -58,6 +60,8 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                     eventId: event.id,
                     time: timeslot,
                 }))).returning();
+
+                let scoresAdded = 0;
 
                 for (const timeslot of timeslots) {
                     const activitiesByUser = Object.values(lodash.groupBy(await getTimeslotActivities(db, event, timeslot), 'userId'));
@@ -74,11 +78,14 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                                 timeslotId: timeslot.id,
                                 createdAt: timeslot.time,
                             });
+                            scoresAdded++;
                         }
                     }
                 }
 
                 await tx.update(Event).set({ timeslotCount: expectedTimeslots }).where(eq(Event.id, event.id));
+
+                console.log(`Scored ${scoresAdded} player timeslots for ${event.name}`);
             });
         }
 
