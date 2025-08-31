@@ -1,0 +1,1 @@
+ALTER TABLE "Event" RENAME COLUMN "timeslotsCreated" TO "timeslotCount";

@@ -33,6 +33,7 @@ import {
     getDiscordGuildMember,
     getActivityIds,
 } from './discordApi';
+import { startScoringCommunityGames } from './communityGame';
 
 // TODO: Tidy constants vs. environment
 import {
@@ -80,6 +81,8 @@ declare global {
 }
 
 const db = await getDatabaseClient(POSTGRES_URL);
+
+await startScoringCommunityGames(db);
 
 const client = new Client({
     intents: [

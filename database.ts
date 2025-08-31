@@ -2,9 +2,9 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score, Event, EventTimeslot, Lan, Game, GameActivity } from './schema';
-import { TeamName, ScoreType } from './constants';
-import { getDayStart, getDayEnd, getEventTimeslotEnd } from './util';
+import schema, { User, Team, Score, Event, EventTimeslot, EventWithTimeslots, Lan, Game, GameActivity, GameActivityWithTeam } from './schema';
+import { TeamName, ScoreType, EVENT_TIMESLOT_MINUTES } from './constants';
+import { getDayStart, getDayEnd, getTimeslotEnd } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -147,15 +147,34 @@ export async function getOrCreateGameActivity(db: DatabaseClient, user: User, ga
     await createGameActivity(db, user, gameId, gameName, startTime);
 }
 
-export async function getTimeslotActivities(db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot) {
+export async function getTimeslotActivities(db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot): Promise<GameActivityWithTeam[]> {
     if (!event.gameId) return [];
-    return db.select().from(GameActivity).where(and(
+    return db.select({
+        id: GameActivity.id,
+        userId: GameActivity.userId,
+        teamId: User.teamId,
+        gameId: GameActivity.gameId,
+        startTime: GameActivity.startTime,
+        endTime: GameActivity.endTime,
+    }).from(GameActivity).where(and(
         eq(GameActivity.gameId, event.gameId),
-        lt(GameActivity.startTime, getEventTimeslotEnd(eventTimeslot)),
+        lt(GameActivity.startTime, getTimeslotEnd(eventTimeslot)),
         or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
-    ));
+    )).leftJoin(User, eq(User.id, GameActivity.userId));
 }
 
-export async function getTimeslot(db: DatabaseClient, timeslotId: number) {
+export async function getTimeslot(db: DatabaseClient, timeslotId: number): Promise<EventTimeslot | undefined> {
     return db.query.EventTimeslot.findFirst({ where: eq(EventTimeslot.id, timeslotId) });
+}
+
+export async function getIncompleteCommunityEvents(db: DatabaseClient): Promise<EventWithTimeslots[]> {
+    return db.query.Event.findMany({
+        where: and(
+            isNotNull(Event.gameId),
+            gt(Event.points, sql`0`),
+            gt(sql`NOW()`, Event.startTime),
+            lt(Event.timeslotCount, sql`FLOOR(${Event.duration} / ${EVENT_TIMESLOT_MINUTES})`),
+        ),
+        with: { timeslots: { orderBy: [asc(EventTimeslot.time)] }},
+    });
 }

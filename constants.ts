@@ -33,3 +33,4 @@ export const SCHEDULE_START_TIME = 10;
 export const SCHEDULE_END_TIME = 26;
 
 export const EVENT_TIMESLOT_MINUTES = 10;
+export const EVENT_TIMESLOT_THRESHOLD = 0.5;

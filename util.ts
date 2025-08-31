@@ -98,21 +98,34 @@ export function addDays(date: Date, days: number): Date {
     return added;
 }
 
-export function eventEnd(event: Event): Date {
+export function getEventEnd(event: Event): Date {
     return addMinutes(event.startTime, event.duration);
+}
+
+export function getTimeslotEnd(eventTimeslot: EventTimeslot): Date {
+    return addMinutes(eventTimeslot.time, EVENT_TIMESLOT_MINUTES);
+}
+
+export function getTimeslotTimes(event: Event, timeslots: number): Date[] {
+    console.log(event.startTime);
+    const timeslotTimes: Date[] = []
+    for (let time = event.startTime; timeslotTimes.length < timeslots; time = addMinutes(time, EVENT_TIMESLOT_MINUTES)) {
+        timeslotTimes.push(time);
+    }
+    return timeslotTimes;
 }
 
 export function groupEvents(events: Event[]): Event[][][] {
     if (events.length === 0) return [];
 
     let groups = [];
-    let groupEnd = eventEnd(events[0]);
+    let groupEnd = getEventEnd(events[0]);
     let columns: Event[][] = [];
     for (const event of events) {
         if (event.startTime >= groupEnd) {
             groups.push(columns);
             columns = [];
-            groupEnd = eventEnd(event);
+            groupEnd = getEventEnd(event);
         }
         for (let i = 0; i <= columns.length; i++) {
             if (i == columns.length) {
@@ -120,12 +133,12 @@ export function groupEvents(events: Event[]): Event[][][] {
                 break
             }
             const lastEvent = last(columns[i]);
-            if (!lastEvent || event.startTime >= eventEnd(lastEvent)) {
+            if (!lastEvent || event.startTime >= getEventEnd(lastEvent)) {
                 columns[i].push(event);
                 break;
             }
         }
-        if (eventEnd(event) > groupEnd) groupEnd = eventEnd(event);
+        if (getEventEnd(event) > groupEnd) groupEnd = getEventEnd(event);
     }
     groups.push(columns);
     return groups;
@@ -162,8 +175,18 @@ export function getEventScheduleStyles(event: Event, column: number, columns: nu
     return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`
 }
 
-export function getEventTimeslotEnd(eventTimeslot: EventTimeslot) {
-    const slotEnd = new Date(eventTimeslot.time);
-    slotEnd.setMinutes(slotEnd.getMinutes() + EVENT_TIMESLOT_MINUTES);
-    return slotEnd;
+export function datesEqual(a: Date, b: Date): boolean {
+    return a.getTime() === b.getTime();
+}
+
+export function minDate(a: Date, b: Date): Date {
+    return a < b ? a : b;
+}
+
+export function maxDate(a: Date, b: Date): Date {
+    return a > b ? a : b;
+}
+
+export function diffMinutes(a: Date, b: Date): number {
+   return (b.getTime() - a.getTime()) / 1000 / 60;
 }

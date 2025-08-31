@@ -47,6 +47,7 @@ export const Score = pgTable('Score', {
     assignerId: integer().references(() => User.id),
     points: integer(),
     reason: varchar({ length: 256 }),
+    timeslotId: integer().references(() => EventTimeslot.id),
     createdAt: timestamp().defaultNow(),
 });
 // Constraint - (Type: Awarded + Assigner)
@@ -76,16 +77,19 @@ export const Event = pgTable('Event', {
     isOfficial: boolean().notNull(),
     gameId: varchar().references(() => Game.id),
     points: integer().notNull().default(0),
+    timeslotCount: integer().notNull().default(0),
     createdBy: integer().references(() => User.id),
     createdAt: timestamp().defaultNow(),
 });
 export type Event = typeof Event.$inferSelect;
+export type EventWithTimeslots = Event & { timeslots: EventTimeslot[] };
 
-export const eventRelations = relations(Event, ({ one }) => ({
+export const eventRelations = relations(Event, ({ one, many }) => ({
     user: one(User, {
         fields: [Event.createdBy],
         references: [User.id],
     }),
+    timeslots: many(EventTimeslot),
 }));
 
 export const EventTimeslot = pgTable('EventTimeslot', {
@@ -94,6 +98,13 @@ export const EventTimeslot = pgTable('EventTimeslot', {
     time: timestamp().notNull(),
 });
 export type EventTimeslot = typeof EventTimeslot.$inferSelect;
+
+export const eventTimeslotRelations = relations(EventTimeslot, ({ one }) => ({
+    event: one(Event, {
+        fields: [EventTimeslot.eventId],
+        references: [Event.id],
+    }),
+}));
 
 export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -111,6 +122,7 @@ export const GameActivity = pgTable('GameActivity', {
     endTime: timestamp(),
 });
 export type GameActivity = typeof GameActivity.$inferSelect;
+export type GameActivityWithTeam = GameActivity & { teamId: number | null };
 
 export const gameActivityRelations = relations(GameActivity, ({ one }) => ({
     user: one(User, {
@@ -139,6 +151,7 @@ export default {
     Event,
     eventRelations,
     EventTimeslot,
+    eventTimeslotRelations,
     Lan,
     GameActivity,
     gameActivityRelations,

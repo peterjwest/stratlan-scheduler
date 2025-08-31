@@ -1,0 +1,2 @@
+ALTER TABLE "Score" ADD COLUMN "timeslotId" integer;--> statement-breakpoint
+ALTER TABLE "Score" ADD CONSTRAINT "Score_timeslotId_EventTimeslot_id_fk" FOREIGN KEY ("timeslotId") REFERENCES "public"."EventTimeslot"("id") ON DELETE no action ON UPDATE no action;
