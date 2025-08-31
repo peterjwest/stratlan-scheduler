@@ -72,6 +72,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                                 userId: userId,
                                 points: event.points,
                                 timeslotId: timeslot.id,
+                                createdAt: timeslot.time,
                             });
                         }
                     }
