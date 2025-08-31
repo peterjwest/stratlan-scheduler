@@ -68,7 +68,7 @@ export function formatTime(time: Date | number, withSeconds = false) {
     if (typeof time === 'number') return `${padTimeComponent(time % 24)}:00`;
     const hours = padTimeComponent(time.getHours());
     const minutes = padTimeComponent(time.getMinutes());
-    return `${hours}:${minutes}${ withSeconds ? padTimeComponent(time.getSeconds()) : ''}`;
+    return `${hours}:${minutes}${ withSeconds ? ':' + padTimeComponent(time.getSeconds()) : ''}`;
 }
 
 export function formatDate(date: Date) {
@@ -107,7 +107,6 @@ export function getTimeslotEnd(eventTimeslot: EventTimeslot): Date {
 }
 
 export function getTimeslotTimes(event: Event, timeslots: number): Date[] {
-    console.log(event.startTime);
     const timeslotTimes: Date[] = []
     for (let time = event.startTime; timeslotTimes.length < timeslots; time = addMinutes(time, EVENT_TIMESLOT_MINUTES)) {
         timeslotTimes.push(time);
