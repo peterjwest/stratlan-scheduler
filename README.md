@@ -12,6 +12,7 @@ Objectives:
   - LTG integration
   - Colour code by location
 - Full screen mode
+- Score log pagination
 - Assign points
   - Set event optional
   - Better player select
@@ -19,14 +20,6 @@ Objectives:
   - Set event optional
   - Assign points
   - Print page
-- Capture activities
-  - Model: Activity (must be online status)
-    - userId
-    - gameId
-    - gameName
-    - startDate
-    - endDate
-  - Every 10 minutes, check every active Event (+1 min to end) against activities in the last 10 minutes, grouped by userId. If time per userId > 5 mins
 - Achievements
   - CRUD
   - Monitor achievements
