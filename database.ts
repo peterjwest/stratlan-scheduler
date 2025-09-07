@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, not, inArray, isNull } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, lte, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import schema, { User, Team, Score, Event, EventTimeslot, EventWithTimeslots, Lan, Game, GameActivity, GameActivityWithTeam } from './schema';
@@ -106,7 +106,7 @@ export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event
 
 export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined> {
     return db.query.Lan.findFirst({
-        where: gt(Lan.endDate, new Date()),
+        where: lte(Lan.startDate, new Date()),
         orderBy: [asc(Lan.endDate)],
     });
 }
