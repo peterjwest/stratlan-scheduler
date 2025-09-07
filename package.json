@@ -15,8 +15,10 @@
   },
   "scripts": {
     "start": "tsx --env-file=.env index.ts",
+    "build": "pnpm static:build && pnpm css:build",
+    "static:build": "rsync -a --exclude='style.css' public build/",
     "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
-    "css:watch": "pnpm run css:build --watch",
+    "css:watch": "pnpm css:build --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
