@@ -50,6 +50,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
     console.log('Processing community games:');
     try {
         const events = await getIncompleteCommunityEvents(db);
+        if (events.length === 0) console.log('No games to process');
         for (const event of events) {
             console.log(`Processing game ${event.name}`);
             await db.transaction(async (tx) => {
