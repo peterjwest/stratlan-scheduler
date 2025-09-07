@@ -48,7 +48,7 @@ export const Score = pgTable('Score', {
     points: integer(),
     reason: varchar({ length: 256 }),
     timeslotId: integer().references(() => EventTimeslot.id),
-    createdAt: timestamp().defaultNow(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
 // Constraint - (Type: Awarded + Assigner)
 // Constraint - (Type: CommunityGame + CommunityGameSlot + Player + not Achievement + not OneTimeCode)
@@ -72,14 +72,14 @@ export const Event = pgTable('Event', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
     description: varchar().notNull(),
-    startTime: timestamp().notNull(),
+    startTime: timestamp({ withTimezone: true }).notNull(),
     duration: integer().notNull(),
     isOfficial: boolean().notNull(),
     gameId: varchar().references(() => Game.id),
     points: integer().notNull().default(0),
     timeslotCount: integer().notNull().default(0),
     createdBy: integer().references(() => User.id),
-    createdAt: timestamp().defaultNow(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
 export type Event = typeof Event.$inferSelect;
 export type EventWithTimeslots = Event & { timeslots: EventTimeslot[] };
@@ -95,7 +95,7 @@ export const eventRelations = relations(Event, ({ one, many }) => ({
 export const EventTimeslot = pgTable('EventTimeslot', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     eventId: integer().references(() => Event.id).notNull(),
-    time: timestamp().notNull(),
+    time: timestamp({ withTimezone: true }).notNull(),
 });
 export type EventTimeslot = typeof EventTimeslot.$inferSelect;
 
@@ -118,8 +118,8 @@ export const GameActivity = pgTable('GameActivity', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userId: integer().references(() => User.id).notNull(),
     gameId: varchar().references(() => Game.id).notNull(),
-    startTime: timestamp().notNull(),
-    endTime: timestamp(),
+    startTime: timestamp({ withTimezone: true }).notNull(),
+    endTime: timestamp({ withTimezone: true }),
 });
 export type GameActivity = typeof GameActivity.$inferSelect;
 export type GameActivityWithTeam = GameActivity & { teamId: number | null };
