@@ -82,6 +82,8 @@ declare global {
 
 const db = await getDatabaseClient(POSTGRES_URL);
 
+const teams = await createTeams(db, TEAMS);
+
 await startScoringCommunityGames(db);
 
 const client = new Client({
@@ -137,7 +139,6 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
-    const teams = await createTeams(db, TEAMS);
     const lan = await getCurrentLan(db);
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
     request.maybeUser = user
