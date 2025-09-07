@@ -57,6 +57,11 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                 const expectedTimeslots = getExpectedTimeslots(event);
                 const missingTimeslots = getMissingTimeslots(event, expectedTimeslots);
 
+                if (missingTimeslots.length === 0) {
+                    console.log(`No timeslots to update`);
+                    return;
+                }
+
                 const timeslots = await tx.insert(EventTimeslot).values(missingTimeslots.map((timeslot) => ({
                     eventId: event.id,
                     time: timeslot,
