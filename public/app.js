@@ -14,3 +14,20 @@ if (pointsTypeRadios.length && pointsPlayerField) {
         });
     }
 }
+
+const userMenuButton = document.querySelector('[data-user-menu-button]');
+const userMenu = document.querySelector('[data-user-menu]');
+const userMenuWrapper = document.querySelector('data-user-menu-wrapper');
+
+userMenuButton.addEventListener('click', (event) => {
+    event.stopPropagation();
+    userMenu.classList.toggle('hidden');
+});
+
+document.addEventListener('click', () => {
+    userMenu.classList.add('hidden');
+});
+
+userMenu.addEventListener('click', (event) => {
+    event.stopPropagation();
+});
