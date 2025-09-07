@@ -2,6 +2,7 @@ import zod from 'zod';
 
 export const Environment = zod.object({
     PORT: zod.string().transform((value) => parseInt(value, 10)),
+    HOST: zod.string(),
     SECURE_COOKIE: zod.string().transform((value) => value === 'true'),
     SESSION_SECRET: zod.string(),
     DISCORD_TOKEN: zod.string(),

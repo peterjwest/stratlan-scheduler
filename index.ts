@@ -38,7 +38,6 @@ import { startScoringCommunityGames } from './communityGame';
 // TODO: Tidy constants vs. environment
 import {
     COOKIE_MAX_AGE,
-    HOST,
     MODERATOR_ROLES,
     TEAMS,
     DISCORD_RETURN_URL,
@@ -47,6 +46,7 @@ import {
 
 const {
     PORT,
+    HOST,
     SECURE_COOKIE,
     SESSION_SECRET,
     DISCORD_TOKEN,

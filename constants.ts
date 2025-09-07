@@ -5,12 +5,11 @@ import zod from 'zod';
 import environment from './environment';
 
 const {
-    PORT,
+    HOST,
     DISCORD_CLIENT_ID
 } = environment;
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
-export const HOST = `http://localhost:${PORT}`;
 
 export const MODERATOR_ROLES = ['Staff', 'Moderator'] as const;
 
