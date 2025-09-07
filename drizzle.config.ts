@@ -5,5 +5,5 @@ import environment from './environment';
 export default defineConfig({
   dialect: 'postgresql',
   schema: './schema.ts',
-  dbCredentials: { url: environment.POSTGRES_URL },
+  dbCredentials: { url: environment.DATABASE_URL },
 });

@@ -9,7 +9,7 @@ export const Environment = zod.object({
     DISCORD_CLIENT_SECRET: zod.string(),
     DISCORD_GUILD_ID: zod.string(),
     STEAM_API_KEY: zod.string(),
-    POSTGRES_URL: zod.string(),
+    DATABASE_URL: zod.string(),
 });
 
 export default Environment.parse(process.env);

@@ -54,7 +54,7 @@ const {
     DISCORD_CLIENT_SECRET,
     DISCORD_GUILD_ID,
     STEAM_API_KEY,
-    POSTGRES_URL,
+    DATABASE_URL,
 } = environment;
 
 /** Augments the session with userId */
@@ -80,7 +80,7 @@ declare global {
   }
 }
 
-const db = await getDatabaseClient(POSTGRES_URL);
+const db = await getDatabaseClient(DATABASE_URL);
 
 const teams = await createTeams(db, TEAMS);
 
@@ -130,7 +130,7 @@ app.use(expressSession({
   resave: false,
   saveUninitialized: true,
   cookie: { httpOnly: true, secure: SECURE_COOKIE, maxAge: COOKIE_MAX_AGE },
-  store: new SessionStore({ conString: POSTGRES_URL, tableName : 'Session' }),
+  store: new SessionStore({ conString: DATABASE_URL, tableName : 'Session' }),
 }));
 
 app.use(express.urlencoded());
