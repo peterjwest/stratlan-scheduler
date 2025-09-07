@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm' ;
 import lodash from 'lodash';
 
-import { DatabaseClient, getIncompleteCommunityEvents, getTimeslotActivities, getUser } from './database';
-import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score, User} from './schema';
-import { getEventEnd, minDate, diffMinutes, getTimeslotTimes, getTimeslotEnd, datesEqual, maxDate } from './util';
+import { DatabaseClient, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
+import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema';
+import { getEventEnd, minDate, diffMinutes, getTimeslotTimes, getTimeslotEnd, datesEqual, maxDate, roundToNextMinutes } from './util';
 import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD } from './constants';
 
 export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameActivity[]) {
@@ -98,8 +98,15 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
 }
 
 export async function startScoringCommunityGames(db: DatabaseClient): Promise<() => void> {
-    // TODO: Better scheduling to align with timeslot
     await scoreCommunityGames(db);
-    const interval = setInterval(() => scoreCommunityGames(db) , EVENT_TIMESLOT_MINUTES * 60 * 1000);
+
+    let nextSlot = roundToNextMinutes(new Date(), EVENT_TIMESLOT_MINUTES);
+    const interval = setInterval(async () => {
+        let now = new Date();
+        if (now > nextSlot) {
+            nextSlot = roundToNextMinutes(now, EVENT_TIMESLOT_MINUTES);
+            await scoreCommunityGames(db);
+        }
+    }, 60 * 1000);
     return () => clearInterval(interval);
 }
