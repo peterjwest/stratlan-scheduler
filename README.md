@@ -16,6 +16,10 @@ Objectives:
 - Assign points
   - Set event optional
   - Better player select
+- Points for basic stuff:
+  - Logging in Discord
+  - Logging in with Steam
+  - Playing a game
 - QR code setup
   - Set event optional
   - Assign points
