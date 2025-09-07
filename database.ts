@@ -89,7 +89,7 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
 
 export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
     const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.teamId, team.id));
-    return results[0].total;
+    return results[0].total || 0;
 }
 
 export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event[]> {
