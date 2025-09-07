@@ -101,12 +101,20 @@ export async function startScoringCommunityGames(db: DatabaseClient): Promise<()
     await scoreCommunityGames(db);
 
     let nextSlot = roundToNextMinutes(new Date(), EVENT_TIMESLOT_MINUTES);
-    const interval = setInterval(async () => {
+
+    let timeout: NodeJS.Timeout | undefined;
+    async function process() {
         let now = new Date();
         if (now > nextSlot) {
             nextSlot = roundToNextMinutes(now, EVENT_TIMESLOT_MINUTES);
             await scoreCommunityGames(db);
         }
-    }, 60 * 1000);
-    return () => clearInterval(interval);
+        if (timeout) timeout = setTimeout(process, 30 * 1000);
+    }
+
+    timeout = setTimeout(process, 30 * 1000);
+    return () => {
+        clearTimeout(timeout);
+        timeout = undefined;
+    }
 }
