@@ -1,14 +1,13 @@
 # TODO:
 
 Objectives:
-- Show player team
 - Fix all the dates
 - Dashboard page
   - Teams
 - Assign teams (Red vs. Blue)
 - Check LAN eligibility
-- Role check page
-- Assign team roles button
+- Team check page
+  - Assign team roles button
 - Schedule
   - CRUD
   - Schedule commands
