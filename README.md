@@ -1,10 +1,14 @@
 # TODO:
 
 Objectives:
+- Show player team
+- Fix all the dates
 - Dashboard page
   - Teams
 - Assign teams (Red vs. Blue)
 - Check LAN eligibility
+- Role check page
+- Assign team roles button
 - Schedule
   - CRUD
   - Schedule commands
@@ -35,6 +39,8 @@ Objectives:
     - If achievement time inside activity time, give points
     - Limit to player count??
     - How to tell groups??
+- Privacy policy
+- Cookie policy
 
 https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?appid=440&key=12B147D46A513F406504BE202991C520&steamid=76561197961493121
 
