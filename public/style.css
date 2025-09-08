@@ -20,4 +20,6 @@ body {
     --color-team-red: var(--color-rose-800);
     --color-team-blue: var(--color-indigo-800);
     --color-border: var(--color-violet-300);
+    --red-team: linear-gradient(36deg, rgb(220 0 0) 0%, rgb(227 73 202) 100%);
+    --blue-team: linear-gradient(334deg, rgb(33 12 231) 0%, rgb(82 161 255) 100%);
 }
