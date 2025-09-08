@@ -206,7 +206,7 @@ app.use('/dashboard', async (request, response) => {
 });
 
 app.use(async (request, response, next) => {
-    if (!request.maybeUser) return response.status(403).send('Please login with Discord first');
+    if (!request.maybeUser) return response.render('404', request.context);
     request.user = request.maybeUser;
     next();
 });
@@ -234,9 +234,13 @@ app.get('/steam/authenticate', async (request, response) => {
 
 app.use('/admin', adminRouter(db));
 
+app.use((request: Request, response: Response, next: NextFunction) => {
+    response.render('404', request.context);
+});
+
 app.use((error: any, request: Request, response: Response, next: NextFunction) => {
     console.error('Server error', error);
-    response.status(500).send('An unexpected error occurred');
+    response.render('500', request.context);
 });
 
 app.listen(PORT, () => {
