@@ -5,8 +5,8 @@ html(lang="en" class="h-full")
         link(rel="stylesheet" href="/style.css")
         link(rel="shortcut icon" href="/favicon.png")
     body(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed text-white flex")
-        nav(class="w-60 min-h-full backdrop-blur-md backdrop-brightness-150")
-            div(class="sticky top-0")
+        nav(class="w-60 min-h-full backdrop-blur-xl backdrop-brightness-150")
+            div(class="sticky top-0 w-60")
                 h1(class="px-2 py-4")
                     a(href="/")
                         img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px]")
@@ -31,12 +31,12 @@ html(lang="en" class="h-full")
                     div(class="flex-grow")
                     if user
                         div(class="relative" data-user-menu-wrapper)
-                            div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-md hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
+                            div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
                                 if user.discordAvatarId
                                     img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
                                 p(class="mr-4")= user.discordUsername
                                 img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
-                            div(class="hidden absolute z-1 left-0 right-0 top-full backdrop-blur-md backdrop-brightness-160 rounded-b" data-user-menu)
+                            div(class="hidden absolute z-1 left-0 right-0 top-full backdrop-blur-xl backdrop-brightness-160 rounded-b" data-user-menu)
                                 if user.steamUsername
                                     div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
                                         span(class="flex-grow mr-4 overflow-x-hidden overflow-ellipsis") #{user.steamUsername}
@@ -48,7 +48,7 @@ html(lang="en" class="h-full")
                                 a(href='/logout' class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30")
                                         span(class="flex-grow mr-4") Logout
                     else
-                        a(href=discordAuthUrl class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-md hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
+                        a(href=discordAuthUrl class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
                             span Login with Discord
                             img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
 
