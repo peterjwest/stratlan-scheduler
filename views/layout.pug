@@ -32,7 +32,7 @@ html(lang="en" class="h-full")
                     if user
                         div(class="relative" data-user-menu-wrapper)
                             div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
-                                span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeam(teams, user.teamId).name === 'Red' ? 'bg-(image:--red-team)' : 'bg-(image:--blue-team)'}`)= helpers.getTeam(teams, user.teamId).name
+                                span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeam(teams, user.teamId).name === 'Red' ? 'bg-(image:--bg-red-team)' : 'bg-(image:--bg-blue-team)'}`)= helpers.getTeam(teams, user.teamId).name
                                 if user.discordAvatarId
                                     img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
                                 p(class="mr-4")= user.discordUsername

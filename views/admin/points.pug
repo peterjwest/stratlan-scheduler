@@ -3,7 +3,7 @@ extends ../layout.pug
 block body
     div(class="flex mb-4 space-x-2")
         for filter of filters
-            a(href=filter.url class=`py-1 px-2 rounded-md border border-border/50 ${filter.url == path ? 'bg-blue-400/70' : ''}`)= filter.name
+            a(href=filter.url class=`py-1 px-2 rounded-md border border-border/50 ${filter.url == path ? 'bg-(image:--bg-highlight)' : ''}`)= filter.name
 
     table(class="w-full text-left")
         tr
@@ -17,7 +17,7 @@ block body
         for score of assignedScores
             tr(class="hover:bg-highlight border-t border-border/50")
                 td(class="px-3 py-2")
-                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeam(teams, score.teamId).name === 'Red' ? 'bg-(image:--red-team)' : 'bg-(image:--blue-team)'}`)= helpers.getTeam(teams, score.teamId).name
+                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeam(teams, score.teamId).name === 'Red' ? 'bg-(image:--bg-red-team)' : 'bg-(image:--bg-blue-team)'}`)= helpers.getTeam(teams, score.teamId).name
                 td(class="px-3 py-2")= score.user ? helpers.formatName(score.user) : ''
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.reason

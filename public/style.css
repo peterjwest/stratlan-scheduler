@@ -20,6 +20,13 @@ body {
     --color-team-red: var(--color-rose-800);
     --color-team-blue: var(--color-indigo-800);
     --color-border: var(--color-violet-300);
-    --red-team: linear-gradient(36deg, rgb(220 0 0) 0%, rgb(227 73 202) 100%);
-    --blue-team: linear-gradient(334deg, rgb(33 12 231) 0%, rgb(82 161 255) 100%);
+
+    --color-red-primary: #dc0000;
+    --color-red-secondary: #e461c0;
+    --color-blue-primary: #112cc2;
+    --color-blue-secondary: #7a52ff;
+
+    --bg-red-team: linear-gradient(36deg, var(--color-red-primary) 10%, var(--color-red-secondary) 100%);
+    --bg-blue-team: linear-gradient(334deg, var(--color-blue-primary) 10%, var(--color-blue-secondary) 100%);
+    --bg-highlight: linear-gradient(0deg, var(--color-highlight) 0%, var(--color-border-highlight) 100%);
 }
