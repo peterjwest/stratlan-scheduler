@@ -1,9 +1,9 @@
 # TODO:
 
 Objectives:
-- Fix all the dates
 - Dashboard page
   - Teams
+  - Full screen mode
 - Assign teams (Red vs. Blue)
 - Check LAN eligibility
 - Team check page
@@ -14,8 +14,9 @@ Objectives:
   - Discord integration / sync
   - LTG integration
   - Colour code by location
-- Full screen mode
-- Score log pagination
+- Score log
+  - Pagination
+  - Search by user
 - Assign points
   - Set event optional
 - Points for basic stuff:
