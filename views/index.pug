@@ -1,13 +1,16 @@
 extends layout.pug
 
 block body
+    div(class="fullscreen-heading hidden flex items-center mb-4 mt-4")
+        img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[70px] pr-3")
+        h2(class="text-2xl font-semibold") Schedule
     div(class="flex-none lg:flex")
         div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
             for hour of helpers.getScheduleHours()
                 div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatTime(hour)
 
         for dayEvents of eventsByDay
-            div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 140px);")
+            div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 160px);")
                 div(class="flex h-full")
                     div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
                         for hour of helpers.getScheduleHours()

@@ -157,3 +157,12 @@ for (const dropdown of dropdowns) {
 
     document.addEventListener('click', closeMenu);
 }
+
+const navigation = document.querySelector('nav');
+const header = document.querySelector('.header');
+const fullscreenHeading = document.querySelector('.fullscreen-heading');
+window.matchMedia('(display-mode: fullscreen)').addEventListener('change', ({ matches }) => {
+    if (navigation) navigation.classList.toggle('hidden', matches);
+    if (header) header.classList.toggle('hidden', matches);
+    if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
+});
