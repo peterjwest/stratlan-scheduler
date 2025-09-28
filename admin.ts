@@ -9,7 +9,7 @@ import { TEAMS, ScoreType } from './constants';
 const AssignPoints = zod.object({
     points: zod.string().transform((id) => parseInteger(id)),
     reason: zod.string(),
-    eventId: zod.string().transform((id) => parseInteger(id)).optional(),
+    eventId: zod.string().transform((id) => id ? parseInteger(id) : undefined),
     submit: zod.literal('Submit'),
 })
 
