@@ -2,14 +2,14 @@ import { Router } from 'express';
 import zod from 'zod';
 
 import { parseInteger, formatScoreType } from './util';
-import { Team } from './schema';
-import { getUser, getMinimalUsers, getScores, createScore, DatabaseClient } from './database';
+import { Event, Team } from './schema';
+import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, createScore, DatabaseClient } from './database';
 import { TEAMS, ScoreType } from './constants';
-
 
 const AssignPoints = zod.object({
     points: zod.string().transform((id) => parseInteger(id)),
-    reason:  zod.string(),
+    reason: zod.string(),
+    eventId: zod.string().transform((id) => parseInteger(id)).optional(),
     submit: zod.literal('Submit'),
 })
 
@@ -49,7 +49,7 @@ export default function (db: DatabaseClient) {
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             // { name: formatScoreType('Achievement'), url: '/admin/points?type=Achievement' },
             // { name: formatScoreType('OneTimeCode'), url: '/admin/points?type=OneTimeCode' },
-            { name: 'Manually assigned', url: '/admin/points?assigned=true' },
+            // { name: 'Manually assigned', url: '/admin/points?assigned=true' },
         ]
         response.render('admin/points', {
             ...request.context,
@@ -60,8 +60,10 @@ export default function (db: DatabaseClient) {
     });
 
     router.get('/assign', async (request, response) => {
+        console.log(await getMinimalEvents(db));
         response.render('admin/assign', {
             ...request.context,
+            events: await getMinimalEvents(db),
             users: await getMinimalUsers(db),
         });
     });
@@ -70,6 +72,12 @@ export default function (db: DatabaseClient) {
     router.post('/assign', async (request, response) => {
         const body = AssignPointsData.parse(request.body);
 
+        let event: Event | undefined;
+        if (body.eventId) {
+            event = await getEvent(db, body.eventId);
+            if (!event) return response.status(500).send('Event not found');
+        }
+
         if (body.type === 'Player') {
             const player = await getUser(db, body.userId);
             if (!player) return response.status(500).send('Player not found');
@@ -77,11 +85,14 @@ export default function (db: DatabaseClient) {
             const playerTeam = request.context.teams.find((team) => team.id === player.teamId);
             if (!playerTeam) return response.status(500).send('Player does not have a team');
 
+            // TODO: Check eligible for LAN
+
             await createScore(
                 db,
                 request.user,
                 body.points,
                 body.reason,
+                event,
                 playerTeam,
                 player,
             );
@@ -91,6 +102,7 @@ export default function (db: DatabaseClient) {
                 request.user,
                 body.points,
                 body.reason,
+                event,
                 request.context.teams.find((team) => team.name === body.type) as Team,
             );
         }

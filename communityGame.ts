@@ -81,6 +81,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                                 type: 'CommunityGame',
                                 userId: userId,
                                 points: event.points,
+                                eventId: event.id,
                                 timeslotId: timeslot.id,
                                 createdAt: timeslot.time,
                             });

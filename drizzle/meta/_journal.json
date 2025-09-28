@@ -169,6 +169,13 @@
       "when": 1757260196088,
       "tag": "0023_timestamp_timezones",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1759069510325,
+      "tag": "0024_score_event",
+      "breakpoints": true
     }
   ]
 }

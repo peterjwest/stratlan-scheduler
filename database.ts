@@ -24,8 +24,16 @@ export async function getUser(db: DatabaseClient, id: number): Promise<User | un
     return db.query.User.findFirst({ where: eq(User.id, id) });
 }
 
+export async function getEvent(db: DatabaseClient, id: number): Promise<Event | undefined> {
+    return db.query.Event.findFirst({ where: eq(Event.id, id) });
+}
+
 export async function getUserByDiscordId(db: DatabaseClient, discordId: string): Promise<User | undefined> {
     return db.query.User.findFirst({ where: eq(User.discordId, discordId) });
+}
+
+export async function getMinimalEvents(db: DatabaseClient): Promise<{ id: number, name: string }[]> {
+    return db.query.Event.findMany({ columns: { id: true, name: true }});
 }
 
 export async function getMinimalUsers(db: DatabaseClient): Promise<{ id: number, discordUsername: string, discordNickname: string | null }[]> {
@@ -63,6 +71,7 @@ export async function createScore(
     assigner: User,
     points: number,
     reason: string | undefined,
+    event: Event | undefined,
     team: Team,
     user?: User,
 ): Promise<Score> {
@@ -73,6 +82,7 @@ export async function createScore(
         assignerId: assigner.id,
         points: points,
         reason: reason,
+        eventId: event?.id,
     }).returning())[0];
 }
 
@@ -82,7 +92,7 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
     if (type) conditions.push( eq(Score.type, type));
     return db.query.Score.findMany({
         where: and(...conditions),
-        with: { user: true, assigner: true, timeslot: { with: { event: true } } },
+        with: { user: true, assigner: true, event: true },
         orderBy: [desc(Score.createdAt)],
     });
 }

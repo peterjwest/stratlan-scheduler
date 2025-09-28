@@ -47,6 +47,7 @@ export const Score = pgTable('Score', {
     assignerId: integer().references(() => User.id),
     points: integer(),
     reason: varchar({ length: 256 }),
+    eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
@@ -65,6 +66,10 @@ export const scoreRelations = relations(Score, ({ one }) => ({
     assigner: one(User, {
         fields: [Score.assignerId],
         references: [User.id],
+    }),
+    event: one(Event, {
+        fields: [Score.eventId],
+        references: [Event.id],
     }),
     timeslot: one(EventTimeslot, {
         fields: [Score.timeslotId],

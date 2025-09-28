@@ -42,5 +42,23 @@ block body
                 span(class="py-2 pr-3") Reason
                 input(name="reason" type="text" required maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
 
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-2")
+                span(class="py-2 pr-3") Event
+                div(data-dropdown class="relative")
+                    select(data-dropdown-input data-player-input name="eventId" class="hidden")
+                        option(value="") Select event
+                        each event in events
+                            option(value=event.id)=event.name
+                    button(data-dropdown-button type="button" class="w-full py-2 px-3.5 border border-border/80 rounded-sm text-left flex items-center")
+                        span(class="flex-grow") Select event
+                        img(src="/select-arrow.svg" class="w-5 -mx-1")
+                    div(data-dropdown-menu class="absolute hidden top-full left-0 w-full backdrop-blur-xl backdrop-brightness-160 rounded-b")
+                        div(class="py-2 px-2")
+                            input(data-dropdown-filter class="py-2 px-3.5 border border-border/80 rounded-sm w-full" type="text")
+                        div(class="max-h-60 overflow-y-scroll")
+                            each event in events
+                                div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value=event.id)
+                                    =event.name
+
             div(class="mt-2")
                 input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/80 bg-(image:--bg-highlight)")
