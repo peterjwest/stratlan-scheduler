@@ -76,8 +76,7 @@ export function formatDate(date: Date) {
 }
 
 export function formatName(user: User) {
-    if (user.discordNickname) return `${user.discordNickname} (${user.discordUsername})`;
-    return user.discordUsername;
+    return user.discordNickname || user.discordUsername;
 }
 
 export function getTeam(teams: Team[], teamId: number) {

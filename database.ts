@@ -28,11 +28,11 @@ export async function getUserByDiscordId(db: DatabaseClient, discordId: string):
     return db.query.User.findFirst({ where: eq(User.discordId, discordId) });
 }
 
-export async function getMinimalUsers(db: DatabaseClient): Promise<{ id: number, discordUsername: string }[]> {
-    return db.query.User.findMany({ columns: { id: true, discordUsername: true }});
+export async function getMinimalUsers(db: DatabaseClient): Promise<{ id: number, discordUsername: string, discordNickname: string | null }[]> {
+    return db.query.User.findMany({ columns: { id: true, discordUsername: true, discordNickname: true }});
 }
 
-export async function getOrCreateUserByDiscordId(db: DatabaseClient, discordId: string, data: UserData): Promise<User> {
+export async function createOrUpdateUserByDiscordId(db: DatabaseClient, discordId: string, data: UserData): Promise<User> {
     const existingUser = await getUserByDiscordId(db, discordId);
     if (existingUser) {
         return (await db.update(User).set(data).where(eq(User.id, existingUser.id)).returning())[0];

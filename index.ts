@@ -16,7 +16,7 @@ import {
     createTeams,
     getDatabaseClient,
     getUser,
-    getOrCreateUserByDiscordId,
+    createOrUpdateUserByDiscordId,
     updateUser,
     getTeamPoints,
     getLanEvents,
@@ -176,10 +176,10 @@ app.get('/login', async (request, response) => {
     const discordMember = await getDiscordGuildMember(rest, DISCORD_GUILD_ID, discordUser.id);
     const roles = mapRoleIds(ROLES, discordMember.roles);
 
-    const user = await getOrCreateUserByDiscordId(db, discordUser.id, {
+    const user = await createOrUpdateUserByDiscordId(db, discordUser.id, {
         accessToken,
         discordUsername: discordUser.username,
-        discordNickname: discordMember.nick,
+        discordNickname: discordMember.nick || discordUser.global_name,
         discordAvatarId: discordUser.avatar,
         isAdmin: Boolean(roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role.name))),
     });

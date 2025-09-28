@@ -22,6 +22,6 @@ block body
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.reason
                 td(class="px-3 py-2")= score.type
-                td(class="px-3 py-2")= score.assigner ? score.assigner.discordUsername : ''
+                td(class="px-3 py-2")= score.assigner ? helpers.formatName(score.assigner) : ''
                 td(class="px-3 py-2")
                     time(datetime=score.createdAt)= helpers.formatDate(score.createdAt)
