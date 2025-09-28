@@ -72,9 +72,10 @@ for (const dropdown of dropdowns) {
     const input = dropdown.querySelector('[data-dropdown-input]');
 
     function filterItems() {
-        const terms = filter.value.trim().split(/\s+/);
+        const terms = filter.value.trim().toLowerCase().split(/\s+/);
         items.forEach((item) => {
-            const match = terms.length === 0 || !terms.find((term) => !item.textContent.includes(term));
+            const itemValue = item.textContent.toLowerCase()
+            const match = terms.length === 0 || !terms.find((term) => !itemValue.includes(term));
             item.classList.toggle('hidden', !match);
         });
     }
