@@ -3,7 +3,7 @@ import zod from 'zod';
 
 import { parseInteger, formatScoreType } from './util';
 import { Event, Team } from './schema';
-import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, createScore, DatabaseClient } from './database';
+import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { TEAMS, ScoreType } from './constants';
 
 const AssignPoints = zod.object({
@@ -87,7 +87,7 @@ export default function (db: DatabaseClient) {
 
             // TODO: Check eligible for LAN
 
-            await createScore(
+            await awardScore(
                 db,
                 request.user,
                 body.points,
@@ -97,13 +97,14 @@ export default function (db: DatabaseClient) {
                 player,
             );
         } else {
-            await createScore(
+            const team = request.context.teams.find((team) => team.name === body.type) as Team;
+            await awardScore(
                 db,
                 request.user,
                 body.points,
                 body.reason,
                 event,
-                request.context.teams.find((team) => team.name === body.type) as Team,
+                team,
             );
         }
 

@@ -66,7 +66,7 @@ export async function createTeams(db: DatabaseClient, teamNames: readonly TeamNa
     return existingTeams;
 }
 
-export async function createScore(
+export async function awardScore(
     db: DatabaseClient,
     assigner: User,
     points: number,
