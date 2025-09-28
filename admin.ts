@@ -47,8 +47,8 @@ export default function (db: DatabaseClient) {
             { name: 'All', url: '/admin/points' },
             { name: 'Awarded', url: '/admin/points?type=Awarded' },
             { name: 'Community game', url: '/admin/points?type=CommunityGame' },
-            { name: 'Achievement', url: '/admin/points?type=Achievement' },
-            { name: 'One time code', url: '/admin/points?type=OneTimeCode' },
+            // { name: 'Steam achievement', url: '/admin/points?type=Achievement' },
+            // { name: 'QR code', url: '/admin/points?type=OneTimeCode' },
             { name: 'Manually assigned', url: '/admin/points?assigned=true' },
         ]
         response.render('admin/points', {
