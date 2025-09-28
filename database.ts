@@ -82,7 +82,7 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
     if (type) conditions.push( eq(Score.type, type));
     return db.query.Score.findMany({
         where: and(...conditions),
-        with: { user: true, assigner: true },
+        with: { user: true, assigner: true, timeslot: { with: { event: true } } },
         orderBy: [desc(Score.createdAt)],
     });
 }

@@ -2,6 +2,9 @@
 
 @import "./font.css";
 
+@source inline("bg-(image:--bg-red-team)");
+@source inline("bg-(image:--bg-blue-team)");
+
 html,
 body {
     text-rendering: optimizeLegibility;

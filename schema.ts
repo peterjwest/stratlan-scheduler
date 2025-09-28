@@ -66,6 +66,10 @@ export const scoreRelations = relations(Score, ({ one }) => ({
         fields: [Score.assignerId],
         references: [User.id],
     }),
+    timeslot: one(EventTimeslot, {
+        fields: [Score.timeslotId],
+        references: [EventTimeslot.id],
+    }),
 }));
 
 export const Event = pgTable('Event', {

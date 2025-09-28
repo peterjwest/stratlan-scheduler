@@ -16,9 +16,21 @@ export const MODERATOR_ROLES = ['Staff', 'Moderator'] as const;
 export const TEAMS = ['Red', 'Blue'] as const;
 export type TeamName = typeof TEAMS[number];
 
-export const SCORE_TYPES =  ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement'] as const;
+export const TEAM_BACKGROUND_CLASSES = {
+    'Red': 'bg-(image:--bg-red-team)',
+    'Blue': 'bg-(image:--bg-blue-team)',
+} as const satisfies { [Property in TeamName]: string };
+
+export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement'] as const;
 export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
+
+export const SCORE_TYPE_NAMES = {
+    'Awarded': 'Awarded',
+    'CommunityGame': 'Community game',
+    'OneTimeCode': 'QR code',
+    'Achievement': 'Steam achievement',
+} as const satisfies { [Property in ScoreType]: string };
 
 export const DISCORD_RETURN_URL = `${HOST}/login`;
 export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import zod from 'zod';
 
-import { parseInteger } from './util';
+import { parseInteger, formatScoreType } from './util';
 import { Team } from './schema';
 import { getUser, getMinimalUsers, getScores, createScore, DatabaseClient } from './database';
 import { TEAMS, ScoreType } from './constants';
@@ -45,10 +45,10 @@ export default function (db: DatabaseClient) {
         const query = PointsQuery.parse(request.query);
         const filters = [
             { name: 'All', url: '/admin/points' },
-            { name: 'Awarded', url: '/admin/points?type=Awarded' },
-            { name: 'Community game', url: '/admin/points?type=CommunityGame' },
-            // { name: 'Steam achievement', url: '/admin/points?type=Achievement' },
-            // { name: 'QR code', url: '/admin/points?type=OneTimeCode' },
+            { name: formatScoreType('Awarded'), url: '/admin/points?type=Awarded' },
+            { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
+            // { name: formatScoreType('Achievement'), url: '/admin/points?type=Achievement' },
+            // { name: formatScoreType('OneTimeCode'), url: '/admin/points?type=OneTimeCode' },
             { name: 'Manually assigned', url: '/admin/points?assigned=true' },
         ]
         response.render('admin/points', {

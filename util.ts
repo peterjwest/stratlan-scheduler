@@ -3,7 +3,15 @@ import { Request } from 'express';
 import lodash from 'lodash';
 
 import { User, Team, Event, Lan, EventTimeslot } from './schema';
-import { SCHEDULE_START_TIME, SCHEDULE_END_TIME, EVENT_TIMESLOT_MINUTES } from './constants';
+import {
+    SCHEDULE_START_TIME,
+    SCHEDULE_END_TIME,
+    EVENT_TIMESLOT_MINUTES,
+    TEAM_BACKGROUND_CLASSES,
+    TeamName,
+    SCORE_TYPE_NAMES,
+    ScoreType,
+} from './constants';
 
 type DayEvents = {
     day: string;
@@ -79,8 +87,18 @@ export function formatName(user: User) {
     return user.discordNickname || user.discordUsername;
 }
 
-export function getTeam(teams: Team[], teamId: number) {
-    return teams.find((team) => team.id === teamId);
+export function formatScoreType(type: ScoreType) {
+    return SCORE_TYPE_NAMES[type];
+}
+
+export function getTeamName(teams: Team[], teamId: number): string | undefined {
+    const team = teams.find((team) => team.id === teamId);
+    if (team) return team.name;
+}
+
+export function getTeamBackground(teams: Team[], teamId: number): string | undefined {
+    const team = teams.find((team) => team.id === teamId);
+    if (team) return TEAM_BACKGROUND_CLASSES[team.name as TeamName];
 }
 
 export function last<Type>(list: Type[]): Type | undefined {
