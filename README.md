@@ -18,7 +18,6 @@ Objectives:
 - Score log pagination
 - Assign points
   - Set event optional
-  - Better player select
 - Points for basic stuff:
   - Logging in Discord
   - Logging in with Steam
@@ -38,6 +37,7 @@ Objectives:
     - If achievement time inside activity time, give points
     - Limit to player count??
     - How to tell groups??
+- Fix session storage for anonymous users
 - Privacy policy
 - Cookie policy
 

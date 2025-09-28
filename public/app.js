@@ -15,19 +15,145 @@ if (pointsTypeRadios.length && pointsPlayerField) {
     }
 }
 
-const userMenuButton = document.querySelector('[data-user-menu-button]');
 const userMenu = document.querySelector('[data-user-menu]');
-const userMenuWrapper = document.querySelector('data-user-menu-wrapper');
 
-userMenuButton.addEventListener('click', (event) => {
-    event.stopPropagation();
-    userMenu.classList.toggle('hidden');
-});
+if (userMenu) {
+    userMenu.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
 
-document.addEventListener('click', () => {
-    userMenu.classList.add('hidden');
-});
+    document.addEventListener('click', () => {
+        userMenu.classList.add('hidden');
+    });
 
-userMenu.addEventListener('click', (event) => {
-    event.stopPropagation();
-});
+    const userMenuButton = document.querySelector('[data-user-menu-button]');
+    if (userMenuButton) {
+        userMenuButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+    }
+}
+
+function getPrevSiblings(element) {
+    var siblings = [];
+    while (element = element.previousElementSibling) {
+       siblings.push(element)
+    }
+    return siblings;
+}
+
+function getNextSiblings(element) {
+    var siblings = [];
+    while (element = element.nextElementSibling) {
+       siblings.push(element)
+    }
+    return siblings;
+}
+
+function getPrevItem(element) {
+    return getFirstItem(getPrevSiblings(element));
+}
+
+function getNextItem(element) {
+    return getFirstItem(getNextSiblings(element));
+}
+
+function getFirstItem(items) {
+    return items.find((sibling) => !sibling.classList.contains('hidden'));
+}
+
+const dropdowns = Array.from(document.querySelectorAll('[data-dropdown]'));
+for (const dropdown of dropdowns) {
+    const button = dropdown.querySelector('[data-dropdown-button');
+    const menu = dropdown.querySelector('[data-dropdown-menu');
+    const filter = dropdown.querySelector('[data-dropdown-filter');
+    const items = Array.from(dropdown.querySelectorAll('[data-dropdown-item]'));
+    const input = dropdown.querySelector('[data-dropdown-input]');
+
+    function filterItems() {
+        const terms = filter.value.trim().split(/\s+/);
+        items.forEach((item) => {
+            const match = terms.length === 0 || !terms.find((term) => !item.textContent.includes(term));
+            item.classList.toggle('hidden', !match);
+        });
+    }
+
+    function closeMenu() {
+        if (!menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            filter.value = '';
+            filterItems();
+            button.focus();
+        }
+    }
+
+    function selectOption(element) {
+        const id = element.getAttribute('data-value');
+        input.value = id;
+        button.textContent = input.options[input.selectedIndex].textContent;
+    }
+
+    button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            closeMenu();
+        }
+        filter.focus();
+    });
+
+    menu.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    });
+
+    menu.addEventListener('keydown', (event) => {
+        if (menu.classList.contains('hidden')) return;
+
+        if (event.key === 'Escape') {
+            filter.value = '';
+            closeMenu();
+            event.preventDefault();
+        }
+
+        if (event.key === 'ArrowUp') {
+            const previousItem = getPrevItem(document.activeElement) || filter;
+            previousItem.focus();
+            event.preventDefault();
+        }
+
+        if (event.key === 'ArrowDown') {
+            const nextItem = document.activeElement === filter ? getFirstItem(items) : getNextItem(document.activeElement);
+            if (nextItem) nextItem.focus();
+            event.preventDefault();
+        }
+
+        if (event.key === 'Tab') {
+            closeMenu();
+            if (event.shiftKey) event.preventDefault();
+        }
+    });
+
+    filter.addEventListener('keyup', filterItems);
+
+    for (const item of items) {
+        item.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                closeMenu();
+                selectOption(event.currentTarget);
+            }
+        })
+
+        item.addEventListener('click', (event) => {
+            closeMenu();
+            selectOption(event.currentTarget);
+        })
+    }
+
+    document.addEventListener('click', closeMenu);
+}

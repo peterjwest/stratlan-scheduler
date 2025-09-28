@@ -9,6 +9,10 @@ body {
     box-sizing: border-box;
 }
 
+input[type=submit], button {
+    cursor: pointer;
+}
+
 @theme {
     --default-font-family: InterVariable;
     --color-bg-red: #3a1934;
