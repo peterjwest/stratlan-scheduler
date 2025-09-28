@@ -17,8 +17,6 @@ Objectives:
 - Score log
   - Pagination
   - Search by user
-- Assign points
-  - Set event optional
 - Points for basic stuff:
   - Logging in Discord
   - Logging in with Steam
