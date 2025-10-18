@@ -17,8 +17,8 @@ export const TEAMS = ['Red', 'Blue'] as const;
 export type TeamName = typeof TEAMS[number];
 
 export const TEAM_BACKGROUND_CLASSES = {
-    'Red': 'bg-(image:--bg-red-team)',
-    'Blue': 'bg-(image:--bg-blue-team)',
+    'Red': 'bg-(image:--gradient-red)',
+    'Blue': 'bg-(image:--gradient-blue)',
 } as const satisfies { [Property in TeamName]: string };
 
 export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement'] as const;

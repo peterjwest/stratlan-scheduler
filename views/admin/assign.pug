@@ -5,13 +5,13 @@ block body
         h2(class="text-2xl font-semibold mb-4") Assign points
 
         div(class="flex space-x-3 items-center mb-3")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--bg-red-team) has-[:focus]:border-white")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--gradient-red) has-[:focus]:border-white")
                 span Red
                 input(name="type" type="radio" value="Red" required class="w-0")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--bg-blue-team) has-[:focus]:border-white")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--gradient-blue) has-[:focus]:border-white")
                 span Blue
                 input(name="type" type="radio" value="Blue" required class="w-0")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--bg-highlight) has-[:focus]:border-white")
+            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-highlight has-[:focus]:border-white")
                 span Player
                 input(name="type" type="radio" value="Player" required class="w-0")
 
@@ -62,4 +62,4 @@ block body
                                     =event.name
 
             div(class="mt-2")
-                input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/80 bg-(image:--bg-highlight)")
+                input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

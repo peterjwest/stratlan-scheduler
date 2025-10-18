@@ -2,8 +2,8 @@
 
 @import "./font.css";
 
-@source inline("bg-(image:--bg-red-team)");
-@source inline("bg-(image:--bg-blue-team)");
+@source inline("bg-(image:--gradient-red)");
+@source inline("bg-(image:--gradient-blue)");
 
 html,
 body {
@@ -33,7 +33,6 @@ input[type=submit], button {
     --color-blue-primary: #112cc2;
     --color-blue-secondary: #7a52ff;
 
-    --bg-red-team: linear-gradient(36deg, var(--color-red-primary) 10%, var(--color-red-secondary) 100%);
-    --bg-blue-team: linear-gradient(334deg, var(--color-blue-primary) 10%, var(--color-blue-secondary) 100%);
-    --bg-highlight: linear-gradient(0deg, var(--color-highlight) 0%, var(--color-border-highlight) 100%);
+    --gradient-red: linear-gradient(36deg, var(--color-red-primary) 10%, var(--color-red-secondary) 100%);
+    --gradient-blue: linear-gradient(334deg, var(--color-blue-primary) 10%, var(--color-blue-secondary) 100%);
 }
