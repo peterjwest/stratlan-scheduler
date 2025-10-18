@@ -188,7 +188,7 @@ app.get('/login', async (request, response) => {
     request.session.userId = user.id;
     await saveSession(request);
 
-    response.redirect('/');
+    response.redirect(request.cookies['login-redirect']);
 });
 
 app.get('/logout', async (request, response) => {

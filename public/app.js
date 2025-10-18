@@ -167,3 +167,18 @@ window.matchMedia('(display-mode: fullscreen)').addEventListener('change', ({ ma
     if (header) header.classList.toggle('hidden', matches);
     if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
 });
+
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
+function setCookie(name, value) {
+    const date = new Date();
+    date.setTime(date.getTime() + ONE_DAY);
+    document.cookie = name + "=" + value + "; expires=" + date.toUTCString() + "; path=/";
+}
+
+const loginButtons = Array.from(document.querySelectorAll('[data-login]'));
+loginButtons.forEach((loginButton) => {
+    loginButton.addEventListener('click', () => {
+        setCookie('login-redirect', window.location.pathname);
+    });
+});
