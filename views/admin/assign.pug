@@ -29,7 +29,7 @@ block body
                     div(data-dropdown-menu class="absolute z-1 hidden top-full left-0 w-full backdrop-blur-xl backdrop-brightness-160 rounded-b")
                         div(class="py-2 px-2")
                             input(data-dropdown-filter class="py-2 px-3.5 border border-border/80 rounded-sm w-full" type="text")
-                        div(class="max-h-60 overflow-y-scroll")
+                        div(class="max-h-60 overflow-y-auto")
                             each user in users
                                 div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value=user.id)
                                     =helpers.formatName(user)
@@ -55,7 +55,7 @@ block body
                     div(data-dropdown-menu class="absolute z-1 hidden top-full left-0 w-full backdrop-blur-xl backdrop-brightness-160 rounded-b")
                         div(class="py-2 px-2")
                             input(data-dropdown-filter class="py-2 px-3.5 border border-border/80 rounded-sm w-full" type="text")
-                        div(class="max-h-60 overflow-y-scroll")
+                        div(class="max-h-60 overflow-y-auto")
                             div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value="") None
                             each event in events
                                 div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value=event.id)
