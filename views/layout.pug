@@ -39,14 +39,14 @@ html(lang="en" class="h-full")
                                 p(class="mr-4")= user.discordUsername
                                 img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
                             div(class="hidden absolute z-1 left-0 right-0 top-full backdrop-blur-xl backdrop-brightness-160 rounded-b" data-user-menu)
-                                if user.steamUsername
-                                    div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
-                                        span(class="flex-grow mr-4 overflow-x-hidden overflow-ellipsis") #{user.steamUsername}
-                                        img(src="/steam-logo.svg" class="h-8 w-8")
-                                else
-                                    a(class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30" href='/steam')
-                                        span(class="flex-grow mr-4") Link Steam account
-                                        img(src="/steam-logo.svg" class="h-8 w-8")
+                                //- if user.steamUsername
+                                //-     div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
+                                //-         span(class="flex-grow mr-4 overflow-x-hidden overflow-ellipsis") #{user.steamUsername}
+                                //-         img(src="/steam-logo.svg" class="h-8 w-8")
+                                //- else
+                                //-     a(class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30" href='/steam')
+                                //-         span(class="flex-grow mr-4") Link Steam account
+                                //-         img(src="/steam-logo.svg" class="h-8 w-8")
                                 a(href='/logout' class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30")
                                         span(class="flex-grow mr-4") Logout
                     else
