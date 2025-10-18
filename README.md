@@ -4,6 +4,7 @@ Objectives:
 - Dashboard page
   - Teams
 - Mobile menu
+- Menu highlight
 - Assign teams (Red vs. Blue)
 - Check LAN eligibility
 - Team check page
@@ -17,10 +18,6 @@ Objectives:
 - Score log
   - Pagination
   - Search by user
-- Points for basic stuff:
-  - Logging in Discord
-  - Logging in with Steam
-  - Playing a game
 - QR code setup
   - Set event optional
   - Assign points
