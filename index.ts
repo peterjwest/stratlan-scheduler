@@ -24,6 +24,10 @@ import {
     endFinishedActivities,
     getOrCreateGameActivity,
     getUserByDiscordId,
+    getUserPoints,
+    getOrCreateIntroChallenge,
+    getIntroChallenges,
+    claimChallenge,
 } from './database';
 import {
     getGuildRoles,
@@ -42,6 +46,7 @@ import {
     TEAMS,
     DISCORD_RETURN_URL,
     DISCORD_AUTH_URL,
+    INTRO_CHALLENGE_POINTS,
 } from './constants';
 
 const {
@@ -106,6 +111,10 @@ client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
     if (!user) return;
 
     await endFinishedActivities(db, user, getActivityIds(newPresence.activities));
+
+    if (newPresence.activities.length > 0) {
+        await getOrCreateIntroChallenge(db, 'GameActivity', user);
+    }
 
     for (const activity of newPresence.activities) {
         if (!activity.applicationId) continue;
@@ -176,6 +185,8 @@ app.get('/login', async (request, response) => {
     const discordMember = await getDiscordGuildMember(rest, DISCORD_GUILD_ID, discordUser.id);
     const roles = mapRoleIds(ROLES, discordMember.roles);
 
+    // TODO: Save roles
+
     const user = await createOrUpdateUserByDiscordId(db, discordUser.id, {
         accessToken,
         discordUsername: discordUser.username,
@@ -188,6 +199,8 @@ app.get('/login', async (request, response) => {
     request.session.userId = user.id;
     await saveSession(request);
 
+    await getOrCreateIntroChallenge(db, 'Login', user);
+
     response.redirect(request.cookies['login-redirect']);
 });
 
@@ -195,6 +208,14 @@ app.get('/logout', async (request, response) => {
     await destroySession(request);
 
     response.redirect('/');
+});
+
+app.use('/guide', async (request, response) => {
+    // TODO: Check if user has role
+
+    const introChallenges = await getIntroChallenges(db, request.maybeUser);
+    const points = request.maybeUser ? await getUserPoints(db, request.maybeUser) : 0;
+    response.render('guide', { ...request.context, points, constants: { INTRO_CHALLENGE_POINTS }, introChallenges});
 });
 
 app.use('/dashboard', async (request, response) => {
@@ -209,6 +230,11 @@ app.use(async (request, response, next) => {
     if (!request.maybeUser) return response.render('404', request.context);
     request.user = request.maybeUser;
     next();
+});
+
+app.use('/claim/:challengeId', async (request, response) => {
+    await claimChallenge(db, request.user, Number(request.params.challengeId));
+    response.redirect('/guide');
 });
 
 const steamAuth = new SteamAuth({

@@ -3,6 +3,7 @@
 Objectives:
 - Dashboard page
   - Teams
+- Mobile menu
 - Assign teams (Red vs. Blue)
 - Check LAN eligibility
 - Team check page

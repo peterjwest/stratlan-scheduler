@@ -60,7 +60,6 @@ export default function (db: DatabaseClient) {
     });
 
     router.get('/assign', async (request, response) => {
-        console.log(await getMinimalEvents(db));
         response.render('admin/assign', {
             ...request.context,
             events: await getMinimalEvents(db),

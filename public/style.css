@@ -21,6 +21,7 @@ input[type=submit], button {
     --color-bg-red: #3a1934;
     --color-bg-purple: #30193e;
     --color-bg-blue: #4927ba;
+
     --color-highlight: #5c4299;
     --color-border-highlight: #9267c0;
     --color-discord: #5865F2;
@@ -35,4 +36,39 @@ input[type=submit], button {
 
     --gradient-red: linear-gradient(36deg, var(--color-red-primary) 10%, var(--color-red-secondary) 100%);
     --gradient-blue: linear-gradient(334deg, var(--color-blue-primary) 10%, var(--color-blue-secondary) 100%);
+    --gradient-pop: linear-gradient(30deg, #ff8800 10%, #e14700 100%);
+    --rainbow: linear-gradient(
+        -45deg,
+        #d16eff 0%,
+        #65afff 10%,
+        #d7ff8b 20%,
+        #ffdc7e 30%,
+        #ffdc7e 40%,
+        #d16eff 50%,
+        #65afff 60%,
+        #d7ff8b 70%,
+        #ffdc7e 80%,
+        #ffdc7e 90%,
+        #d16eff 100%
+    );
+}
+
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.bg-animate {
+    animation: gradient 0.4s linear infinite;
+    background-size: 200% 200%;
+}
+
+@keyframes gradient {
+    0% {
+        background-position-y: 0 0;
+    }
+    100% {
+        background-position: 100% 100%;
+    }
 }

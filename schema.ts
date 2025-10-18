@@ -1,7 +1,7 @@
 import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-import { SCORE_TYPES } from './constants';
+import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
 
 export const User = pgTable('User', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -51,11 +51,6 @@ export const Score = pgTable('Score', {
     timeslotId: integer().references(() => EventTimeslot.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
-// Constraint - (Type: Awarded + Assigner)
-// Constraint - (Type: CommunityGame + CommunityGameSlot + Player + not Achievement + not OneTimeCode)
-// Constraint - (Type: OneTimeCode + OneTimeCode + Player + not CommunityGameSlot + not Achievement)
-// Constraint - (Type: Achievement + Achievement + Player + not CommunityGameSlot + not OneTimeCode)
-
 export type Score = typeof Score.$inferSelect;
 
 export const scoreRelations = relations(Score, ({ one }) => ({
@@ -118,6 +113,7 @@ export const eventTimeslotRelations = relations(EventTimeslot, ({ one }) => ({
 export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
+    role: varchar(),
     startDate: date({ mode: 'date' }).notNull(),
     endDate: date({ mode: 'date' }).notNull(),
 });
@@ -150,6 +146,16 @@ export const Game = pgTable('Game', {
 });
 export type Game = typeof Game.$inferSelect;
 
+export const IntroChallengeTypeEnum = pgEnum('IntroChallengeType', INTRO_CHALLENGE_TYPES);
+
+export const IntroChallenge = pgTable('IntroChallenge', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    type: IntroChallengeTypeEnum().notNull(),
+    userId: integer().references(() => User.id).notNull(),
+    scoreId: integer().references(() => Score.id),
+});
+export type IntroChallenge = typeof IntroChallenge.$inferSelect;
+
 export default {
     User,
     usersRelations,
@@ -165,4 +171,5 @@ export default {
     GameActivity,
     gameActivityRelations,
     Game,
+    IntroChallenge,
 };

@@ -2,8 +2,27 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, lte, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import schema, { User, Team, Score, Event, EventTimeslot, EventWithTimeslots, Lan, Game, GameActivity, GameActivityWithTeam } from './schema';
-import { TeamName, ScoreType, EVENT_TIMESLOT_MINUTES } from './constants';
+import schema, {
+    User,
+    Team,
+    Score,
+    Event,
+    EventTimeslot,
+    EventWithTimeslots,
+    Lan,
+    Game,
+    GameActivity,
+    GameActivityWithTeam,
+    IntroChallenge,
+} from './schema';
+import {
+    TeamName,
+    ScoreType,
+    EVENT_TIMESLOT_MINUTES,
+    IntroChallengeType,
+    INTRO_CHALLENGE_TYPES,
+    INTRO_CHALLENGE_POINTS,
+} from './constants';
 import { getDayStart, getDayEnd, getTimeslotEnd } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
@@ -97,8 +116,14 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
     });
 }
 
+// TODO: Remove denormalised teamId
 export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
     const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.teamId, team.id));
+    return results[0].total || 0;
+}
+
+export async function getUserPoints(db: DatabaseClient, user: User): Promise<number> {
+    const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.userId, user.id));
     return results[0].total || 0;
 }
 
@@ -187,4 +212,43 @@ export async function getIncompleteCommunityEvents(db: DatabaseClient): Promise<
         ),
         with: { timeslots: { orderBy: [asc(EventTimeslot.time)] }},
     });
+}
+
+export async function getOrCreateIntroChallenge(db: DatabaseClient, type: IntroChallengeType, user: User): Promise<IntroChallenge> {
+    const challenge = await db.query.IntroChallenge.findFirst({
+        where: and(eq(IntroChallenge.type, type), eq(IntroChallenge.userId, user.id)),
+    });
+    if (challenge) return challenge;
+    return (await db.insert(IntroChallenge).values({ userId: user.id, type: type }).returning())[0];
+}
+
+type IntroChallengeMap = {
+    [Key in IntroChallengeType]?: IntroChallenge
+};
+
+export async function getIntroChallenges(db: DatabaseClient, user?: User): Promise<IntroChallengeMap> {
+    const challenges: IntroChallengeMap = Object.fromEntries(INTRO_CHALLENGE_TYPES.map((type) => [type, undefined]));
+    if (user) {
+        const introChallenges = await db.query.IntroChallenge.findMany({ where: eq(IntroChallenge.userId, user.id) });
+        for (const introChallenge of introChallenges) {
+            challenges[introChallenge.type] = introChallenge;
+        }
+    }
+    return challenges;
+}
+
+export async function claimChallenge(db: DatabaseClient, user: User, challengeId: number) {
+    const introChallenge = await db.query.IntroChallenge.findFirst({
+        where: and(eq(IntroChallenge.userId, user.id), eq(IntroChallenge.id, challengeId)),
+    })
+    if (!introChallenge) throw new Error('Challenge not completed yet');
+
+    const score = (await db.insert(Score).values({
+        type: 'IntroChallenge',
+        teamId: user.teamId,
+        userId: user.id,
+        points: INTRO_CHALLENGE_POINTS[introChallenge.type],
+    }).returning())[0];
+
+    await db.update(IntroChallenge).set({ scoreId: score.id }).where(eq(IntroChallenge.id, challengeId));
 }

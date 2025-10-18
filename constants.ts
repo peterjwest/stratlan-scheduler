@@ -21,7 +21,7 @@ export const TEAM_BACKGROUND_CLASSES = {
     'Blue': 'bg-(image:--gradient-blue)',
 } as const satisfies { [Property in TeamName]: string };
 
-export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement'] as const;
+export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement', 'IntroChallenge'] as const;
 export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
 
@@ -30,7 +30,18 @@ export const SCORE_TYPE_NAMES = {
     'CommunityGame': 'Community game',
     'OneTimeCode': 'QR code',
     'Achievement': 'Steam achievement',
+    'IntroChallenge': 'Introductory challenge',
 } as const satisfies { [Property in ScoreType]: string };
+
+export const INTRO_CHALLENGE_TYPES = ['Login', 'GameActivity', 'OneTimeCode'] as const;
+export const IntroChallengeType = zod.enum(INTRO_CHALLENGE_TYPES);
+export type IntroChallengeType = typeof INTRO_CHALLENGE_TYPES[number];
+
+export const INTRO_CHALLENGE_POINTS = {
+    'Login': 50,
+    'GameActivity': 50,
+    'OneTimeCode': 50,
+} as const satisfies { [Property in IntroChallengeType]: number };
 
 export const DISCORD_RETURN_URL = `${HOST}/login`;
 export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
