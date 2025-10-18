@@ -161,10 +161,10 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.get('/', async (request, response) => {
+app.get('/schedule', async (request, response) => {
     const events = await getLanEvents(db, request.context.lan);
 
-    response.render('index', {
+    response.render('schedule', {
         ...request.context,
         eventsByDay: splitByDay(events, getLanDays(request.context.lan)),
     });
@@ -210,7 +210,7 @@ app.get('/logout', async (request, response) => {
     response.redirect('/');
 });
 
-app.use('/guide', async (request, response) => {
+app.get('/', async (request, response) => {
     // TODO: Check if user has role
 
     const introChallenges = await getIntroChallenges(db, request.maybeUser);
@@ -234,7 +234,7 @@ app.use(async (request, response, next) => {
 
 app.use('/claim/:challengeId', async (request, response) => {
     await claimChallenge(db, request.user, Number(request.params.challengeId));
-    response.redirect('/guide');
+    response.redirect('/');
 });
 
 const steamAuth = new SteamAuth({
