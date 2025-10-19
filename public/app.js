@@ -15,6 +15,15 @@ if (pointsTypeRadios.length && pointsPlayerField) {
     }
 }
 
+const menuButtons = document.querySelectorAll('[data-menu]');
+const navigation = document.querySelector('nav');
+
+for (const menuButton of menuButtons) {
+    menuButton.addEventListener('click', () => {
+        navigation.classList.toggle('hidden');
+    });
+}
+
 const userMenu = document.querySelector('[data-user-menu]');
 
 if (userMenu) {
@@ -159,11 +168,10 @@ for (const dropdown of dropdowns) {
     document.addEventListener('click', closeMenu);
 }
 
-const navigation = document.querySelector('nav');
 const header = document.querySelector('.header');
 const fullscreenHeading = document.querySelector('.fullscreen-heading');
 window.matchMedia('(display-mode: fullscreen)').addEventListener('change', ({ matches }) => {
-    if (navigation) navigation.classList.toggle('hidden', matches);
+    if (navigation) navigation.classList.toggle('md:hidden', matches);
     if (header) header.classList.toggle('hidden', matches);
     if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
 });

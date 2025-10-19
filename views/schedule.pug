@@ -24,6 +24,6 @@ block body
                                 for [column, index] of group.map((column, index) => [column, index])
                                     for event of column
                                         div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
-                                            div(class=`flex-grow px-2 py-1.5 mx-1 my-0.5 ${index === group.length - 1 ? 'mr-1' : 'mr-0' } bg-highlight rounded-lg border border-border-highlight overflow-hidden`)
+                                            div(class=`flex-grow px-2 py-1.5 mx-1 my-0.5 ${index === group.length - 1 ? 'mr-1' : 'mr-0' } bg-highlight rounded-lg border border-highlight-accent overflow-hidden`)
                                                 div(class="text-sm")= event.name
                                                 div(class="text-xs")= helpers.formatTime(event.startTime)

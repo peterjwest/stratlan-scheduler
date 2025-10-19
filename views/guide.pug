@@ -6,13 +6,13 @@ block body
         ol(class="flex-none lg:flex gap-3 max-w-200 text-xl")
             li(class="flex-grow flex-1 mb-3 relative")
                 if user
-                    div(href=discordAuthUrl class="relative p-5 h-full bg-highlight clearfix rounded-lg border border-border-highlight")
+                    div(href=discordAuthUrl class="relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
                         if user.discordAvatarId
                             img(src=helpers.getAvatarUrl(user) class="ml-3 h-12 w-12 rounded-md float-right")
                         span=`Logged in as ${user.discordUsername}`
                         img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
                 else
-                    a(href=discordAuthUrl data-login class="block relative p-5 h-full bg-highlight clearfix rounded-lg border border-border-highlight")
+                    a(href=discordAuthUrl data-login class="block relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
                         img(src="/discord-logo.svg" class="bg-discord p-1 ml-3 h-12 w-12 rounded-md float-right")
                         | Login with Discord
 
@@ -21,7 +21,7 @@ block body
 
 
             li(class="flex-grow flex-1 mb-3")
-                div(class="relative p-5 h-full bg-highlight rounded-lg border border-border-highlight")
+                div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
                     if user
                         span="You're on team "
                         span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(teams, user.teamId)}`)
@@ -30,7 +30,7 @@ block body
                     else
                         | Find out your team
             li(class="flex-grow flex-1 mb-3")
-                div(class="relative p-5 h-full bg-highlight rounded-lg border border-border-highlight")
+                div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
                     if user
                         | Go earn points!
                     else
@@ -42,11 +42,11 @@ block body
     section
         h2(class="text-2xl font-semibold mb-3") How to earn points:
 
-        section(class="mb-4 p-5 bg-highlight rounded-lg border border-border-highlight" id="scheduled")
+        section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="scheduled")
             h3(class="text-xl font-semibold mb-3") Play scheduled games
             p(class="mb-2")
                 ="Taking part in "
-                a(href="/" class="font-semibold border-b-1 border-border-highlight")="scheduled games "
+                a(href="/" class="font-semibold border-b-1 border-highlight-accent")="scheduled games "
                 | earns you points for every 10 minutes played.
             p(class="mb-2")
                 | In order to earn points, you must have Activity Sharing enabled on Discord.
@@ -54,11 +54,11 @@ block body
             h4(class="text-md font-semibold mt-6 mb-3") How to enable Activity Sharing
             ol(class="list-decimal ml-6")
                 li
-                    img(src="/discord-screenshots/settings.png" class="mb-3 h-[71px] min-w-[192px] border border-border-highlight")
+                    img(src="/discord-screenshots/settings.png" class="mb-3 h-[71px] min-w-[192px] border border-highlight-accent")
                 li
-                    img(src="/discord-screenshots/activity-privacy.png" class="mb-3 h-[350px] min-w-[333px] border border-border-highlight")
+                    img(src="/discord-screenshots/activity-privacy.png" class="mb-3 h-[350px] min-w-[333px] border border-highlight-accent")
                 li
-                    img(src="/discord-screenshots/stratlan.png" class="mb-3 h-[75px] min-w-[361px] border border-border-highlight")
+                    img(src="/discord-screenshots/stratlan.png" class="mb-3 h-[75px] min-w-[361px] border border-highlight-accent")
                 li
                     p(class="mb-2")
                         ="Check it's working by launching a game to "
@@ -67,12 +67,12 @@ block body
 
 
 
-        section(class="mb-4 p-5 bg-highlight rounded-lg border border-border-highlight" id="tournaments")
+        section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="tournaments")
             h3(class="text-xl font-semibold mb-3") Win games and tournaments
             p(class="mb-2")
                 | Winning scheduled games, competitions and tournaments earns you points.
 
-        section(class="mb-4 p-5 bg-highlight rounded-lg border border-border-highlight" id="hidden")
+        section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="hidden")
             h3(class="text-xl font-semibold mb-3") Find hidden QR codes
             p(class="mb-2")
                 | Find hidden QR codes around the venue and scan them to earn points.
@@ -81,7 +81,7 @@ block body
             //-     span(class="inline-block -rotate-3 ")
             //-         +pointsButton(introChallenges.OneTimeCode, constants.INTRO_CHALLENGE_POINTS.OneTimeCode)
 
-        section(class="mb-4 p-5 bg-highlight rounded-lg border border-border-highlight" id="events")
+        section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="events")
             h3(class="text-xl font-semibold mb-3") Attend events
             p(class="mb-2")
                 | Certain events like the Pub Quiz will have a code you can scan to earn points.

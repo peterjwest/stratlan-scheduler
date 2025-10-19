@@ -7,31 +7,37 @@ html(lang="en" class="h-full")
         link(rel="stylesheet" href="/style.css")
         link(rel="shortcut icon" href="/favicon.png")
     body(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed text-white flex")
-        nav(class="w-60 min-h-full backdrop-blur-xl backdrop-brightness-150")
-            div(class="sticky top-0 w-60")
-                h1(class="px-2 py-4")
-                    a(href="/")
-                        img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px]")
-                div(class="px-5 pb-4 space-y-3")
-                    section
-                        div(class="text-xl pb-1") Red vs. Blue
-                        +navigationLink(currentPath, '/', 'Introduction')
-                        +navigationLink(currentPath, '/dashboard', 'Dashboard')
+        nav(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed hidden md:block z-2 -mr-60 md:mr-0")
+            div(class="w-60 h-full backdrop-blur-xl backdrop-brightness-150")
+                div(class="sticky top-0")
+                    button(class="md:hidden p-2" data-menu)
+                        img(src="/menu.svg" class="p-2 w-12 h-12")
+                    div(class="top-0 w-60")
+                        h1(class="px-2 md:pt-4 pb-2 -mt-3 md:mt-0")
+                            a(href="/")
+                                img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px]")
+                        div(class="px-5 pb-4 space-y-3")
+                            section
+                                div(class="text-xl pb-1") Red vs. Blue
+                                +navigationLink(currentPath, '/', 'Introduction')
+                                +navigationLink(currentPath, '/dashboard', 'Dashboard')
 
-                    section
-                        div(class="text-xl pb-1") Schedule
-                        +navigationLink(currentPath, '/schedule', 'Official events')
+                            section
+                                div(class="text-xl pb-1") Schedule
+                                +navigationLink(currentPath, '/schedule', 'Official events')
 
-                    if user && user.isAdmin
-                        section
-                            div(class="text-xl") Admin
-                            +navigationLink(currentPath, '/admin/points', 'Points log')
-                            +navigationLink(currentPath, '/admin/assign', 'Assign points')
+                            if user && user.isAdmin
+                                section
+                                    div(class="text-xl") Admin
+                                    +navigationLink(currentPath, '/admin/points', 'Points log')
+                                    +navigationLink(currentPath, '/admin/assign', 'Assign points')
 
         main(class="flex-grow")
             div(class="max-w-7xl mx-auto relative")
-                div(class="flex header")
+                header(class="flex header")
                     div(class="flex-grow")
+                        button(class="md:hidden p-2" data-menu)
+                            img(src="/menu.svg" class="p-2 w-12 h-12")
                     if user
                         div(class="relative" data-user-menu-wrapper)
                             div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
