@@ -43,10 +43,9 @@ export default function (db: DatabaseClient) {
             { name: 'All', url: '/admin/points' },
             { name: formatScoreType('Awarded'), url: '/admin/points?type=Awarded' },
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
-            // { name: formatScoreType('Achievement'), url: '/admin/points?type=Achievement' },
-            // { name: formatScoreType('OneTimeCode'), url: '/admin/points?type=OneTimeCode' },
-            // { name: 'Manually assigned', url: '/admin/points?assigned=true' },
+            { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ]
+        console.log(await getScores(db, query.type, query.assigned));
         response.render('admin/points', {
             ...request.context,
             filters,
@@ -77,9 +76,6 @@ export default function (db: DatabaseClient) {
             const player = await getUser(db, body.userId);
             if (!player) return response.status(500).send('Player not found');
 
-            const playerTeam = request.context.teams.find((team) => team.id === player.teamId);
-            if (!playerTeam) return response.status(500).send('Player does not have a team');
-
             // TODO: Check eligible for LAN
 
             await awardScore(
@@ -88,7 +84,6 @@ export default function (db: DatabaseClient) {
                 body.points,
                 body.reason,
                 event,
-                playerTeam,
                 player,
             );
         } else {

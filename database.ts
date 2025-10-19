@@ -55,7 +55,13 @@ export async function getMinimalEvents(db: DatabaseClient): Promise<{ id: number
     return db.query.Event.findMany({ columns: { id: true, name: true }});
 }
 
-export async function getMinimalUsers(db: DatabaseClient): Promise<{ id: number, discordUsername: string, discordNickname: string | null }[]> {
+type MinimalUser = {
+    id: number;
+    discordUsername: string;
+    discordNickname: string | null;
+}
+
+export async function getMinimalUsers(db: DatabaseClient): Promise<MinimalUser[]> {
     return db.query.User.findMany({ columns: { id: true, discordUsername: true, discordNickname: true }});
 }
 
@@ -91,12 +97,18 @@ export async function awardScore(
     points: number,
     reason: string | undefined,
     event: Event | undefined,
-    team: Team,
-    user?: User,
+    teamOrUser: Team | User,
 ): Promise<Score> {
+    let team: Team | undefined;
+    let user: User | undefined;
+    if ('name' in teamOrUser) {
+        team = teamOrUser;
+    } else {
+        user = teamOrUser;
+    }
     return (await db.insert(Score).values({
         type: 'Awarded',
-        teamId: team.id,
+        teamId: team?.id,
         userId: user?.id,
         assignerId: assigner.id,
         points: points,
@@ -109,21 +121,35 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
     const conditions = [];
     if (assigned) conditions.push(isNotNull(Score.assignerId));
     if (type) conditions.push( eq(Score.type, type));
-    return db.query.Score.findMany({
+    const scores = await db.query.Score.findMany({
         where: and(...conditions),
         with: { user: true, assigner: true, event: true },
         orderBy: [desc(Score.createdAt)],
     });
+    for (const score of scores) {
+        if (score.user) score.teamId = score.user.teamId;
+    }
+    return scores
 }
 
-// TODO: Remove denormalised teamId
 export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
-    const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.teamId, team.id));
+    const results = (
+        await db
+        .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
+        .from(Score)
+        .leftJoin(User, eq(User.id, Score.userId))
+        .where(or(eq(Score.teamId, team.id), eq(User.teamId, team.id)))
+    );
     return results[0].total || 0;
 }
 
 export async function getUserPoints(db: DatabaseClient, user: User): Promise<number> {
-    const results = await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) }).from(Score).where(eq(Score.userId, user.id));
+    const results = (
+        await db
+        .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
+        .from(Score)
+        .where(eq(Score.userId, user.id))
+    );
     return results[0].total || 0;
 }
 

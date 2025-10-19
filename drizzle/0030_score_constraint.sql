@@ -1,0 +1,1 @@
+ALTER TABLE "Score" ADD CONSTRAINT "teamId_or_userId" CHECK (("Score"."teamId" IS NOT NULL AND "Score"."userId" IS NULL) OR ("Score"."teamId" IS NULL AND "Score"."userId" IS NOT NULL));

@@ -1,5 +1,5 @@
-import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 
 import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
 
@@ -50,7 +50,12 @@ export const Score = pgTable('Score', {
     eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
-});
+}, (table) => [
+      check(
+        "teamId_or_userId",
+        sql`(${table.teamId} IS NOT NULL AND ${table.userId} IS NULL) OR (${table.teamId} IS NULL AND ${table.userId} IS NOT NULL)`,
+    ),
+]);
 export type Score = typeof Score.$inferSelect;
 
 export const scoreRelations = relations(Score, ({ one }) => ({
