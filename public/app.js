@@ -174,11 +174,16 @@ for (const dropdown of dropdowns) {
 
 const header = document.querySelector('.header');
 const fullscreenHeading = document.querySelector('.fullscreen-heading');
-window.matchMedia('(display-mode: fullscreen)').addEventListener('change', ({ matches }) => {
+const fullscreenMatch = window.matchMedia('(display-mode: fullscreen)');
+
+function updateFullscreen(matches) {
     if (navigation) navigation.classList.toggle('md:hidden', matches);
     if (header) header.classList.toggle('hidden', matches);
     if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
-});
+}
+
+fullscreenMatch.addEventListener('change', ({ matches }) => updateFullscreen(matches));
+updateFullscreen(fullscreenMatch.matches);
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
