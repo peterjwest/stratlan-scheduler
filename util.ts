@@ -204,10 +204,15 @@ export function maxDate(a: Date, b: Date): Date {
 }
 
 export function diffMinutes(a: Date, b: Date): number {
-   return (b.getTime() - a.getTime()) / 1000 / 60;
+    return (b.getTime() - a.getTime()) / 1000 / 60;
 }
 
 export function roundToNextMinutes(date = new Date(), minutes: number) {
-  const multiplier = 1000 * 60 * minutes;
-  return new Date(Math.ceil(date.getTime() / multiplier) * multiplier);
+    const multiplier = 1000 * 60 * minutes;
+    return new Date(Math.ceil(date.getTime() / multiplier) * multiplier);
+}
+
+export function getUrl(path: string) {
+    const url = new URL(path, 'https://example');
+    return { path: url.pathname, query: url.searchParams, hash: url.hash };
 }

@@ -1,3 +1,4 @@
+
 import { REST, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
@@ -6,7 +7,7 @@ import sessionStore from 'connect-pg-simple';
 import SteamAuth from 'node-steam-openid';
 import zod from 'zod';
 
-import { regenerateSession, saveSession, destroySession, splitByDay, getLanDays } from './util';
+import { regenerateSession, saveSession, destroySession, splitByDay, getLanDays, getUrl } from './util';
 import setupCommands from './commands';
 import environment from './environment';
 import { User, Team, Lan } from './schema';
@@ -75,6 +76,7 @@ declare global {
         maybeUser: User | undefined;
         user: User;
         context: {
+            currentPath: string;
             teams: Team[];
             user: User | undefined;
             lan: Lan | undefined;
@@ -150,8 +152,9 @@ app.set('view engine', 'pug');
 app.use(async (request, response, next) => {
     const lan = await getCurrentLan(db);
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    request.maybeUser = user
+    request.maybeUser = user;
     request.context = {
+        currentPath: getUrl(request.originalUrl).path,
         teams,
         user,
         lan,
