@@ -45,7 +45,6 @@ export default function (db: DatabaseClient) {
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ]
-        console.log(await getScores(db, query.type, query.assigned));
         response.render('admin/points', {
             ...request.context,
             filters,
