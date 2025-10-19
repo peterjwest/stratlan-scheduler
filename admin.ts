@@ -37,10 +37,6 @@ export default function (db: DatabaseClient) {
         next();
     });
 
-    router.get('/', async (request, response) => {
-        response.render('admin/index', request.context);
-    });
-
     router.get('/points', async (request, response) => {
         const query = PointsQuery.parse(request.query);
         const filters = [
