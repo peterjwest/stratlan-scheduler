@@ -33,6 +33,8 @@ if (userMenu) {
 
     document.addEventListener('click', () => {
         userMenu.classList.add('hidden');
+        userMenuButton.classList.add('rounded-b');
+        userMenuButton.classList.remove('bg-highlight');
     });
 
     const userMenuButton = document.querySelector('[data-user-menu-button]');
@@ -40,6 +42,8 @@ if (userMenu) {
         userMenuButton.addEventListener('click', (event) => {
             event.stopPropagation();
             userMenu.classList.toggle('hidden');
+            userMenuButton.classList.toggle('rounded-b');
+            userMenuButton.classList.toggle('bg-highlight');
         });
     }
 }
