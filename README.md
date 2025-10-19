@@ -13,6 +13,7 @@ Objectives:
   - Discord integration / sync
   - LTG integration
   - Colour code by location
+  - Clip events and minimum visual length
 - Score log
   - Pagination
   - Search by user
