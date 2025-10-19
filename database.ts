@@ -132,8 +132,8 @@ export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event
     return db.query.Event.findMany({
         where: and(
             eq(Event.isOfficial, true),
-            gt(Event.startTime, getDayStart(lan.startDate)),
-            lt(Event.startTime, getDayEnd(lan.endDate)),
+            gt(Event.startTime, getDayStart(lan.scheduleStart)),
+            lt(Event.startTime, getDayEnd(lan.scheduleEnd)),
         ),
         orderBy: [asc(Event.startTime)],
     });
@@ -141,8 +141,8 @@ export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event
 
 export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined> {
     return db.query.Lan.findFirst({
-        where: lte(Lan.startDate, new Date()),
-        orderBy: [asc(Lan.endDate)],
+        where: lte(Lan.scheduleStart, new Date()),
+        orderBy: [asc(Lan.scheduleEnd)],
     });
 }
 

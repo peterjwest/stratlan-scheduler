@@ -169,9 +169,9 @@ export function splitByDay(events: Event[], days: Date[]): DayEvents[] {
 
 export function getLanDays(lan?: Lan): Date[] {
     if (!lan) return [];
-    let day = lan.startDate;
+    let day = lan.scheduleStart;
     const days = [];
-    while (day <= lan.endDate) {
+    while (day <= lan.scheduleEnd) {
         days.push(day);
         day = addDays(day, 1);
     }
@@ -207,7 +207,7 @@ export function diffMinutes(a: Date, b: Date): number {
     return (b.getTime() - a.getTime()) / 1000 / 60;
 }
 
-export function roundToNextMinutes(date = new Date(), minutes: number) {
+export function roundToNextMinutes(date = new Date(), minutes: number): Date {
     const multiplier = 1000 * 60 * minutes;
     return new Date(Math.ceil(date.getTime() / multiplier) * multiplier);
 }
@@ -215,4 +215,8 @@ export function roundToNextMinutes(date = new Date(), minutes: number) {
 export function getUrl(path: string) {
     const url = new URL(path, 'https://example');
     return { path: url.pathname, query: url.searchParams, hash: url.hash };
+}
+
+export function hasEventStarted(lan: Lan | undefined): boolean {
+    return Boolean(lan?.eventStart && new Date() > lan.eventStart);
 }

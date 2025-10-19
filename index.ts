@@ -7,7 +7,15 @@ import sessionStore from 'connect-pg-simple';
 import SteamAuth from 'node-steam-openid';
 import zod from 'zod';
 
-import { regenerateSession, saveSession, destroySession, splitByDay, getLanDays, getUrl } from './util';
+import {
+    regenerateSession,
+    saveSession,
+    destroySession,
+    splitByDay,
+    getLanDays,
+    getUrl,
+    hasEventStarted,
+} from './util';
 import setupCommands from './commands';
 import environment from './environment';
 import { User, Team, Lan } from './schema';
@@ -77,6 +85,7 @@ declare global {
         user: User;
         context: {
             currentPath: string;
+            eventStarted: boolean;
             teams: Team[];
             user: User | undefined;
             lan: Lan | undefined;
@@ -150,11 +159,15 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
+    const currentPath = getUrl(request.originalUrl).path;
     const lan = await getCurrentLan(db);
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
+    const eventStarted = hasEventStarted(lan);
+    if (user && !eventStarted) user.teamId = null;
     request.maybeUser = user;
     request.context = {
-        currentPath: getUrl(request.originalUrl).path,
+        currentPath,
+        eventStarted,
         teams,
         user,
         lan,

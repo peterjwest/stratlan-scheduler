@@ -3,7 +3,7 @@ extends layout.pug
 block body
     section(class="mb-4")
         h2(class="text-2xl font-semibold mb-3") How to take part:
-        ol(class="flex-none lg:flex gap-3 max-w-200 text-xl")
+        ol(class="flex-none lg:flex gap-3 text-lg")
             li(class="flex-grow flex-1 mb-3 relative")
                 if user
                     div(href=discordAuthUrl class="relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
@@ -19,10 +19,15 @@ block body
                 span(class="inline-block -rotate-3 absolute -bottom-3 -right-2 z-1")
                     +pointsButton(introChallenges.Login, constants.INTRO_CHALLENGE_POINTS.Login)
 
+            li(class="flex-grow flex-1 mb-3 relative")
+                div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
+                    | Wait for the event to start
+                if eventStarted
+                    img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
 
             li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
-                    if user
+                    if user && user.teamId
                         span="You're on team "
                         span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(teams, user.teamId)}`)
                             =helpers.getTeamName(teams, user.teamId)
@@ -31,12 +36,9 @@ block body
                         | Find out your team
             li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
-                    if user
-                        | Go earn points!
-                    else
-                        | Earn points
+                    | Go earn points!
 
-                    if points > 0
+                    if points > constants.INTRO_CHALLENGE_POINTS.Login
                         img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
 
     section
@@ -64,8 +66,6 @@ block body
                         ="Check it's working by launching a game to "
                         span(class="inline-block rotate-1")
                             +pointsButton(introChallenges.GameActivity, constants.INTRO_CHALLENGE_POINTS.GameActivity)
-
-
 
         section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="tournaments")
             h3(class="text-xl font-semibold mb-3") Win games and tournaments

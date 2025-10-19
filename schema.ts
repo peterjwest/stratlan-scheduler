@@ -114,8 +114,10 @@ export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
     role: varchar(),
-    startDate: date({ mode: 'date' }).notNull(),
-    endDate: date({ mode: 'date' }).notNull(),
+    scheduleStart: date({ mode: 'date' }).notNull(),
+    scheduleEnd: date({ mode: 'date' }).notNull(),
+    eventStart: timestamp({ withTimezone: true }),
+    eventEnd: timestamp({ withTimezone: true }),
 });
 export type Lan = typeof Lan.$inferSelect;
 
