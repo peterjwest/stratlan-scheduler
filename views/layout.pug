@@ -6,63 +6,69 @@ html(lang="en" class="h-full")
         title StratLAN Scheduler
         link(rel="stylesheet" href="/style.css")
         link(rel="shortcut icon" href="/favicon.png")
-    body(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed text-white flex")
-        nav(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed hidden md:block z-3 -mr-60 md:mr-0")
-            div(class="w-60 h-full backdrop-blur-xl backdrop-brightness-150")
-                div(class="sticky top-0")
-                    button(class="md:hidden p-2" data-menu)
-                        img(src="/menu.svg" class="p-2 w-12 h-12")
-                    div(class="top-0 w-60")
-                        h1(class="px-2 md:pt-4 pb-2 -mt-4 md:mt-0")
-                            a(href="/")
-                                img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px]")
-                        div(class="px-5 pb-4 space-y-3")
-                            section
-                                div(class="text-xl pb-1") Red vs. Blue
-                                +navigationLink(currentPath, '/', 'Introduction')
-                                +navigationLink(currentPath, '/dashboard', 'Dashboard')
-
-                            section
-                                div(class="text-xl pb-1") Schedule
-                                +navigationLink(currentPath, '/schedule', 'Official events')
-
-                            if user && user.isAdmin
-                                section
-                                    div(class="text-xl") Admin
-                                    +navigationLink(currentPath, '/admin/points', 'Points log')
-                                    +navigationLink(currentPath, '/admin/assign', 'Assign points')
-
-        main(class="flex-grow")
-            div(class="max-w-7xl mx-auto relative")
-                header(class="flex header h-16")
-                    div(class="flex-grow")
+    body(class="min-h-full bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed text-white")
+        div(class="fullscreen-heading hidden flex items-center mb-4 mt-4")
+            img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[70px] ml-4 mr-2")
+            img(src="/red-vs-blue.png" class="mb-2 h-[70px]")
+        div(class="flex")
+            nav(class="min-h-[100vh] bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed hidden md:block z-3 -mr-60 md:mr-0")
+                div(class="w-60 h-full backdrop-blur-xl backdrop-brightness-150")
+                    div(class="sticky top-0")
                         button(class="md:hidden p-2" data-menu)
                             img(src="/menu.svg" class="p-2 w-12 h-12")
-                    if user
-                        div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
-                            div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
-                                span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(teams, user.teamId)}`)= helpers.getTeamName(teams, user.teamId)
-                                if user.discordAvatarId
-                                    img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
-                                p(class="mr-4")= user.discordUsername
-                                img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
-                            div(class="hidden absolute left-0 right-0 top-full backdrop-blur-xl bg-highlight/60 rounded-b" data-user-menu)
-                                //- if user.steamUsername
-                                //-     div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
-                                //-         span(class="flex-grow mr-4 overflow-x-hidden overflow-ellipsis") #{user.steamUsername}
-                                //-         img(src="/steam-logo.svg" class="h-8 w-8")
-                                //- else
-                                //-     a(class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30" href='/steam')
-                                //-         span(class="flex-grow mr-4") Link Steam account
-                                //-         img(src="/steam-logo.svg" class="h-8 w-8")
-                                a(href='/logout' class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30")
-                                        span(class="flex-grow mr-4") Logout
-                    else
-                        a(href=discordAuthUrl data-login class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
-                            span Login with Discord
-                            img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
+                        div(class="top-0 w-60")
+                            div(class="p-2 px-2 md:pt-4 -mt-4 md:mt-0")
+                                h1(class="")
+                                    a(href="/")
+                                        img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px] mb-1.5")
+                                img(src="/red-vs-blue.png" class="h-[50px] px-2")
 
-                div(class="px-8 pt-6 pb-12")
-                    block body
+                            div(class="px-5 pb-4 space-y-3")
+                                section
+                                    +navigationLink(currentPath, '/', 'Introduction')
+                                    +navigationLink(currentPath, '/dashboard', 'Dashboard')
+
+                                section
+                                    div(class="text-xl pb-1") Schedule
+                                    +navigationLink(currentPath, '/schedule', 'Official events')
+
+                                if user && user.isAdmin
+                                    section
+                                        div(class="text-xl") Admin
+                                        +navigationLink(currentPath, '/admin/points', 'Points log')
+                                        +navigationLink(currentPath, '/admin/assign', 'Assign points')
+
+            main(class="flex-grow")
+                div(class="max-w-7xl mx-auto relative")
+                    header(class="flex header h-16")
+                        div(class="flex-grow")
+                            button(class="md:hidden p-2" data-menu)
+                                img(src="/menu.svg" class="p-2 w-12 h-12")
+                        if user
+                            div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
+                                div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
+                                    span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(teams, user.teamId)}`)= helpers.getTeamName(teams, user.teamId)
+                                    if user.discordAvatarId
+                                        img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
+                                    p(class="mr-4")= user.discordUsername
+                                    img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
+                                div(class="hidden absolute left-0 right-0 top-full backdrop-blur-xl bg-highlight/60 rounded-b" data-user-menu)
+                                    //- if user.steamUsername
+                                    //-     div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
+                                    //-         span(class="flex-grow mr-4 overflow-x-hidden overflow-ellipsis") #{user.steamUsername}
+                                    //-         img(src="/steam-logo.svg" class="h-8 w-8")
+                                    //- else
+                                    //-     a(class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30" href='/steam')
+                                    //-         span(class="flex-grow mr-4") Link Steam account
+                                    //-         img(src="/steam-logo.svg" class="h-8 w-8")
+                                    a(href='/logout' class="flex flex-grow items-center py-3 px-5.5 border-t border-border/30")
+                                            span(class="flex-grow mr-4") Logout
+                        else
+                            a(href=discordAuthUrl data-login class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
+                                span Login with Discord
+                                img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
+
+                    div(class="px-8 pt-6 pb-12")
+                        block body
 
         script(src="/app.js")

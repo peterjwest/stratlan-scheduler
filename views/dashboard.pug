@@ -1,9 +1,6 @@
 extends layout.pug
 
 block body
-    div(class="fullscreen-heading hidden flex items-center mb-4 mt-4")
-        img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[70px] pr-3")
-        h2(class="text-2xl font-semibold") Red vs. Blue
     ul
         for team of teamPoints
             li= `${team.team.name} points: ${team.points}`
