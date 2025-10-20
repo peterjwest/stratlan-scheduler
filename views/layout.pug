@@ -26,25 +26,30 @@ html(lang="en" class="h-full")
 
                             div(class="px-5 pb-4 space-y-3")
                                 section
-                                    +navigationLink(currentPath, '/', 'Introduction')
-                                    +navigationLink(currentPath, '/dashboard', 'Dashboard')
+                                    +navigationLink('/', 'Introduction')
+                                    +navigationLink('/dashboard', 'Dashboard')
 
                                 section
                                     div(class="text-xl pb-1") Schedule
-                                    +navigationLink(currentPath, '/schedule', 'Official events')
+                                    +navigationLink('/schedule', 'Official events')
 
                                 if user && user.isAdmin
                                     section
                                         div(class="text-xl") Admin
-                                        +navigationLink(currentPath, '/admin/points', 'Points log')
-                                        +navigationLink(currentPath, '/admin/assign', 'Assign points')
+                                        +navigationLink('/admin/points', 'Points log')
+                                        +navigationLink('/admin/assign', 'Assign points')
 
             main(class="flex-grow")
                 div(class="max-w-7xl mx-auto relative")
                     header(class="flex header h-16")
-                        div(class="flex-grow")
+                        div(class="flex-grow flex")
                             button(class="md:hidden p-2" data-menu)
                                 img(src="/menu.svg" class="p-2 w-12 h-12")
+
+                        if user && user.isAdmin
+                            div(class="p-3" data-lan-select data-current=currentLan.id)
+                                +dropdown("lanId", lans, selectedLan, true, 'Select LAN', (lan) => lan.name)
+
                         if user
                             div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
                                 div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
@@ -72,7 +77,5 @@ html(lang="en" class="h-full")
 
                     div(class="px-8 pt-3 pb-9")
                         block body
-
-                p(class="pb-6 text-center text-sm") "You can't red vs. blue on your own" - Kharne
 
         script(src="/app.js")

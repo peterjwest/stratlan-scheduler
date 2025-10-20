@@ -41,6 +41,7 @@ export const ScoreTypeEnum = pgEnum('ScoreType', SCORE_TYPES);
 
 export const Score = pgTable('Score', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    lanId: integer().references(() => Lan.id).notNull(),
     teamId: integer().references(() => Team.id),
     type: ScoreTypeEnum().notNull(),
     userId: integer().references(() => User.id),
@@ -79,6 +80,7 @@ export const scoreRelations = relations(Score, ({ one }) => ({
 
 export const Event = pgTable('Event', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    lanId: integer().references(() => Lan.id).notNull(),
     name: varchar().notNull(),
     description: varchar().notNull(),
     startTime: timestamp({ withTimezone: true }).notNull(),
@@ -128,6 +130,7 @@ export type Lan = typeof Lan.$inferSelect;
 
 export const GameActivity = pgTable('GameActivity', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    lanId: integer().references(() => Lan.id).notNull(),
     userId: integer().references(() => User.id).notNull(),
     gameId: varchar().references(() => Game.id).notNull(),
     startTime: timestamp({ withTimezone: true }).notNull(),
@@ -157,6 +160,7 @@ export const IntroChallengeTypeEnum = pgEnum('IntroChallengeType', INTRO_CHALLEN
 
 export const IntroChallenge = pgTable('IntroChallenge', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    lanId: integer().references(() => Lan.id).notNull(),
     type: IntroChallengeTypeEnum().notNull(),
     userId: integer().references(() => User.id).notNull(),
     scoreId: integer().references(() => Score.id),

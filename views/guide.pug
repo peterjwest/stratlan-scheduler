@@ -6,7 +6,7 @@ block body
         ol(class="flex-none lg:flex gap-3 text-lg")
             li(class="flex-grow flex-1 mb-3 relative")
                 if user
-                    div(href=discordAuthUrl class="relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
+                    div(class="relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
                         if user.discordAvatarId
                             img(src=helpers.getAvatarUrl(user) class="ml-3 h-12 w-12 rounded-md float-right")
                         span=`Logged in as ${user.discordUsername}`
@@ -86,3 +86,5 @@ block body
             p(class="mb-2")
                 | Certain events like the Pub Quiz will have a code you can scan to earn points.
             p(class="mb-2")
+
+    p(class="pt-4 text-center text-sm") "You can't red vs. blue on your own" - Kharne

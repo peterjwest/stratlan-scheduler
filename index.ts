@@ -30,6 +30,7 @@ import {
     getTeamPoints,
     getLanEvents,
     getCurrentLan,
+    getLans,
     endFinishedActivities,
     getOrCreateGameActivity,
     getUserByDiscordId,
@@ -88,7 +89,9 @@ declare global {
             eventStarted: boolean;
             teams: Team[];
             user: User | undefined;
-            lan: Lan | undefined;
+            currentLan: Lan | undefined;
+            selectedLan: Lan | undefined;
+            lans?: Lan[];
             discordAuthUrl: string;
             helpers: typeof helpers;
         };
@@ -160,29 +163,51 @@ app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
     const currentPath = getUrl(request.originalUrl).path;
-    const lan = await getCurrentLan(db);
+
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
-    const eventStarted = hasEventStarted(lan);
+
+    const currentLan = await getCurrentLan(db);
+    let selectedLan = currentLan;
+    const eventStarted = hasEventStarted(currentLan);
+
+    // Hide current team until event has started
     if (user && !eventStarted) user.teamId = null;
+
+    let lans: Lan[] | undefined;
+    if (user?.isAdmin) {
+        lans = await getLans(db);
+
+        if (request.cookies['selected-lan']) {
+            selectedLan = lans.find((lan) => lan.id === Number(request.cookies['selected-lan']));
+        }
+    }
+
     request.maybeUser = user;
     request.context = {
         currentPath,
         eventStarted,
         teams,
         user,
-        lan,
+        currentLan,
+        selectedLan,
+        lans,
         discordAuthUrl: DISCORD_AUTH_URL,
         helpers,
     }
+
+    if (!currentLan) {
+        return response.render('unscheduled', request.context);
+    }
+
     next();
 });
 
 app.get('/schedule', async (request, response) => {
-    const events = await getLanEvents(db, request.context.lan);
+    const events = await getLanEvents(db, request.context.selectedLan);
 
     response.render('schedule', {
         ...request.context,
-        eventsByDay: splitByDay(events, getLanDays(request.context.lan)),
+        eventsByDay: splitByDay(events, getLanDays(request.context.selectedLan)),
     });
 });
 

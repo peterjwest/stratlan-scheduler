@@ -83,6 +83,7 @@ for (const dropdown of dropdowns) {
     const filter = dropdown.querySelector('[data-dropdown-filter');
     const items = Array.from(dropdown.querySelectorAll('[data-dropdown-item]'));
     const input = dropdown.querySelector('[data-dropdown-input]');
+    const selected = dropdown.querySelector('[data-dropdown-selected]');
 
     function filterItems() {
         const terms = filter.value.trim().toLowerCase().split(/\s+/);
@@ -105,7 +106,8 @@ for (const dropdown of dropdowns) {
     function selectOption(element) {
         const id = element.getAttribute('data-value');
         input.value = id;
-        button.textContent = input.options[input.selectedIndex].textContent;
+        input.dispatchEvent(new Event('change'));
+        selected.textContent = input.options[input.selectedIndex].textContent;
     }
 
     button.addEventListener('click', (event) => {
@@ -190,7 +192,11 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
 function setCookie(name, value) {
     const date = new Date();
     date.setTime(date.getTime() + ONE_DAY);
-    document.cookie = name + "=" + value + "; expires=" + date.toUTCString() + "; path=/";
+    document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+}
+
+function deleteCookie(name) {
+    document.cookie = `${name}=; Max-Age=0; path=/`;
 }
 
 const loginButtons = Array.from(document.querySelectorAll('[data-login]'));
@@ -199,3 +205,17 @@ loginButtons.forEach((loginButton) => {
         setCookie('login-redirect', window.location.pathname);
     });
 });
+
+const lanSelect = document.querySelector('[data-lan-select]');
+if (lanSelect) {
+    const input = document.querySelector('[data-dropdown-input]');
+    input.addEventListener('change', () => {
+        if (lanSelect.dataset.current === input.value) {
+            deleteCookie('selected-lan');
+        }
+        else {
+            setCookie('selected-lan', input.value);
+        }
+        window.location.reload();
+    });
+}

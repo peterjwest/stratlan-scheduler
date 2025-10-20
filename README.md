@@ -21,6 +21,9 @@ Objectives:
   - Set event optional
   - Assign points
   - Print page
+- Admin
+  - Users page ordered by score
+  - User page with score listing
 - Achievements
   - CRUD
   - Monitor achievements

@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, lte, not, inArray, isNull } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm' ;
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import schema, {
@@ -23,7 +23,7 @@ import {
     INTRO_CHALLENGE_TYPES,
     INTRO_CHALLENGE_POINTS,
 } from './constants';
-import { getDayStart, getDayEnd, getTimeslotEnd } from './util';
+import { getDayStart, getDayEnd, getTimeslotEnd, addDays } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -167,9 +167,13 @@ export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event
 
 export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined> {
     return db.query.Lan.findFirst({
-        where: lte(Lan.scheduleStart, new Date()),
+        where: gte(Lan.scheduleEnd, addDays(new Date(), -3)),
         orderBy: [asc(Lan.scheduleEnd)],
     });
+}
+
+export async function getLans(db: DatabaseClient): Promise<Lan[]> {
+    return db.query.Lan.findMany({ orderBy: [asc(Lan.scheduleEnd)] });
 }
 
 export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {
