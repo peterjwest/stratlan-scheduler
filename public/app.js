@@ -195,10 +195,6 @@ function setCookie(name, value) {
     document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
 }
 
-function deleteCookie(name) {
-    document.cookie = `${name}=; Max-Age=0; path=/`;
-}
-
 const loginButtons = Array.from(document.querySelectorAll('[data-login]'));
 loginButtons.forEach((loginButton) => {
     loginButton.addEventListener('click', () => {
@@ -210,12 +206,7 @@ const lanSelect = document.querySelector('[data-lan-select]');
 if (lanSelect) {
     const input = document.querySelector('[data-dropdown-input]');
     input.addEventListener('change', () => {
-        if (lanSelect.dataset.current === input.value) {
-            deleteCookie('selected-lan');
-        }
-        else {
-            setCookie('selected-lan', input.value);
-        }
+        setCookie('selected-lan', input.value);
         window.location.reload();
     });
 }

@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm' ;
+import { eq } from 'drizzle-orm';
 import lodash from 'lodash';
 
-import { DatabaseClient, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
+import { DatabaseClient, getCurrentLan, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
 import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema';
-import { getEventEnd, minDate, diffMinutes, getTimeslotTimes, getTimeslotEnd, datesEqual, maxDate, roundToNextMinutes } from './util';
-import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD } from './constants';
+import { getEventEnd, minDate, diffMinutes, getTimeslotTimes, getTimeslotEnd, datesEqual, maxDate, roundToNextMinutes, isLanActive } from './util';
+import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD, COMMUNITY_GAMES_SCORE_INTERVAL } from './constants';
 
 export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameActivity[]) {
     return lodash.sum(activities.map((activity) => {
@@ -41,15 +41,21 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
         currentIndex++;
     }
 
-    console.warn(`Warning: unexpected timeslots:\n  ${erroneousTimeslots.map((timeslot) => JSON.stringify(timeslot)).join('\n  ')}`)
+    if (erroneousTimeslots.length) {
+        const timeslotsJson = erroneousTimeslots.map((timeslot) => JSON.stringify(timeslot));
+        console.warn(`Warning: unexpected timeslots:\n ${timeslotsJson.join('\n  ')}`);
+    }
 
     return missingTimeslots;
 }
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
-    console.log('Processing community games:');
+    const currentLan = await getCurrentLan(db);
+    if (!currentLan || !isLanActive(currentLan)) return;
+
+    console.log('Scoring community games:');
     try {
-        const events = await getIncompleteCommunityEvents(db);
+        const events = await getIncompleteCommunityEvents(db, currentLan);
         if (events.length === 0) console.log('No games to process');
         for (const event of events) {
             console.log(`Processing game ${event.name}`);
@@ -58,7 +64,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                 const missingTimeslots = getMissingTimeslots(event, expectedTimeslots);
 
                 if (missingTimeslots.length === 0) {
-                    console.log(`No timeslots to update`);
+                    console.log('No timeslots to update');
                     return;
                 }
 
@@ -77,6 +83,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                         if (total > EVENT_TIMESLOT_MINUTES * EVENT_TIMESLOT_THRESHOLD) {
                             const { teamId, userId } = activities[0];
                             await tx.insert(Score).values({
+                                lanId: currentLan.id,
                                 teamId: teamId,
                                 type: 'CommunityGame',
                                 userId: userId,
@@ -92,12 +99,9 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
 
                 await tx.update(Event).set({ timeslotCount: expectedTimeslots }).where(eq(Event.id, event.id));
 
-                console.log(`Scored ${scoresAdded} player timeslots for ${event.name}`);
+                console.log(`Created ${scoresAdded} scores processing ${timeslots.length} timeslots for ${event.name}`);
             });
         }
-
-
-
     } catch (error) {
         console.error('Failed to score community games:', error);
     }
@@ -115,10 +119,10 @@ export async function startScoringCommunityGames(db: DatabaseClient): Promise<()
             nextSlot = roundToNextMinutes(now, EVENT_TIMESLOT_MINUTES);
             await scoreCommunityGames(db);
         }
-        if (timeout) timeout = setTimeout(process, 30 * 1000);
+        if (timeout) timeout = setTimeout(process, COMMUNITY_GAMES_SCORE_INTERVAL);
     }
 
-    timeout = setTimeout(process, 30 * 1000);
+    timeout = setTimeout(process, COMMUNITY_GAMES_SCORE_INTERVAL);
     return () => {
         clearTimeout(timeout);
         timeout = undefined;

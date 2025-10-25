@@ -33,7 +33,7 @@ html(lang="en" class="h-full")
                                     div(class="text-xl pb-1") Schedule
                                     +navigationLink('/schedule', 'Official events')
 
-                                if user && user.isAdmin
+                                if helpers.isAdmin(user)
                                     section
                                         div(class="text-xl") Admin
                                         +navigationLink('/admin/points', 'Points log')
@@ -46,9 +46,9 @@ html(lang="en" class="h-full")
                             button(class="md:hidden p-2" data-menu)
                                 img(src="/menu.svg" class="p-2 w-12 h-12")
 
-                        if user && user.isAdmin
-                            div(class="p-3" data-lan-select data-current=currentLan.id)
-                                +dropdown("lanId", lans, selectedLan, true, 'Select LAN', (lan) => lan.name)
+                        if helpers.isAdmin(user)
+                            div(class="p-3" data-lan-select)
+                                +dropdown("lanId", lans, maybeCurrentLan, true, 'Select LAN', (lan) => lan.name)
 
                         if user
                             div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)

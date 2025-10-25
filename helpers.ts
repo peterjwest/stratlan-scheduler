@@ -8,6 +8,7 @@ import {
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
+    isAdmin,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 
@@ -22,4 +23,5 @@ export default {
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
+    isAdmin,
 }

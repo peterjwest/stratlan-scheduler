@@ -1,9 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm' ;
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm';
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import schema, {
     User,
+    UserWithRoles,
+    UserRole,
     Team,
     Score,
     Event,
@@ -23,7 +25,7 @@ import {
     INTRO_CHALLENGE_TYPES,
     INTRO_CHALLENGE_POINTS,
 } from './constants';
-import { getDayStart, getDayEnd, getTimeslotEnd, addDays } from './util';
+import { getTimeslotEnd, addDays, addMinutes } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -32,40 +34,51 @@ type UserData = {
     discordUsername: string,
     discordNickname: string | null,
     discordAvatarId: string | null,
-    isAdmin: boolean,
 };
 
 export function getDatabaseClient(postgresUrl: string): DatabaseClient {
     return drizzle(postgresUrl, { schema });
 }
 
-export async function getUser(db: DatabaseClient, id: number): Promise<User | undefined> {
-    return db.query.User.findFirst({ where: eq(User.id, id) });
+export async function getUser(db: DatabaseClient, id: number): Promise<UserWithRoles | undefined> {
+    const user = await db.query.User.findFirst({ where: eq(User.id, id) });
+    if (!user) return;
+
+    const roles = await db.query.UserRole.findMany({ where: eq(UserRole.userId, id) });
+    return { ...user, roles: roles.map((role) => role.role) }
 }
 
-export async function getEvent(db: DatabaseClient, id: number): Promise<Event | undefined> {
-    return db.query.Event.findFirst({ where: eq(Event.id, id) });
+export async function getEvent(db: DatabaseClient, lan: Lan, id: number): Promise<Event | undefined> {
+    return db.query.Event.findFirst({ where: and(eq(Event.id, id), eq(Event.lanId, lan.id)) });
 }
 
 export async function getUserByDiscordId(db: DatabaseClient, discordId: string): Promise<User | undefined> {
     return db.query.User.findFirst({ where: eq(User.discordId, discordId) });
 }
 
-export async function getMinimalEvents(db: DatabaseClient): Promise<{ id: number, name: string }[]> {
-    return db.query.Event.findMany({ columns: { id: true, name: true }});
+interface MinimalEvent {
+    id: number;
+    name: string;
 }
 
-type MinimalUser = {
+export async function getMinimalEvents(db: DatabaseClient, lan: Lan): Promise<MinimalEvent[]> {
+    return db.query.Event.findMany({ columns: { id: true, name: true }, where: eq(Event.lanId, lan.id) });
+}
+
+interface MinimalUser {
     id: number;
     discordUsername: string;
     discordNickname: string | null;
 }
 
-export async function getMinimalUsers(db: DatabaseClient): Promise<MinimalUser[]> {
-    return db.query.User.findMany({ columns: { id: true, discordUsername: true, discordNickname: true }});
+export async function getMinimalUsers(db: DatabaseClient, lan: Lan): Promise<MinimalUser[]> {
+    // TODO: Eligible users only!!!
+    return db.query.User.findMany({ columns: { id: true, discordUsername: true, discordNickname: true } });
 }
 
-export async function createOrUpdateUserByDiscordId(db: DatabaseClient, discordId: string, data: UserData): Promise<User> {
+export async function createOrUpdateUserByDiscordId(
+    db: DatabaseClient, discordId: string, data: UserData,
+): Promise<User> {
     const existingUser = await getUserByDiscordId(db, discordId);
     if (existingUser) {
         return (await db.update(User).set(data).where(eq(User.id, existingUser.id)).returning())[0];
@@ -75,6 +88,13 @@ export async function createOrUpdateUserByDiscordId(db: DatabaseClient, discordI
 
 export async function updateUser(db: DatabaseClient, userId: number, data: Partial<User>) {
     await db.update(User).set(data).where(eq(User.id, userId));
+}
+
+export async function updateRoles(db: DatabaseClient, user: User, roles: string[]) {
+    await db.transaction(async (tx) => {
+        await tx.delete(UserRole).where(eq(UserRole.userId, user.id));
+        await tx.insert(UserRole).values(roles.map((role) => ({ userId: user.id, role })));
+    });
 }
 
 export async function createTeams(db: DatabaseClient, teamNames: readonly TeamName[]): Promise<Team[]> {
@@ -93,6 +113,7 @@ export async function createTeams(db: DatabaseClient, teamNames: readonly TeamNa
 
 export async function awardScore(
     db: DatabaseClient,
+    lan: Lan,
     assigner: User,
     points: number,
     reason: string | undefined,
@@ -108,6 +129,7 @@ export async function awardScore(
     }
     return (await db.insert(Score).values({
         type: 'Awarded',
+        lanId: lan.id,
         teamId: team?.id,
         userId: user?.id,
         assignerId: assigner.id,
@@ -117,10 +139,14 @@ export async function awardScore(
     }).returning())[0];
 }
 
-export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?: boolean): Promise<Score[]> {
-    const conditions = [];
+export async function getScores(
+    db: DatabaseClient, lan: Lan, type: ScoreType | undefined, assigned: boolean | undefined,
+): Promise<Score[]> {
+    if (!lan) return [];
+
+    const conditions = [eq(Score.lanId, lan.id)];
     if (assigned) conditions.push(isNotNull(Score.assignerId));
-    if (type) conditions.push( eq(Score.type, type));
+    if (type) conditions.push(eq(Score.type, type));
     const scores = await db.query.Score.findMany({
         where: and(...conditions),
         with: { user: true, assigner: true, event: true },
@@ -132,34 +158,33 @@ export async function getScores(db: DatabaseClient, type?: ScoreType, assigned?:
     return scores
 }
 
-export async function getTeamPoints(db: DatabaseClient, team: Team): Promise<number> {
+export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
+    // TODO: Don't allow anyone non-eligible
     const results = (
         await db
-        .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
-        .from(Score)
-        .leftJoin(User, eq(User.id, Score.userId))
-        .where(or(eq(Score.teamId, team.id), eq(User.teamId, team.id)))
+            .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
+            .from(Score)
+            .leftJoin(User, eq(User.id, Score.userId))
+            .where(and(or(eq(Score.teamId, team.id), eq(User.teamId, team.id)), eq(Score.lanId, lan.id)))
     );
     return results[0].total || 0;
 }
 
-export async function getUserPoints(db: DatabaseClient, user: User): Promise<number> {
+export async function getUserPoints(db: DatabaseClient, lan: Lan, user: User): Promise<number> {
     const results = (
         await db
-        .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
-        .from(Score)
-        .where(eq(Score.userId, user.id))
+            .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
+            .from(Score)
+            .where(and(eq(Score.userId, user.id), eq(Score.lanId, lan.id)))
     );
     return results[0].total || 0;
 }
 
-export async function getLanEvents(db: DatabaseClient, lan?: Lan): Promise<Event[]> {
-    if (!lan)  return [];
+export async function getEvents(db: DatabaseClient, lan: Lan): Promise<Event[]> {
     return db.query.Event.findMany({
         where: and(
             eq(Event.isOfficial, true),
-            gt(Event.startTime, getDayStart(lan.scheduleStart)),
-            lt(Event.startTime, getDayEnd(lan.scheduleEnd)),
+            eq(Event.lanId, lan.id)
         ),
         orderBy: [asc(Event.startTime)],
     });
@@ -170,6 +195,17 @@ export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined
         where: gte(Lan.scheduleEnd, addDays(new Date(), -3)),
         orderBy: [asc(Lan.scheduleEnd)],
     });
+}
+
+let currentLanCache: { lan: Lan | undefined, lastUpdate: Date } | undefined;
+export async function getCurrentLanCached(db: DatabaseClient): Promise<Lan | undefined> {
+    if (!currentLanCache || new Date() > addMinutes(currentLanCache.lastUpdate, 1)) {
+        currentLanCache = {
+            lan: await getCurrentLan(db),
+            lastUpdate: new Date()
+        };
+    }
+    return currentLanCache.lan;
 }
 
 export async function getLans(db: DatabaseClient): Promise<Lan[]> {
@@ -191,31 +227,41 @@ export async function getOrCreateGame(db: DatabaseClient, gameId: string, gameNa
     return (await db.insert(Game).values({ id: gameId, name: gameName }).returning())[0];
 }
 
-export async function getGameActivity(db: DatabaseClient, gameId: string, startTime: Date): Promise<GameActivity | undefined> {
+export async function getGameActivity(
+    db: DatabaseClient, gameId: string, startTime: Date,
+): Promise<GameActivity | undefined> {
     return db.query.GameActivity.findFirst({
         where: and(eq(GameActivity.gameId, gameId), eq(GameActivity.startTime, startTime)),
     });
 }
 
-export async function createGameActivity(db: DatabaseClient, user: User, gameId: string, gameName: string, startTime: Date) {
+export async function createGameActivity(
+    db: DatabaseClient, lan: Lan, user: User, gameId: string, gameName: string, startTime: Date,
+) {
     const game = await getOrCreateGame(db, gameId, gameName);
     return (await db.insert(GameActivity).values({
+        lanId: lan.id,
         userId: user.id,
         gameId: game.id,
         startTime: startTime,
     }).returning())[0];
 }
 
-export async function getOrCreateGameActivity(db: DatabaseClient, user: User, gameId: string, gameName: string, startTime: Date) {
+export async function getOrCreateGameActivity(
+    db: DatabaseClient, lan: Lan, user: User, gameId: string, gameName: string, startTime: Date,
+) {
     const gameActivity = await getGameActivity(db, gameId, startTime);
     if (gameActivity) return gameActivity;
-    await createGameActivity(db, user, gameId, gameName, startTime);
+    await createGameActivity(db, lan, user, gameId, gameName, startTime);
 }
 
-export async function getTimeslotActivities(db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot): Promise<GameActivityWithTeam[]> {
+export async function getTimeslotActivities(
+    db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot,
+): Promise<GameActivityWithTeam[]> {
     if (!event.gameId) return [];
     return db.select({
         id: GameActivity.id,
+        lanId: GameActivity.lanId,
         userId: GameActivity.userId,
         teamId: User.teamId,
         gameId: GameActivity.gameId,
@@ -232,34 +278,39 @@ export async function getTimeslot(db: DatabaseClient, timeslotId: number): Promi
     return db.query.EventTimeslot.findFirst({ where: eq(EventTimeslot.id, timeslotId) });
 }
 
-export async function getIncompleteCommunityEvents(db: DatabaseClient): Promise<EventWithTimeslots[]> {
+export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan): Promise<EventWithTimeslots[]> {
     return db.query.Event.findMany({
         where: and(
+            eq(Event.lanId, lan.id),
             isNotNull(Event.gameId),
             gt(Event.points, sql`0`),
             gt(sql`NOW()`, Event.startTime),
             lt(Event.timeslotCount, sql`FLOOR(${Event.duration} / ${EVENT_TIMESLOT_MINUTES})`),
         ),
-        with: { timeslots: { orderBy: [asc(EventTimeslot.time)] }},
+        with: { timeslots: { orderBy: [asc(EventTimeslot.time)] } },
     });
 }
 
-export async function getOrCreateIntroChallenge(db: DatabaseClient, type: IntroChallengeType, user: User): Promise<IntroChallenge> {
+export async function getOrCreateIntroChallenge(
+    db: DatabaseClient, type: IntroChallengeType, lan: Lan, user: User,
+): Promise<IntroChallenge> {
     const challenge = await db.query.IntroChallenge.findFirst({
         where: and(eq(IntroChallenge.type, type), eq(IntroChallenge.userId, user.id)),
     });
     if (challenge) return challenge;
-    return (await db.insert(IntroChallenge).values({ userId: user.id, type: type }).returning())[0];
+    return (await db.insert(IntroChallenge).values({ lanId: lan.id, userId: user.id, type: type }).returning())[0];
 }
 
 type IntroChallengeMap = {
     [Key in IntroChallengeType]?: IntroChallenge
 };
 
-export async function getIntroChallenges(db: DatabaseClient, user?: User): Promise<IntroChallengeMap> {
+export async function getIntroChallenges(db: DatabaseClient, lan: Lan, user: User | undefined): Promise<IntroChallengeMap> {
     const challenges: IntroChallengeMap = Object.fromEntries(INTRO_CHALLENGE_TYPES.map((type) => [type, undefined]));
-    if (user) {
-        const introChallenges = await db.query.IntroChallenge.findMany({ where: eq(IntroChallenge.userId, user.id) });
+    if (user && lan) {
+        const introChallenges = await db.query.IntroChallenge.findMany({
+            where: and(eq(IntroChallenge.userId, user.id), eq(IntroChallenge.lanId, lan.id)),
+        });
         for (const introChallenge of introChallenges) {
             challenges[introChallenge.type] = introChallenge;
         }
@@ -267,15 +318,19 @@ export async function getIntroChallenges(db: DatabaseClient, user?: User): Promi
     return challenges;
 }
 
-export async function claimChallenge(db: DatabaseClient, user: User, challengeId: number) {
+export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, challengeId: number) {
     const introChallenge = await db.query.IntroChallenge.findFirst({
-        where: and(eq(IntroChallenge.userId, user.id), eq(IntroChallenge.id, challengeId)),
+        where: and(
+            eq(IntroChallenge.lanId, lan.id),
+            eq(IntroChallenge.userId, user.id),
+            eq(IntroChallenge.id, challengeId),
+        ),
     })
     if (!introChallenge) throw new Error('Challenge not completed yet');
 
     const score = (await db.insert(Score).values({
         type: 'IntroChallenge',
-        teamId: user.teamId,
+        lanId: lan.id,
         userId: user.id,
         points: INTRO_CHALLENGE_POINTS[introChallenge.type],
     }).returning())[0];

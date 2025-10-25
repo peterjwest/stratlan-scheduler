@@ -2,7 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, Team, Event, Lan, EventTimeslot } from './schema';
+import { User, UserWithRoles, Team, Event, Lan, EventTimeslot } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -11,6 +11,7 @@ import {
     TeamName,
     SCORE_TYPE_NAMES,
     ScoreType,
+    MODERATOR_ROLES,
 } from './constants';
 
 type DayEvents = {
@@ -76,7 +77,7 @@ export function formatTime(time: Date | number, withSeconds = false) {
     if (typeof time === 'number') return `${padTimeComponent(time % 24)}:00`;
     const hours = padTimeComponent(time.getHours());
     const minutes = padTimeComponent(time.getMinutes());
-    return `${hours}:${minutes}${ withSeconds ? ':' + padTimeComponent(time.getSeconds()) : ''}`;
+    return `${hours}:${minutes}${withSeconds ? ':' + padTimeComponent(time.getSeconds()) : ''}`;
 }
 
 export function formatDate(date: Date) {
@@ -167,8 +168,7 @@ export function splitByDay(events: Event[], days: Date[]): DayEvents[] {
     }));
 }
 
-export function getLanDays(lan?: Lan): Date[] {
-    if (!lan) return [];
+export function getLanDays(lan: Lan): Date[] {
     let day = lan.scheduleStart;
     const days = [];
     while (day <= lan.scheduleEnd) {
@@ -184,9 +184,9 @@ export function getEventScheduleStyles(event: Event, column: number, columns: nu
     if (startMinutes < 0) startMinutes += 24 * 60;
 
     const width = `${100 / columns}%`;
-    const height = `${ 100 * event.duration / rangeMinutes }%`;
-    const top = `${ 100 * startMinutes / rangeMinutes }%`;
-    const left = `min(${100 * column  / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
+    const height = `${100 * event.duration / rangeMinutes}%`;
+    const top = `${100 * startMinutes / rangeMinutes}%`;
+    const left = `min(${100 * column / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
 
     return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`
 }
@@ -219,4 +219,24 @@ export function getUrl(path: string) {
 
 export function hasEventStarted(lan: Lan | undefined): boolean {
     return Boolean(lan?.eventStart && new Date() > lan.eventStart);
+}
+
+export function isAdmin(user: UserWithRoles | undefined): boolean {
+    return Boolean(user?.roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role)));
+}
+
+export function isEligible(lan: Lan, user: UserWithRoles | undefined): boolean {
+    return isAdmin(user) || Boolean(user?.roles.includes(lan.role as string));
+}
+
+export function isLanEnded(lan: Lan) {
+    return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
+}
+
+export function isLanStarted(lan: Lan) {
+    return Boolean(lan.eventStart && new Date() > lan.eventStart);
+}
+
+export function isLanActive(lan: Lan) {
+    return isLanStarted(lan) && !isLanEnded(lan);
 }

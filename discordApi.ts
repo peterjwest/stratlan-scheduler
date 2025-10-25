@@ -54,7 +54,7 @@ export async function getGuildRoles(rest: REST, guildId: string) {
 }
 
 export function mapRoleIds(roles: { [key: string]: Role }, roleIds: string[]) {
-    return roleIds.map((roleId) => roles[roleId]);
+    return roleIds.map((roleId) => roles[roleId].name);
 }
 
 export async function getDiscordAccessToken(

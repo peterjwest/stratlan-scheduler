@@ -14,13 +14,20 @@ export const User = pgTable('User', {
     steamId: varchar(),
     steamUsername: varchar(),
     steamAvatar: varchar(),
-    isAdmin: boolean().notNull(),
 });
 export type User = typeof User.$inferSelect;
+export type UserWithRoles = User & { roles: string[] };
 
 export const usersRelations = relations(User, ({ many }) => ({
     assignedScores: many(Score),
 }));
+
+export const UserRole = pgTable('UserRole', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer().references(() => User.id).notNull(),
+    role: varchar().notNull(),
+});
+export type UserRole = typeof UserRole.$inferSelect;
 
 export const Session = pgTable('Session', {
     sid: varchar().primaryKey().notNull(),
@@ -170,6 +177,7 @@ export type IntroChallenge = typeof IntroChallenge.$inferSelect;
 export default {
     User,
     usersRelations,
+    UserRole,
     Session,
     Team,
     Score,

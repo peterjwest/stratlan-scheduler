@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import zod from 'zod';
 
-import { parseInteger, formatScoreType } from './util';
+import { parseInteger, formatScoreType, isAdmin } from './util';
 import { Event, Team } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { TEAMS, ScoreType } from './constants';
@@ -33,7 +33,7 @@ export default function (db: DatabaseClient) {
     const router = Router();
 
     router.use((request, response, next) => {
-        if (!request.user.isAdmin) return response.status(403).send('Unauthorised');
+        if (!isAdmin(request.user)) return response.status(403).send('Unauthorised');
         next();
     });
 
@@ -49,15 +49,15 @@ export default function (db: DatabaseClient) {
             ...request.context,
             filters,
             path: request.originalUrl,
-            assignedScores: await getScores(db, query.type, query.assigned),
+            assignedScores: await getScores(db, request.currentLan, query.type, query.assigned),
         });
     });
 
     router.get('/assign', async (request, response) => {
         response.render('admin/assign', {
             ...request.context,
-            events: await getMinimalEvents(db),
-            users: await getMinimalUsers(db),
+            events: await getMinimalEvents(db, request.currentLan),
+            users: await getMinimalUsers(db, request.currentLan),
         });
     });
 
@@ -67,7 +67,7 @@ export default function (db: DatabaseClient) {
 
         let event: Event | undefined;
         if (body.eventId) {
-            event = await getEvent(db, body.eventId);
+            event = await getEvent(db, request.currentLan, body.eventId);
             if (!event) return response.status(500).send('Event not found');
         }
 
@@ -79,6 +79,7 @@ export default function (db: DatabaseClient) {
 
             await awardScore(
                 db,
+                request.currentLan,
                 request.user,
                 body.points,
                 body.reason,
@@ -89,6 +90,7 @@ export default function (db: DatabaseClient) {
             const team = request.context.teams.find((team) => team.name === body.type) as Team;
             await awardScore(
                 db,
+                request.currentLan,
                 request.user,
                 body.points,
                 body.reason,
