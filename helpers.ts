@@ -3,25 +3,30 @@ import {
     formatTime,
     formatName,
     formatScoreType,
-    getTeamName,
+    getTeam,
     getTeamBackground,
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
     isAdmin,
+    isUserError,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 
-export default {
+const helpers = {
     formatDate,
     formatTime,
     formatName,
     formatScoreType,
-    getTeamName,
+    getTeam,
     getTeamBackground,
     getAvatarUrl,
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
     isAdmin,
+    isUserError,
 }
+
+export type Helpers = typeof helpers;
+export default helpers;

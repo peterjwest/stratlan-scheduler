@@ -1,6 +1,7 @@
 # TODO:
 
 Objectives:
+- Add "GameIdentifier" table to allow multiple IDs per game
 - Dashboard page
   - Teams
 - Assign teams (Red vs. Blue)

@@ -12,6 +12,7 @@ import schema, {
     EventTimeslot,
     EventWithTimeslots,
     Lan,
+    LanWithTeams,
     Game,
     GameActivity,
     GameActivityWithTeam,
@@ -25,7 +26,7 @@ import {
     INTRO_CHALLENGE_TYPES,
     INTRO_CHALLENGE_POINTS,
 } from './constants';
-import { getTimeslotEnd, addDays, addMinutes } from './util';
+import { getTimeslotEnd, addDays, addMinutes, cacheCall } from './util';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -97,11 +98,11 @@ export async function updateRoles(db: DatabaseClient, user: User, roles: string[
     });
 }
 
-export async function createTeams(db: DatabaseClient, teamNames: readonly TeamName[]): Promise<Team[]> {
+export async function createTeams(db: DatabaseClient, lan: Lan, teamNames: readonly TeamName[]): Promise<Team[]> {
     const existingTeams = await db.query.Team.findMany();
 
     if (existingTeams.length === 0) {
-        return db.insert(Team).values(teamNames.map((name) => ({ name }))).returning();
+        return db.insert(Team).values(teamNames.map((name) => ({ name, lanId: lan.id }))).returning();
     }
 
     const existingTeamNames = new Set(existingTeams.map((team) => team.name));
@@ -139,13 +140,10 @@ export async function awardScore(
     }).returning())[0];
 }
 
-export async function getScores(
-    db: DatabaseClient, lan: Lan, type: ScoreType | undefined, assigned: boolean | undefined,
-): Promise<Score[]> {
+export async function getScores(db: DatabaseClient, lan: Lan, type: ScoreType | undefined): Promise<Score[]> {
     if (!lan) return [];
 
     const conditions = [eq(Score.lanId, lan.id)];
-    if (assigned) conditions.push(isNotNull(Score.assignerId));
     if (type) conditions.push(eq(Score.type, type));
     const scores = await db.query.Score.findMany({
         where: and(...conditions),
@@ -190,26 +188,18 @@ export async function getEvents(db: DatabaseClient, lan: Lan): Promise<Event[]> 
     });
 };
 
-export async function getCurrentLan(db: DatabaseClient): Promise<Lan | undefined> {
+export async function getCurrentLan(db: DatabaseClient): Promise<LanWithTeams | undefined> {
     return db.query.Lan.findFirst({
         where: gte(Lan.scheduleEnd, addDays(new Date(), -3)),
         orderBy: [asc(Lan.scheduleEnd)],
+        with: { teams: true },
     });
 }
 
-let currentLanCache: { lan: Lan | undefined, lastUpdate: Date } | undefined;
-export async function getCurrentLanCached(db: DatabaseClient): Promise<Lan | undefined> {
-    if (!currentLanCache || new Date() > addMinutes(currentLanCache.lastUpdate, 1)) {
-        currentLanCache = {
-            lan: await getCurrentLan(db),
-            lastUpdate: new Date()
-        };
-    }
-    return currentLanCache.lan;
-}
+export const [getCurrentLanCached, clearCurrentLanCache] = cacheCall(getCurrentLan);
 
-export async function getLans(db: DatabaseClient): Promise<Lan[]> {
-    return db.query.Lan.findMany({ orderBy: [asc(Lan.scheduleEnd)] });
+export async function getLans(db: DatabaseClient): Promise<LanWithTeams[]> {
+    return db.query.Lan.findMany({ orderBy: [asc(Lan.scheduleEnd)], with: { teams: true }, });
 }
 
 export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {

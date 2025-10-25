@@ -2,7 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, UserWithRoles, Team, Event, Lan, EventTimeslot } from './schema';
+import { User, UserWithRoles, Team, Event, Lan, EventTimeslot, LanWithTeams } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -13,10 +13,17 @@ import {
     ScoreType,
     MODERATOR_ROLES,
 } from './constants';
+import { Helpers } from './helpers';
 
 type DayEvents = {
     day: string;
     events: Event[];
+}
+
+export class UserError extends Error { }
+
+export function isUserError(error: any): error is UserError {
+    return error instanceof UserError;
 }
 
 export async function regenerateSession(request: Request) {
@@ -92,14 +99,12 @@ export function formatScoreType(type: ScoreType) {
     return SCORE_TYPE_NAMES[type];
 }
 
-export function getTeamName(teams: Team[], teamId: number): string | undefined {
-    const team = teams.find((team) => team.id === teamId);
-    if (team) return team.name;
+export function getTeam(teams: Team[], teamId: number): Team | undefined {
+    return teams.find((team) => team.id === teamId);
 }
 
-export function getTeamBackground(teams: Team[], teamId: number): string | undefined {
-    const team = teams.find((team) => team.id === teamId);
-    if (team) return TEAM_BACKGROUND_CLASSES[team.name as TeamName];
+export function getTeamBackground(team: Team): string | undefined {
+    return TEAM_BACKGROUND_CLASSES[team.name as TeamName];
 }
 
 export function last<Type>(list: Type[]): Type | undefined {
@@ -239,4 +244,45 @@ export function isLanStarted(lan: Lan) {
 
 export function isLanActive(lan: Lan) {
     return isLanStarted(lan) && !isLanEnded(lan);
+}
+
+export type Context = {
+    currentPath: string;
+    discordAuthUrl: string;
+    user: UserWithRoles | undefined;
+    currentLan: LanWithTeams | undefined;
+    lanStarted: boolean;
+    lanEnded: boolean;
+    lans: LanWithTeams[];
+    helpers: Helpers;
+}
+
+type ContextWithLan = Context & {
+    currentLan: LanWithTeams;
+}
+
+type ContextLoggedIn = ContextWithLan & {
+    user: UserWithRoles;
+}
+
+export function getContext(request: Request): Context;
+export function getContext(request: Request, mode: 'WITH_LAN'): ContextWithLan;
+export function getContext(request: Request, mode: 'LOGGED_IN'): ContextLoggedIn;
+export function getContext(request: Request, mode?: 'WITH_LAN' | 'LOGGED_IN'): Context | ContextLoggedIn | ContextLoggedIn {
+    return request.context;
+}
+
+export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {
+    let cachedValue: T | undefined;
+    let lastUpdate: Date | undefined;
+    return [
+        (async (...args: Parameters<typeof func>) => {
+            if (!lastUpdate || new Date() > addMinutes(lastUpdate, 1)) {
+                cachedValue = await func(...args),
+                    lastUpdate = new Date();
+            }
+            return cachedValue;
+        }) as T,
+        () => lastUpdate = undefined,
+    ];
 }

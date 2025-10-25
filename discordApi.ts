@@ -1,14 +1,23 @@
 import lodash from 'lodash';
 import zod from 'zod';
-import { REST, Routes, Activity } from 'discord.js';
+import { REST, Routes, Activity, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { User } from './schema';
+import { isLanActive } from './util';
+import {
+    getCurrentLanCached,
+    endFinishedActivities,
+    getOrCreateGameActivity,
+    getUserByDiscordId,
+    getOrCreateIntroChallenge,
+    DatabaseClient,
+} from './database';
 
 export const DiscordUser = zod.object({
-  id: zod.string(),
-  username: zod.string(),
-  avatar: zod.union([zod.string(), zod.null()]),
-  global_name: zod.union([zod.string(), zod.null()]),
-  premium_type: zod.number(),
+    id: zod.string(),
+    username: zod.string(),
+    avatar: zod.union([zod.string(), zod.null()]),
+    global_name: zod.union([zod.string(), zod.null()]),
+    premium_type: zod.number(),
 });
 export type DiscordUser = zod.infer<typeof DiscordUser>;
 
@@ -42,12 +51,12 @@ export async function getDiscordUser(accessToken: string): Promise<DiscordUser> 
     return DiscordUser.parse(await rest.get(Routes.user()));
 }
 
-export async function getDiscordGuildMember(rest: REST, guildId: string, userId: string): Promise<DiscordGuildMember> {
-    return DiscordGuildMember.parse(await rest.get(Routes.guildMember(guildId, userId)));
+export async function getDiscordGuildMember(client: Client, guildId: string, userId: string): Promise<DiscordGuildMember> {
+    return DiscordGuildMember.parse(await client.rest.get(Routes.guildMember(guildId, userId)));
 }
 
-export async function getGuildRoles(rest: REST, guildId: string) {
-    const roles = zod.array(Role).parse(await rest.get(
+export async function getGuildRoles(client: Client, guildId: string) {
+    const roles = zod.array(Role).parse(await client.rest.get(
         Routes.guildRoles(guildId),
     ));
     return lodash.keyBy(roles, 'id');
@@ -84,4 +93,41 @@ export function getAvatarUrl(user: User, size: 32 | 64 | 128 = 128) {
 
 export function getActivityIds(activities: Activity[]) {
     return activities.map((activity) => activity.applicationId).filter((id): id is string => Boolean(id));
+}
+
+export function loginClient(discordToken: string) {
+    const client = new Client({
+        intents: [
+            GatewayIntentBits.Guilds,
+            GatewayIntentBits.GuildPresences,
+            GatewayIntentBits.GuildMembers,
+        ],
+        partials: [Partials.GuildMember, Partials.User],
+    });
+
+    client.once(Events.ClientReady, readyClient => console.log(`Logged in to Discord as ${readyClient.user.tag}`));
+    client.login(discordToken);
+    return client;
+}
+
+export function watchPresenceUpdates(db: DatabaseClient, client: Client) {
+    client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
+        const currentLan = await getCurrentLanCached(db);
+        if (!currentLan || !isLanActive(currentLan)) return;
+
+        const user = await getUserByDiscordId(db, newPresence.userId);
+        if (!user) return;
+
+        await endFinishedActivities(db, user, getActivityIds(newPresence.activities));
+
+        if (newPresence.activities.length > 0) {
+            await getOrCreateIntroChallenge(db, 'GameActivity', currentLan, user);
+        }
+
+        for (const activity of newPresence.activities) {
+            if (!activity.applicationId) continue;
+
+            await getOrCreateGameActivity(db, currentLan, user, activity.applicationId, activity.name, activity.createdAt);
+        }
+    });
 }

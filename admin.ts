@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import zod from 'zod';
 
-import { parseInteger, formatScoreType, isAdmin } from './util';
-import { Event, Team } from './schema';
+import { parseInteger, formatScoreType, isAdmin, getTeam, getContext, isLanEnded, UserError } from './util';
+import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
-import { TEAMS, ScoreType } from './constants';
+import { ScoreType } from './constants';
 
 const AssignPoints = zod.object({
     points: zod.string().transform((id) => parseInteger(id)),
@@ -14,30 +14,29 @@ const AssignPoints = zod.object({
 })
 
 const AssignTeamPoints = AssignPoints.extend({
-    type: zod.enum(TEAMS),
+    type: zod.string().transform((id) => parseInteger(id)),
 });
 
 const AssignPlayerPoints = AssignPoints.extend({
-    type: zod.literal(['Player']),
+    type: zod.literal(['player']),
     userId: zod.string().transform((id) => parseInteger(id)),
 });
 
-const AssignPointsData = zod.union([AssignTeamPoints, AssignPlayerPoints]);
+const AssignPointsData = zod.union([AssignPlayerPoints, AssignTeamPoints]);
 
-const PointsQuery = zod.object({
-    type: zod.union([ScoreType, zod.undefined()]),
-    assigned: zod.union([zod.string(), zod.undefined()]).transform((value) => value === 'true'),
-});
+const PointsQuery = zod.object({ type: zod.union([ScoreType, zod.undefined()]) });
 
 export default function (db: DatabaseClient) {
     const router = Router();
 
-    router.use((request, response, next) => {
-        if (!isAdmin(request.user)) return response.status(403).send('Unauthorised');
+    router.use((request: Request, response: Response, next: NextFunction) => {
+        const context = getContext(request, 'LOGGED_IN');
+        if (!isAdmin(context.user)) return response.status(403).send('Unauthorised');
         next();
     });
 
-    router.get('/points', async (request, response) => {
+    router.get('/points', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
         const query = PointsQuery.parse(request.query);
         const filters = [
             { name: 'All', url: '/admin/points' },
@@ -46,52 +45,61 @@ export default function (db: DatabaseClient) {
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ]
         response.render('admin/points', {
-            ...request.context,
+            ...context,
             filters,
             path: request.originalUrl,
-            assignedScores: await getScores(db, request.currentLan, query.type, query.assigned),
+            assignedScores: await getScores(db, context.currentLan, query.type),
         });
     });
 
-    router.get('/assign', async (request, response) => {
+    router.get('/assign', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
         response.render('admin/assign', {
-            ...request.context,
-            events: await getMinimalEvents(db, request.currentLan),
-            users: await getMinimalUsers(db, request.currentLan),
+            ...context,
+            events: await getMinimalEvents(db, context.currentLan),
+            users: await getMinimalUsers(db, context.currentLan),
         });
     });
 
     // TODO: CSRF
-    router.post('/assign', async (request, response) => {
+    router.post('/assign', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        if (isLanEnded(context.currentLan)) {
+            throw new UserError('You can\'t submit any more scores, this LAN has ended!');
+        }
+
         const body = AssignPointsData.parse(request.body);
 
         let event: Event | undefined;
         if (body.eventId) {
-            event = await getEvent(db, request.currentLan, body.eventId);
-            if (!event) return response.status(500).send('Event not found');
+            event = await getEvent(db, context.currentLan, body.eventId);
+            if (!event) throw new Error(`Event ${body.eventId} not found`);
         }
 
-        if (body.type === 'Player') {
+        if (body.type === 'player') {
             const player = await getUser(db, body.userId);
-            if (!player) return response.status(500).send('Player not found');
+            if (!player) throw new Error(`Player ${body.userId} not found`);
 
             // TODO: Check eligible for LAN
 
             await awardScore(
                 db,
-                request.currentLan,
-                request.user,
+                context.currentLan,
+                context.user,
                 body.points,
                 body.reason,
                 event,
                 player,
             );
         } else {
-            const team = request.context.teams.find((team) => team.name === body.type) as Team;
+            const team = getTeam(context.currentLan.teams, body.type);
+            if (!team) throw new Error(`Team ${body.type} not found`);
+
             await awardScore(
                 db,
-                request.currentLan,
-                request.user,
+                context.currentLan,
+                context.user,
                 body.points,
                 body.reason,
                 event,

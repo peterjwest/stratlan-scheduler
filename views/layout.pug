@@ -48,13 +48,15 @@ html(lang="en" class="h-full")
 
                         if helpers.isAdmin(user)
                             div(class="p-3" data-lan-select)
-                                +dropdown("lanId", lans, maybeCurrentLan, true, 'Select LAN', (lan) => lan.name)
+                                +dropdown("lanId", lans, currentLan, true, 'Select LAN', (lan) => lan.name)
 
                         if user
                             div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
                                 div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
-                                    if user.teamId
-                                        span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(teams, user.teamId)}`)= helpers.getTeamName(teams, user.teamId)
+                                    - const team = currentLan && helpers.getTeam(currentLan.teams, user.teamId)
+                                    if team
+                                        span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(team)}`)
+                                            = team.name
                                     if user.discordAvatarId
                                         img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
                                     p(class="mr-4")= user.discordUsername

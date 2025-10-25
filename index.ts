@@ -1,45 +1,40 @@
-
-import { REST, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
-import SteamAuth from 'node-steam-openid';
 import zod from 'zod';
 import lodash from 'lodash';
 
 import {
+    getContext,
+    Context,
     regenerateSession,
     saveSession,
     destroySession,
     splitByDay,
     getLanDays,
     getUrl,
-    hasEventStarted,
     isAdmin,
     isEligible,
+    isLanStarted,
     isLanEnded,
-    isLanActive,
+    isUserError,
 } from './util';
 import setupCommands from './commands';
 import environment from './environment';
-import { UserWithRoles, Team, Lan } from './schema';
+import { Team, LanWithTeams } from './schema';
 import adminRouter from './admin';
+import steamRouter from './steam';
 import helpers from './helpers';
 import {
-    createTeams,
     getDatabaseClient,
     getUser,
     createOrUpdateUserByDiscordId,
-    updateUser,
     updateRoles,
     getTeamPoints,
     getEvents,
     getCurrentLanCached,
     getLans,
-    endFinishedActivities,
-    getOrCreateGameActivity,
-    getUserByDiscordId,
     getUserPoints,
     getOrCreateIntroChallenge,
     getIntroChallenges,
@@ -51,14 +46,14 @@ import {
     getDiscordAccessToken,
     getDiscordUser,
     getDiscordGuildMember,
-    getActivityIds,
+    watchPresenceUpdates,
+    loginClient,
 } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
 
 // TODO: Tidy constants vs. environment
 import {
     COOKIE_MAX_AGE,
-    TEAMS,
     DISCORD_RETURN_URL,
     DISCORD_AUTH_URL,
     INTRO_CHALLENGE_POINTS,
@@ -73,7 +68,6 @@ const {
     DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET,
     DISCORD_GUILD_ID,
-    STEAM_API_KEY,
     DATABASE_URL,
 } = environment;
 
@@ -87,80 +81,18 @@ declare module 'express-session' {
 declare global {
     namespace Express {
         interface Request {
-            maybeUser: UserWithRoles | undefined;
-            user: UserWithRoles;
-            maybeCurrentLan: Lan | undefined;
-            currentLan: Lan;
-            lanEnded: boolean;
-            partialContext: {
-                currentPath: string;
-                eventStarted: boolean;
-                teams: Team[];
-                user: UserWithRoles | undefined;
-                maybeCurrentLan: Lan | undefined;
-                lanEnded: boolean;
-                lans?: Lan[];
-                discordAuthUrl: string;
-                helpers: typeof helpers;
-            },
-            context: {
-                currentPath: string;
-                eventStarted: boolean;
-                teams: Team[];
-                user: UserWithRoles | undefined;
-                maybeCurrentLan: Lan | undefined;
-                currentLan: Lan;
-                lanEnded: boolean;
-                lans?: Lan[];
-                discordAuthUrl: string;
-                helpers: typeof helpers;
-            };
+            context: Context;
         }
     }
 }
 
 const db = await getDatabaseClient(DATABASE_URL);
 
-const teams = await createTeams(db, TEAMS);
-
 await startScoringCommunityGames(db);
 
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildPresences,
-        GatewayIntentBits.GuildMembers,
-    ],
-    partials: [Partials.GuildMember, Partials.User],
-});
-
-client.once(Events.ClientReady, readyClient => console.log(`Logged in to Discord as ${readyClient.user.tag}`));
-
-client.login(DISCORD_TOKEN);
-
-client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
-    const currentLan = await getCurrentLanCached(db);
-    if (!currentLan || !isLanActive(currentLan)) return;
-
-    const user = await getUserByDiscordId(db, newPresence.userId);
-    if (!user) return;
-
-    await endFinishedActivities(db, user, getActivityIds(newPresence.activities));
-
-    if (newPresence.activities.length > 0) {
-        await getOrCreateIntroChallenge(db, 'GameActivity', currentLan, user);
-    }
-
-    for (const activity of newPresence.activities) {
-        if (!activity.applicationId) continue;
-
-        const startTime = new Date(activity.createdTimestamp);
-        await getOrCreateGameActivity(db, currentLan, user, activity.applicationId, activity.name, startTime);
-    }
-});
-
-const rest = new REST().setToken(DISCORD_TOKEN);
-await setupCommands(rest, DISCORD_CLIENT_ID, client);
+const client = loginClient(DISCORD_TOKEN);
+watchPresenceUpdates(db, client);
+await setupCommands(client, DISCORD_CLIENT_ID);
 
 const app = express();
 
@@ -190,10 +122,10 @@ app.use(async (request, response, next) => {
     let lanEnded = !currentLan || isLanEnded(currentLan);
 
     // Hide current team until event has started
-    const eventStarted = hasEventStarted(currentLan);
-    if (user && !eventStarted) user.teamId = null;
+    const lanStarted = Boolean(currentLan && isLanStarted(currentLan));
+    if (user && !lanStarted) user.teamId = null;
 
-    let lans: Lan[] | undefined;
+    let lans: LanWithTeams[] | undefined = [];
 
     if (isAdmin(user)) {
         lans = await getLans(db);
@@ -201,7 +133,7 @@ app.use(async (request, response, next) => {
         // If there's no current LAN, admins get the last one as default
         if (!currentLan) {
             currentLan = lodash.last(lans);
-            lanEnded = false;
+            lanEnded = true;
         }
 
         if (request.cookies['selected-lan']) {
@@ -210,31 +142,27 @@ app.use(async (request, response, next) => {
                 response.clearCookie('selected-lan', { path: '/' });
             } else {
                 currentLan = lans.find((lan) => lan.id === Number(request.cookies['selected-lan']));
-                lanEnded = false;
+                lanEnded = true;
             }
         }
     }
 
-    request.maybeUser = user;
-    request.maybeCurrentLan = currentLan;
-    request.lanEnded = lanEnded;
-
-    request.partialContext = {
+    request.context = {
         currentPath,
-        eventStarted,
-        teams,
+        discordAuthUrl: DISCORD_AUTH_URL,
         user,
-        maybeCurrentLan: currentLan,
+        currentLan,
+        lanStarted,
         lanEnded,
         lans,
-        discordAuthUrl: DISCORD_AUTH_URL,
         helpers,
-    }
+    };
 
     next();
 });
 
 app.get('/login', async (request, response) => {
+    const context = getContext(request);
     const query = zod.object({ code: zod.string() }).parse(request.query);
 
     // Check access token is valid by fetching user
@@ -246,8 +174,8 @@ app.get('/login', async (request, response) => {
     );
     const discordUser = await getDiscordUser(accessToken);
 
-    const discordMember = await getDiscordGuildMember(rest, DISCORD_GUILD_ID, discordUser.id);
-    const serverRoles = await getGuildRoles(rest, DISCORD_GUILD_ID);
+    const discordMember = await getDiscordGuildMember(client, DISCORD_GUILD_ID, discordUser.id);
+    const serverRoles = await getGuildRoles(client, DISCORD_GUILD_ID);
     const roles = mapRoleIds(serverRoles, discordMember.roles);
 
     const user = await createOrUpdateUserByDiscordId(db, discordUser.id, {
@@ -262,8 +190,8 @@ app.get('/login', async (request, response) => {
     request.session.userId = user.id;
     await saveSession(request);
 
-    if (request.maybeCurrentLan) {
-        await getOrCreateIntroChallenge(db, 'Login', request.currentLan, user);
+    if (context.currentLan) {
+        await getOrCreateIntroChallenge(db, 'Login', context.currentLan, user);
     }
 
     response.redirect(request.cookies['login-redirect'] || '/');
@@ -275,90 +203,73 @@ app.get('/logout', async (request, response) => {
     response.redirect('/');
 });
 
+/** Require current LAN for following routes */
 app.use(async (request, response, next) => {
-    if (!request.maybeCurrentLan) {
-        return response.render('unscheduled', request.partialContext);
+    const context = getContext(request);
+    if (!context.currentLan) {
+        return response.render('unscheduled', context);
     }
-
-    request.currentLan = request.maybeCurrentLan;
-    request.context = { ...request.partialContext, currentLan: request.maybeCurrentLan };
-
     next();
 });
 
 app.get('/', async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
     response.render('guide', {
-        ...request.context,
-        points: request.maybeUser ? await getUserPoints(db, request.currentLan, request.maybeUser) : 0,
+        ...context,
+        points: context.user ? await getUserPoints(db, context.currentLan, context.user) : 0,
         constants: { INTRO_CHALLENGE_POINTS },
-        introChallenges: await getIntroChallenges(db, request.currentLan, request.maybeUser),
-        isEligible: isEligible(request.currentLan, request.maybeUser),
+        introChallenges: await getIntroChallenges(db, context.currentLan, context.user),
+        isEligible: isEligible(context.currentLan, context.user),
     });
 });
 
 app.get('/schedule', async (request, response) => {
-    const events = await getEvents(db, request.currentLan);
+    const context = getContext(request, 'WITH_LAN');
+    const events = await getEvents(db, context.currentLan);
 
     response.render('schedule', {
-        ...request.partialContext,
-        eventsByDay: splitByDay(events, getLanDays(request.currentLan)),
+        ...context,
+        eventsByDay: splitByDay(events, getLanDays(context.currentLan)),
     });
 });
 
 app.use('/dashboard', async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
     const teamPoints: Array<{ team: Team, points: number }> = [];
-    for (const team of request.context.teams) {
-        teamPoints.push({ team, points: await getTeamPoints(db, request.currentLan, team) });
+    for (const team of context.currentLan.teams) {
+        teamPoints.push({ team, points: await getTeamPoints(db, context.currentLan, team) });
     }
-    response.render('dashboard', { ...request.context, teamPoints });
+    response.render('dashboard', { ...context, teamPoints });
 });
 
+/** Require login for following routes */
 app.use(async (request, response, next) => {
-    if (!request.maybeUser) return response.render('404', request.context);
-    request.user = request.maybeUser;
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.render('404', context);
     next();
 });
 
 app.get('/claim/:challengeId', async (request, response) => {
-    if (!request.currentLan) {
-        throw new Error('No active LAN');
-    }
-    await claimChallenge(db, request.currentLan, request.user, Number(request.params.challengeId));
+    const context = getContext(request, 'LOGGED_IN');
+    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
     response.redirect('/');
 });
 
-const steamAuth = new SteamAuth({
-    realm: HOST,
-    returnUrl: `${HOST}/steam/authenticate`,
-    apiKey: STEAM_API_KEY,
-});
-
-app.get('/steam', async (request, response) => {
-    response.redirect(await steamAuth.getRedirectUrl());
-});
-
-app.get('/steam/authenticate', async (request, response) => {
-    const steamUser = await steamAuth.authenticate(request);
-    await updateUser(db, request.user.id, {
-        steamId: steamUser.steamid,
-        steamUsername: steamUser.username,
-        steamAvatar: steamUser.avatar.large,
-    });
-
-    response.redirect('/');
-});
-
+app.use('/steam', steamRouter(db));
 app.use('/admin', adminRouter(db));
 
-app.use((request: Request, response: Response, next: NextFunction) => {
-    response.render('404', request.context);
+/** 404 handler */
+app.use((request: Request, response: Response) => {
+    response.render('404', getContext(request));
 });
 
+/** Error handler */
 app.use((error: any, request: Request, response: Response, next: NextFunction) => {
-    console.error('Server error', error);
-    response.render('500', request.context);
+    if (!isUserError(error)) console.error('Server error', error);
+    response.render('500', { ...getContext(request), error });
 });
 
+/** Start server */
 app.listen(PORT, () => {
     console.log(`Server listening at ${HOST}`);
 

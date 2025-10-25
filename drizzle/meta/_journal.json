@@ -239,6 +239,34 @@
       "when": 1761095631085,
       "tag": "0033_remove_is_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1761396869331,
+      "tag": "0034_team_lan_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1761402215102,
+      "tag": "0035_team_uniqueness",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1761402852284,
+      "tag": "0036_session_expire_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1761403036681,
+      "tag": "0037_team_check",
+      "breakpoints": true
     }
   ]
 }

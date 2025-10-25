@@ -18,8 +18,9 @@ block body
         for score of assignedScores
             tr(class="hover:bg-highlight border-t border-border/50")
                 td(class="px-3 py-2")
-                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(teams, score.teamId)}`)
-                        =helpers.getTeamName(teams, score.teamId)
+                    - const team = helpers.getTeam(currentLan.teams, score.teamId)
+                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(team)}`)
+                        =team.name
                 td(class="px-3 py-2")= score.user ? helpers.formatName(score.user) : ''
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.reason

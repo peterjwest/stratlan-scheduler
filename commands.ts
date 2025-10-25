@@ -1,5 +1,4 @@
- import {
-    REST,
+import {
     Client,
     Events,
     SlashCommandBuilder,
@@ -31,15 +30,15 @@ commands.set(command.name, {
     },
 });
 
-async function putCommands(rest: REST, clientId: string, commands: SlashCommandBuilder[]) {
-    await rest.put(
+async function putCommands(client: Client, clientId: string, commands: SlashCommandBuilder[]) {
+    await client.rest.put(
         Routes.applicationCommands(clientId),
         { body: commands.map((command) => command.toJSON()) },
     );
 }
 
-export default async function setupCommands(rest: REST, clientId: string, client: Client) {
-    await putCommands(rest, clientId, [command]);
+export default async function setupCommands(client: Client, clientId: string) {
+    await putCommands(client, clientId, [command]);
 
     client.on(Events.InteractionCreate, async (interaction) => {
         if (!interaction.isChatInputCommand()) return;

@@ -5,15 +5,14 @@ block body
         h2(class="text-2xl font-semibold mb-4") Assign points
 
         div(class="flex space-x-3 items-center mb-3")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--gradient-red) has-[:focus]:border-white")
-                span Red
-                input(name="type" type="radio" value="Red" required class="w-0")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-(image:--gradient-blue) has-[:focus]:border-white")
-                span Blue
-                input(name="type" type="radio" value="Blue" required class="w-0")
-            label(data-points-type class="py-1.5 px-3 cursor-pointer rounded-lg border border-border/50 has-[:checked]:bg-highlight has-[:focus]:border-white")
+            - const radioButtonClass = 'py-1.5 px-3 cursor-pointer rounded-lg border border-border/50';
+            each team in currentLan.teams
+                label(data-points-type class=`${radioButtonClass} has-[:checked]:${helpers.getTeamBackground(team)} has-[:focus]:border-white`)
+                    span=team.name
+                    input(name="type" type="radio" value=team.id required class="w-0")
+            label(data-points-type class=`${radioButtonClass} has-[:checked]:bg-highlight has-[:focus]:border-white`)
                 span Player
-                input(name="type" type="radio" value="Player" required class="w-0")
+                input(name="type" type="radio" value="player" required class="w-0")
 
         div(class="grid grid-cols-[repeat(2,min-content)]")
             label(data-player-field class="py-2 px-3 grid grid-cols-subgrid col-span-2 hidden")
@@ -33,4 +32,4 @@ block body
                 +dropdown("eventId", events, undefined, false, 'None', (event) => event.name)
 
             div(class="mt-2")
-                input(type="submit" name="submit" value="Submit" disabled=!lanIsActive class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
+                input(type="submit" name="submit" value="Submit" disabled=lanEnded class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

@@ -1,4 +1,4 @@
-import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check } from 'drizzle-orm/pg-core';
+import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
@@ -18,10 +18,6 @@ export const User = pgTable('User', {
 export type User = typeof User.$inferSelect;
 export type UserWithRoles = User & { roles: string[] };
 
-export const usersRelations = relations(User, ({ many }) => ({
-    assignedScores: many(Score),
-}));
-
 export const UserRole = pgTable('UserRole', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userId: integer().references(() => User.id).notNull(),
@@ -34,15 +30,25 @@ export const Session = pgTable('Session', {
     sess: json().notNull(),
     expire: timestamp().notNull(),
 }, (table) => [
-    index('expire_idx').on(table.expire),
+    index('Session_expire_idx').on(table.expire),
 ]);
 export type Session = typeof Session.$inferSelect;
 
 export const Team = pgTable('Team', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar().notNull().unique(),
-});
+    name: varchar().notNull(),
+    lanId: integer().references(() => Lan.id).notNull(),
+}, (table) => [
+    unique('Team_name_and_lan_unique').on(table.name, table.lanId),
+]);
 export type Team = typeof Team.$inferSelect;
+
+export const teamRelations = relations(Team, ({ one }) => ({
+    lan: one(Lan, {
+        fields: [Team.lanId],
+        references: [Lan.id],
+    }),
+}));
 
 export const ScoreTypeEnum = pgEnum('ScoreType', SCORE_TYPES);
 
@@ -59,8 +65,8 @@ export const Score = pgTable('Score', {
     timeslotId: integer().references(() => EventTimeslot.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 }, (table) => [
-      check(
-        "teamId_or_userId",
+    check(
+        "Team_teamId_or_userId",
         sql`(${table.teamId} IS NOT NULL AND ${table.userId} IS NULL) OR (${table.teamId} IS NULL AND ${table.userId} IS NOT NULL)`,
     ),
 ]);
@@ -134,6 +140,11 @@ export const Lan = pgTable('Lan', {
     eventEnd: timestamp({ withTimezone: true }),
 });
 export type Lan = typeof Lan.$inferSelect;
+export type LanWithTeams = Lan & { teams: Team[] };
+
+export const lanRelations = relations(Lan, ({ many }) => ({
+    teams: many(Team),
+}));
 
 export const GameActivity = pgTable('GameActivity', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -176,10 +187,10 @@ export type IntroChallenge = typeof IntroChallenge.$inferSelect;
 
 export default {
     User,
-    usersRelations,
     UserRole,
     Session,
     Team,
+    teamRelations,
     Score,
     scoreRelations,
     Event,
@@ -187,6 +198,7 @@ export default {
     EventTimeslot,
     eventTimeslotRelations,
     Lan,
+    lanRelations,
     GameActivity,
     gameActivityRelations,
     Game,

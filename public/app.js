@@ -5,7 +5,7 @@ const pointsPlayerInput = document.querySelector('[data-player-input]');
 if (pointsTypeRadios.length && pointsPlayerField) {
     for (const pointsTypeRadio of pointsTypeRadios) {
         pointsTypeRadio.addEventListener('change', (event) => {
-            const isPlayer = event.target.value === 'Player';
+            const isPlayer = event.target.value === 'player';
             pointsPlayerField.classList[isPlayer ? 'remove' : 'add']('hidden');
             pointsPlayerInput.required = isPlayer ? 'required' : undefined;
             if (!isPlayer) {
