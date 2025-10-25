@@ -51,7 +51,7 @@ if (userMenu) {
 function getPrevSiblings(element) {
     var siblings = [];
     while (element = element.previousElementSibling) {
-       siblings.push(element)
+        siblings.push(element)
     }
     return siblings;
 }
@@ -59,7 +59,7 @@ function getPrevSiblings(element) {
 function getNextSiblings(element) {
     var siblings = [];
     while (element = element.nextElementSibling) {
-       siblings.push(element)
+        siblings.push(element)
     }
     return siblings;
 }
