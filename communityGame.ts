@@ -76,7 +76,8 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                 let scoresAdded = 0;
 
                 for (const timeslot of timeslots) {
-                    const activitiesByUser = Object.values(lodash.groupBy(await getTimeslotActivities(db, event, timeslot), 'userId'));
+                    const activities = await getTimeslotActivities(db, currentLan, event, timeslot);
+                    const activitiesByUser = Object.values(lodash.groupBy(activities, 'userId'));
                     for (const activities of activitiesByUser) {
                         const total = sumTimeslotActivities(timeslot, activities);
 

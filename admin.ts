@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import zod from 'zod';
 
-import { parseInteger, formatScoreType, isAdmin, getTeam, getContext, isLanEnded, UserError } from './util';
+import { parseInteger, formatScoreType, isAdmin, getTeam, getContext, isLanEnded, isEligible, UserError } from './util';
 import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { ScoreType } from './constants';
@@ -81,7 +81,9 @@ export default function (db: DatabaseClient) {
             const player = await getUser(db, body.userId);
             if (!player) throw new Error(`Player ${body.userId} not found`);
 
-            // TODO: Check eligible for LAN
+            if (!isEligible(context.currentLan, player)) {
+                throw new Error(`Player ${body.userId} does not have the required role ${context.currentLan.role}`);
+            }
 
             await awardScore(
                 db,

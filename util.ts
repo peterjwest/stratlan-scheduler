@@ -231,7 +231,7 @@ export function isAdmin(user: UserWithRoles | undefined): boolean {
 }
 
 export function isEligible(lan: Lan, user: UserWithRoles | undefined): boolean {
-    return isAdmin(user) || Boolean(user?.roles.includes(lan.role as string));
+    return isAdmin(user) || Boolean(user?.roles.includes(lan.role || ''));
 }
 
 export function isLanEnded(lan: Lan) {

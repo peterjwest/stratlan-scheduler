@@ -73,8 +73,11 @@ interface MinimalUser {
 }
 
 export async function getMinimalUsers(db: DatabaseClient, lan: Lan): Promise<MinimalUser[]> {
-    // TODO: Eligible users only!!!
-    return db.query.User.findMany({ columns: { id: true, discordUsername: true, discordNickname: true } });
+    return await db
+        .select({ id: User.id, discordUsername: User.discordUsername, discordNickname: User.discordNickname })
+        .from(User)
+        .leftJoin(UserRole, eq(UserRole.userId, User.id))
+        .where(eq(UserRole.role, lan.role || ''));
 }
 
 export async function createOrUpdateUserByDiscordId(
@@ -157,7 +160,6 @@ export async function getScores(db: DatabaseClient, lan: Lan, type: ScoreType | 
 }
 
 export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
-    // TODO: Don't allow anyone non-eligible
     const results = (
         await db
             .select({ total: sql`sum(${Score.points})`.mapWith(Number) })
@@ -246,7 +248,7 @@ export async function getOrCreateGameActivity(
 }
 
 export async function getTimeslotActivities(
-    db: DatabaseClient, event: Event, eventTimeslot: EventTimeslot,
+    db: DatabaseClient, lan: Lan, event: Event, eventTimeslot: EventTimeslot,
 ): Promise<GameActivityWithTeam[]> {
     if (!event.gameId) return [];
     return db.select({
@@ -257,11 +259,15 @@ export async function getTimeslotActivities(
         gameId: GameActivity.gameId,
         startTime: GameActivity.startTime,
         endTime: GameActivity.endTime,
-    }).from(GameActivity).where(and(
-        eq(GameActivity.gameId, event.gameId),
-        lt(GameActivity.startTime, getTimeslotEnd(eventTimeslot)),
-        or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
-    )).leftJoin(User, eq(User.id, GameActivity.userId));
+    }).from(GameActivity)
+        .where(and(
+            eq(GameActivity.gameId, event.gameId),
+            lt(GameActivity.startTime, getTimeslotEnd(eventTimeslot)),
+            or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
+            eq(UserRole.role, lan.role || ''),
+        ))
+        .leftJoin(User, eq(User.id, GameActivity.userId))
+        .leftJoin(UserRole, eq(UserRole.userId, User.id));
 }
 
 export async function getTimeslot(db: DatabaseClient, timeslotId: number): Promise<EventTimeslot | undefined> {

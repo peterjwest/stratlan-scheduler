@@ -1,11 +1,11 @@
 # TODO:
 
 Objectives:
+- LAN selector to mobile menu
 - Add "GameIdentifier" table to allow multiple IDs per game
 - Dashboard page
   - Teams
 - Assign teams (Red vs. Blue)
-- Check LAN eligibility
 - Team check page
   - Assign team roles button
 - Schedule
