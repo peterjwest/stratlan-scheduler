@@ -248,6 +248,7 @@ export function isLanActive(lan: Lan) {
 
 export type Context = {
     currentPath: string;
+    currentUrl: string;
     discordAuthUrl: string;
     user: UserWithRoles | undefined;
     currentLan: LanWithTeams | undefined;

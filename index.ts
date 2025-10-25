@@ -114,8 +114,6 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
-    const currentPath = getUrl(request.originalUrl).path;
-
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
 
     let currentLan = await getCurrentLanCached(db);
@@ -148,7 +146,8 @@ app.use(async (request, response, next) => {
     }
 
     request.context = {
-        currentPath,
+        currentPath: getUrl(request.originalUrl).path,
+        currentUrl: request.originalUrl,
         discordAuthUrl: DISCORD_AUTH_URL,
         user,
         currentLan,

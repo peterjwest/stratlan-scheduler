@@ -47,7 +47,6 @@ export default function (db: DatabaseClient) {
         response.render('admin/points', {
             ...context,
             filters,
-            path: request.originalUrl,
             assignedScores: await getScores(db, context.currentLan, query.type),
         });
     });
