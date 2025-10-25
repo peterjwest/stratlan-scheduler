@@ -2,5 +2,5 @@ extends layout.pug
 
 block body
     ul
-        for team of teamPoints
+        each team in teamPoints
             li= `${team.team.name} points: ${team.points}`

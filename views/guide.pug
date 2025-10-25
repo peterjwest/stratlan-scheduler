@@ -35,7 +35,6 @@ block body
 
             li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
-                    - const team = user && currentLan && helpers.getTeam(currentLan.teams, user.teamId)
                     if team
                         span="You're on team "
                         span(class=`inline-block px-1.5 py-1 -my-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(team)}`)

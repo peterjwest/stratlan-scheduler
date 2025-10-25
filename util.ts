@@ -99,8 +99,8 @@ export function formatScoreType(type: ScoreType) {
     return SCORE_TYPE_NAMES[type];
 }
 
-export function getTeam(teams: Team[], teamId: number): Team | undefined {
-    return teams.find((team) => team.id === teamId);
+export function getTeam(lan: LanWithTeams, teamId: number | null): Team | undefined {
+    return lan.teams.find((team) => team.id === teamId);
 }
 
 export function getTeamBackground(team: Team): string | undefined {
@@ -251,6 +251,7 @@ export type Context = {
     currentUrl: string;
     discordAuthUrl: string;
     user: UserWithRoles | undefined;
+    team: Team | undefined;
     currentLan: LanWithTeams | undefined;
     lanStarted: boolean;
     lanEnded: boolean;

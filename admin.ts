@@ -94,7 +94,7 @@ export default function (db: DatabaseClient) {
                 player,
             );
         } else {
-            const team = getTeam(context.currentLan.teams, body.type);
+            const team = getTeam(context.currentLan, body.type);
             if (!team) throw new Error(`Team ${body.type} not found`);
 
             await awardScore(

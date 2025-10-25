@@ -53,7 +53,6 @@ html(lang="en" class="h-full")
                         if user
                             div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
                                 div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
-                                    - const team = user && currentLan && helpers.getTeam(currentLan.teams, user.teamId)
                                     if team
                                         span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(team)}`)
                                             = team.name
