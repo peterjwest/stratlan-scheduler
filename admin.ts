@@ -2,7 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import zod from 'zod';
 
 import { Csrf } from './csrf';
-import { parseInteger, formatScoreType, isAdmin, getTeam, getContext, isLanEnded, isEligible, UserError } from './util';
+import { getContext } from 'context';
+import { parseInteger, formatScoreType, isAdmin, getTeam, isLanEnded, isEligible, UserError } from './util';
 import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { ScoreType } from './constants';

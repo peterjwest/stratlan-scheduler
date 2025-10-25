@@ -13,7 +13,6 @@ import {
     ScoreType,
     MODERATOR_ROLES,
 } from './constants';
-import { Helpers } from './helpers';
 
 type DayEvents = {
     day: string;
@@ -244,34 +243,6 @@ export function isLanStarted(lan: Lan) {
 
 export function isLanActive(lan: Lan) {
     return isLanStarted(lan) && !isLanEnded(lan);
-}
-
-export type Context = {
-    currentPath: string;
-    currentUrl: string;
-    discordAuthUrl: string;
-    user: UserWithRoles | undefined;
-    team: Team | undefined;
-    currentLan: LanWithTeams | undefined;
-    lanStarted: boolean;
-    lanEnded: boolean;
-    lans: LanWithTeams[];
-    helpers: Helpers;
-}
-
-type ContextWithLan = Context & {
-    currentLan: LanWithTeams;
-}
-
-type ContextLoggedIn = ContextWithLan & {
-    user: UserWithRoles;
-}
-
-export function getContext(request: Request): Context;
-export function getContext(request: Request, mode: 'WITH_LAN'): ContextWithLan;
-export function getContext(request: Request, mode: 'LOGGED_IN'): ContextLoggedIn;
-export function getContext(request: Request, mode?: 'WITH_LAN' | 'LOGGED_IN'): Context | ContextLoggedIn | ContextLoggedIn {
-    return request.context;
 }
 
 export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {

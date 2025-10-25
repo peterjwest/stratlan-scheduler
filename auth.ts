@@ -2,7 +2,8 @@ import { Router } from 'express';
 import zod from 'zod';
 import { Client } from 'discord.js';
 
-import { getContext, regenerateSession, saveSession, destroySession } from './util';
+import { getContext } from './context';
+import { regenerateSession, saveSession, destroySession } from './util';
 import { DatabaseClient, createOrUpdateUserByDiscordId, updateRoles, getOrCreateIntroChallenge } from './database';
 import { getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember } from './discordApi';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';

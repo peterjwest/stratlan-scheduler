@@ -3,7 +3,7 @@ import { Router } from 'express';
 
 import { updateUser, DatabaseClient } from './database';
 import { HOST, STEAM_API_KEY } from './environment';
-import { getContext } from './util';
+import { getContext } from './context';
 
 const steamAuth = new SteamAuth({
     realm: HOST,

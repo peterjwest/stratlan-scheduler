@@ -4,9 +4,8 @@ import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
 import lodash from 'lodash';
 
+import { getContext } from './context';
 import {
-    getContext,
-    Context,
     splitByDay,
     getLanDays,
     getUrl,
@@ -47,21 +46,6 @@ import {
     DATABASE_URL,
 } from './environment';
 import { COOKIE_MAX_AGE, DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './constants';
-
-/** Augments the session with userId */
-declare module 'express-session' {
-    interface SessionData {
-        userId: number;
-    }
-}
-
-declare global {
-    namespace Express {
-        interface Request {
-            context: Context;
-        }
-    }
-}
 
 const csrf = getCsrf();
 
