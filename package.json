@@ -38,6 +38,7 @@
     "@tailwindcss/cli": "^4.1.11",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
+    "csrf-sync": "^4.2.1",
     "discord.js": "^14.21.0",
     "drizzle-orm": "^0.44.4",
     "express": "^5.1.0",

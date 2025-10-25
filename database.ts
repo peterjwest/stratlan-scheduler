@@ -156,7 +156,7 @@ export async function getScores(db: DatabaseClient, lan: Lan, type: ScoreType | 
     for (const score of scores) {
         if (score.user) score.teamId = score.user.teamId;
     }
-    return scores
+    return scores;
 }
 
 export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {

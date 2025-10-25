@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import zod from 'zod';
 
+import { Csrf } from './csrf';
 import { parseInteger, formatScoreType, isAdmin, getTeam, getContext, isLanEnded, isEligible, UserError } from './util';
 import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
@@ -26,7 +27,7 @@ const AssignPointsData = zod.union([AssignPlayerPoints, AssignTeamPoints]);
 
 const PointsQuery = zod.object({ type: zod.union([ScoreType, zod.undefined()]) });
 
-export default function (db: DatabaseClient) {
+export default function (db: DatabaseClient, csrf: Csrf) {
     const router = Router();
 
     router.use((request: Request, response: Response, next: NextFunction) => {
@@ -55,13 +56,13 @@ export default function (db: DatabaseClient) {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/assign', {
             ...context,
+            csrf: csrf.generateToken(request),
             events: await getMinimalEvents(db, context.currentLan),
             users: await getMinimalUsers(db, context.currentLan),
         });
     });
 
-    // TODO: CSRF
-    router.post('/assign', async (request: Request, response: Response) => {
+    router.post('/assign', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (isLanEnded(context.currentLan)) {
@@ -85,26 +86,14 @@ export default function (db: DatabaseClient) {
             }
 
             await awardScore(
-                db,
-                context.currentLan,
-                context.user,
-                body.points,
-                body.reason,
-                event,
-                player,
+                db, context.currentLan, context.user, body.points, body.reason, event, player,
             );
         } else {
             const team = getTeam(context.currentLan, body.type);
             if (!team) throw new Error(`Team ${body.type} not found`);
 
             await awardScore(
-                db,
-                context.currentLan,
-                context.user,
-                body.points,
-                body.reason,
-                event,
-                team,
+                db, context.currentLan, context.user, body.points, body.reason, event, team,
             );
         }
 

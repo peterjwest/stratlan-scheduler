@@ -27,6 +27,7 @@ import { Team, LanWithTeams } from './schema';
 import adminRouter from './admin';
 import steamRouter from './steam';
 import helpers from './helpers';
+import getCsrf from './csrf';
 import {
     getDatabaseClient,
     getUser,
@@ -86,6 +87,8 @@ declare global {
         }
     }
 }
+
+const csrf = getCsrf();
 
 const db = await getDatabaseClient(DATABASE_URL);
 
@@ -257,7 +260,7 @@ app.get('/claim/:challengeId', async (request, response) => {
 });
 
 app.use('/steam', steamRouter(db));
-app.use('/admin', adminRouter(db));
+app.use('/admin', adminRouter(db, csrf));
 
 /** 404 handler */
 app.use((request: Request, response: Response) => {
