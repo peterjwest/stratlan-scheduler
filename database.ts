@@ -204,6 +204,8 @@ export async function getLans(db: DatabaseClient): Promise<LanWithTeams[]> {
     return db.query.Lan.findMany({ orderBy: [asc(Lan.scheduleEnd)], with: { teams: true }, });
 }
 
+export const [getLansCached, clearLansCache] = cacheCall(getLans);
+
 export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {
     await db.update(GameActivity).set({ endTime: sql`NOW()` }).where(and(
         eq(GameActivity.userId, user.id),

@@ -29,7 +29,7 @@ import {
     getTeamPoints,
     getEvents,
     getCurrentLanCached,
-    getLans,
+    getLansCached,
     getUserPoints,
     getIntroChallenges,
     claimChallenge,
@@ -77,6 +77,7 @@ app.set('view engine', 'pug');
 app.use(async (request, response, next) => {
     const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
 
+    const lans: LanWithTeams[] = await getLansCached(db);
     let currentLan = await getCurrentLanCached(db);
     let lanEnded = !currentLan || isLanEnded(currentLan);
 
@@ -84,11 +85,7 @@ app.use(async (request, response, next) => {
     const lanStarted = Boolean(currentLan && isLanStarted(currentLan));
     if (user && !lanStarted) user.teamId = null;
 
-    let lans: LanWithTeams[] | undefined = [];
-
     if (isAdmin(user)) {
-        lans = await getLans(db);
-
         // If there's no current LAN, admins get the last one as default
         if (!currentLan) {
             currentLan = lodash.last(lans);
