@@ -2,11 +2,12 @@
 
 @import "./font.css";
 
-@source inline("bg-(image:--gradient-red)");
-@source inline("bg-(image:--gradient-blue)");
+@source inline("bg-team-red");
+@source inline("bg-team-blue");
+@source inline("has-[:checked]:bg-team-red");
+@source inline("has-[:checked]:bg-team-blue");
 
-html,
-body {
+html, body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     box-sizing: border-box;
@@ -58,15 +59,25 @@ input[disabled] {
     );
 }
 
-.clearfix::after {
-    content: "";
-    display: table;
-    clear: both;
+@utility clearfix {
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
 }
 
-.bg-animate {
+@utility bg-animate {
     animation: gradient 0.4s linear infinite;
     background-size: 200% 200%;
+}
+
+@utility bg-team-red {
+    background-image: var(--gradient-red);
+}
+
+@utility bg-team-blue {
+    background-image: var(--gradient-blue);
 }
 
 @keyframes gradient {
