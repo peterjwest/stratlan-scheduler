@@ -30,17 +30,17 @@ commands.set(command.name, {
     },
 });
 
-async function putCommands(client: Client, clientId: string, commands: SlashCommandBuilder[]) {
-    await client.rest.put(
+async function putCommands(discordClient: Client, clientId: string, commands: SlashCommandBuilder[]) {
+    await discordClient.rest.put(
         Routes.applicationCommands(clientId),
         { body: commands.map((command) => command.toJSON()) },
     );
 }
 
-export default async function setupCommands(client: Client, clientId: string) {
-    await putCommands(client, clientId, [command]);
+export default async function setupCommands(discordClient: Client, clientId: string) {
+    await putCommands(discordClient, clientId, [command]);
 
-    client.on(Events.InteractionCreate, async (interaction) => {
+    discordClient.on(Events.InteractionCreate, async (interaction) => {
         if (!interaction.isChatInputCommand()) return;
 
         const command = commands.get(interaction.commandName);

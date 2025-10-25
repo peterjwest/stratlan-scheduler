@@ -51,12 +51,14 @@ export async function getDiscordUser(accessToken: string): Promise<DiscordUser> 
     return DiscordUser.parse(await rest.get(Routes.user()));
 }
 
-export async function getDiscordGuildMember(client: Client, guildId: string, userId: string): Promise<DiscordGuildMember> {
-    return DiscordGuildMember.parse(await client.rest.get(Routes.guildMember(guildId, userId)));
+export async function getDiscordGuildMember(
+    discordClient: Client, guildId: string, userId: string,
+): Promise<DiscordGuildMember> {
+    return DiscordGuildMember.parse(await discordClient.rest.get(Routes.guildMember(guildId, userId)));
 }
 
-export async function getGuildRoles(client: Client, guildId: string) {
-    const roles = zod.array(Role).parse(await client.rest.get(
+export async function getGuildRoles(discordClient: Client, guildId: string) {
+    const roles = zod.array(Role).parse(await discordClient.rest.get(
         Routes.guildRoles(guildId),
     ));
     return lodash.keyBy(roles, 'id');
@@ -110,8 +112,8 @@ export function loginClient(discordToken: string) {
     return client;
 }
 
-export function watchPresenceUpdates(db: DatabaseClient, client: Client) {
-    client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
+export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
+    discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
         const currentLan = await getCurrentLanCached(db);
         if (!currentLan || !isLanActive(currentLan)) return;
 
@@ -127,7 +129,9 @@ export function watchPresenceUpdates(db: DatabaseClient, client: Client) {
         for (const activity of newPresence.activities) {
             if (!activity.applicationId) continue;
 
-            await getOrCreateGameActivity(db, currentLan, user, activity.applicationId, activity.name, activity.createdAt);
+            await getOrCreateGameActivity(
+                db, currentLan, user, activity.applicationId, activity.name, activity.createdAt,
+            );
         }
     });
 }

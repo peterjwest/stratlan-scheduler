@@ -2,15 +2,11 @@ import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
-import zod from 'zod';
 import lodash from 'lodash';
 
 import {
     getContext,
     Context,
-    regenerateSession,
-    saveSession,
-    destroySession,
     splitByDay,
     getLanDays,
     getUrl,
@@ -25,31 +21,21 @@ import setupCommands from './commands';
 import { Team, LanWithTeams } from './schema';
 import adminRouter from './admin';
 import steamRouter from './steam';
+import authRouter from './auth';
 import helpers from './helpers';
 import getCsrf from './csrf';
 import {
     getDatabaseClient,
     getUser,
-    createOrUpdateUserByDiscordId,
-    updateRoles,
     getTeamPoints,
     getEvents,
     getCurrentLanCached,
     getLans,
     getUserPoints,
-    getOrCreateIntroChallenge,
     getIntroChallenges,
     claimChallenge,
 } from './database';
-import {
-    getGuildRoles,
-    mapRoleIds,
-    getDiscordAccessToken,
-    getDiscordUser,
-    getDiscordGuildMember,
-    watchPresenceUpdates,
-    loginClient,
-} from './discordApi';
+import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
 import {
     PORT,
@@ -58,16 +44,9 @@ import {
     SESSION_SECRET,
     DISCORD_TOKEN,
     DISCORD_CLIENT_ID,
-    DISCORD_CLIENT_SECRET,
-    DISCORD_GUILD_ID,
     DATABASE_URL,
 } from './environment';
-import {
-    COOKIE_MAX_AGE,
-    DISCORD_RETURN_URL,
-    DISCORD_AUTH_URL,
-    INTRO_CHALLENGE_POINTS,
-} from './constants';
+import { COOKIE_MAX_AGE, DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './constants';
 
 /** Augments the session with userId */
 declare module 'express-session' {
@@ -90,9 +69,9 @@ const db = await getDatabaseClient(DATABASE_URL);
 
 await startScoringCommunityGames(db);
 
-const client = loginClient(DISCORD_TOKEN);
-watchPresenceUpdates(db, client);
-await setupCommands(client, DISCORD_CLIENT_ID);
+const discordClient = loginClient(DISCORD_TOKEN);
+watchPresenceUpdates(db, discordClient);
+await setupCommands(discordClient, DISCORD_CLIENT_ID);
 
 const app = express();
 
@@ -159,47 +138,7 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.get('/login', async (request, response) => {
-    const context = getContext(request);
-    const query = zod.object({ code: zod.string() }).parse(request.query);
-
-    // Check access token is valid by fetching user
-    const accessToken = await getDiscordAccessToken(
-        DISCORD_CLIENT_ID,
-        DISCORD_CLIENT_SECRET,
-        DISCORD_RETURN_URL,
-        query.code,
-    );
-    const discordUser = await getDiscordUser(accessToken);
-
-    const discordMember = await getDiscordGuildMember(client, DISCORD_GUILD_ID, discordUser.id);
-    const serverRoles = await getGuildRoles(client, DISCORD_GUILD_ID);
-    const roles = mapRoleIds(serverRoles, discordMember.roles);
-
-    const user = await createOrUpdateUserByDiscordId(db, discordUser.id, {
-        accessToken,
-        discordUsername: discordUser.username,
-        discordNickname: discordMember.nick || discordUser.global_name,
-        discordAvatarId: discordUser.avatar,
-    });
-    await updateRoles(db, user, roles);
-
-    await regenerateSession(request);
-    request.session.userId = user.id;
-    await saveSession(request);
-
-    if (context.currentLan) {
-        await getOrCreateIntroChallenge(db, 'Login', context.currentLan, user);
-    }
-
-    response.redirect(request.cookies['login-redirect'] || '/');
-});
-
-app.get('/logout', async (request, response) => {
-    await destroySession(request);
-
-    response.redirect('/');
-});
+app.use('/auth', authRouter(db, discordClient));
 
 /** Require current LAN for following routes */
 app.use(async (request, response, next) => {
