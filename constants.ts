@@ -2,12 +2,7 @@ import querystring from 'node:querystring';
 
 import zod from 'zod';
 
-import environment from './environment';
-
-const {
-    HOST,
-    DISCORD_CLIENT_ID
-} = environment;
+import { HOST, DISCORD_CLIENT_ID } from './environment';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 

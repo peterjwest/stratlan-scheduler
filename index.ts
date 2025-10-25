@@ -22,7 +22,6 @@ import {
     isUserError,
 } from './util';
 import setupCommands from './commands';
-import environment from './environment';
 import { Team, LanWithTeams } from './schema';
 import adminRouter from './admin';
 import steamRouter from './steam';
@@ -52,16 +51,7 @@ import {
     loginClient,
 } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
-
-// TODO: Tidy constants vs. environment
 import {
-    COOKIE_MAX_AGE,
-    DISCORD_RETURN_URL,
-    DISCORD_AUTH_URL,
-    INTRO_CHALLENGE_POINTS,
-} from './constants';
-
-const {
     PORT,
     HOST,
     SECURE_COOKIE,
@@ -71,7 +61,13 @@ const {
     DISCORD_CLIENT_SECRET,
     DISCORD_GUILD_ID,
     DATABASE_URL,
-} = environment;
+} from './environment';
+import {
+    COOKIE_MAX_AGE,
+    DISCORD_RETURN_URL,
+    DISCORD_AUTH_URL,
+    INTRO_CHALLENGE_POINTS,
+} from './constants';
 
 /** Augments the session with userId */
 declare module 'express-session' {
@@ -103,7 +99,6 @@ const app = express();
 app.use(cookieParser());
 
 const SessionStore = sessionStore(expressSession);
-
 app.use(expressSession({
     secret: SESSION_SECRET,
     resave: false,
@@ -114,7 +109,6 @@ app.use(expressSession({
 
 app.use(express.urlencoded());
 app.use(express.static('build/public'));
-
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {

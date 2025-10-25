@@ -2,10 +2,8 @@ import SteamAuth from 'node-steam-openid';
 import { Router } from 'express';
 
 import { updateUser, DatabaseClient } from './database';
-import environment from './environment';
+import { HOST, STEAM_API_KEY } from './environment';
 import { getContext } from './util';
-
-const { HOST, STEAM_API_KEY } = environment;
 
 const steamAuth = new SteamAuth({
     realm: HOST,

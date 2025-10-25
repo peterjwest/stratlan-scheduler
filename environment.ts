@@ -13,4 +13,15 @@ export const Environment = zod.object({
     DATABASE_URL: zod.string(),
 });
 
-export default Environment.parse(process.env);
+export const {
+    PORT,
+    HOST,
+    SECURE_COOKIE,
+    SESSION_SECRET,
+    DISCORD_TOKEN,
+    DISCORD_CLIENT_ID,
+    DISCORD_CLIENT_SECRET,
+    DISCORD_GUILD_ID,
+    STEAM_API_KEY,
+    DATABASE_URL,
+} = Environment.parse(process.env);
