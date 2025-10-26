@@ -38,7 +38,7 @@ export const INTRO_CHALLENGE_POINTS = {
     'OneTimeCode': 50,
 } as const satisfies { [Property in IntroChallengeType]: number };
 
-export const DISCORD_RETURN_URL = `${HOST}/login`;
+export const DISCORD_RETURN_URL = `${HOST}/auth/login`;
 export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
     client_id: DISCORD_CLIENT_ID,
     response_type: 'code',
