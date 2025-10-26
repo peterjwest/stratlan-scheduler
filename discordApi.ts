@@ -115,7 +115,7 @@ export function loginClient(discordToken: string) {
 export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
     discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
         const currentLan = withLanStatus(await getCurrentLanCached(db));
-        if (!currentLan?.status.active) return;
+        if (!currentLan?.isActive) return;
 
         const user = await getUserByDiscordId(db, newPresence.userId);
         if (!user) return;

@@ -67,7 +67,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
     router.post('/assign', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
-        if (context.currentLan?.status.ended) {
+        if (context.currentLan?.isEnded) {
             throw new UserError('You can\'t submit any more scores, this LAN has ended!');
         }
 

@@ -79,7 +79,7 @@ app.use(async (request, response, next) => {
     const user = request.session.userId ? await getUser(db, currentLan, request.session.userId) : undefined;
 
     if (user) {
-        if (currentLan?.status.active && !user.isEnrolled) {
+        if (currentLan?.isActive && !user.isEnrolled) {
             if (await checkIsEligible(db, user, currentLan)) {
                 // TODO: Also assign team if started
                 await getOrCreateUserLan(db, user, currentLan);
@@ -89,7 +89,7 @@ app.use(async (request, response, next) => {
         }
 
         // Hide current team until event has started
-        if (!currentLan?.status.started) {
+        if (!currentLan?.isStarted) {
             user.team = undefined;
         }
     }

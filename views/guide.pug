@@ -30,7 +30,7 @@ block body
             li(class="flex-grow flex-1 mb-3 relative")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
                     | Wait for the event to start
-                if currentLan && currentLan.started
+                if currentLan && currentLan.isStarted
                     img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
 
             li(class="flex-grow flex-1 mb-3")

@@ -234,9 +234,10 @@ export function isLanEnded(lan: Lan) {
 
 export function withLanStatus(lan?: LanWithTeams): LanExtended | undefined {
     if (!lan) return undefined;
-    const started = Boolean(lan && isLanStarted(lan));
-    const ended = Boolean(!lan || isLanEnded(lan));
-    return { ...lan, status: { started, ended, active: started && !ended }};
+    const isStarted = Boolean(lan && isLanStarted(lan));
+    const isEnded = Boolean(!lan || isLanEnded(lan));
+    const isActive = isStarted && !isEnded;
+    return { ...lan, isStarted, isEnded, isActive };
 }
 
 export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {

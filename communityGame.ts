@@ -62,7 +62,7 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
     const currentLan = withLanStatus(await getCurrentLanCached(db));
-    if (!currentLan?.status.active) return;
+    if (!currentLan?.isActive) return;
 
     console.log('Scoring community games:');
     try {

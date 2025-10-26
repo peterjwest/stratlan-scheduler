@@ -173,12 +173,6 @@ export const eventTimeslotRelations = relations(EventTimeslot, ({ one }) => ({
     }),
 }));
 
-export type LanStatus = {
-    started: boolean;
-    ended: boolean;
-    active: boolean;
-}
-
 export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
@@ -190,7 +184,12 @@ export const Lan = pgTable('Lan', {
 });
 export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
 export type LanWithTeams = Lan & { teams: Team[] };
-export type LanExtended = Lan & { teams: Team[], status: LanStatus };
+export type LanExtended = Lan & {
+    teams: Team[],
+    isStarted: boolean,
+    isEnded: boolean,
+    isActive: boolean,
+};
 
 export const lanRelations = relations(Lan, ({ many }) => ({
     teams: many(Team),
