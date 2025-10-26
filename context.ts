@@ -1,21 +1,15 @@
 import { Request } from 'express';
 
-import { UserExtended, LanWithTeams } from './schema';
+import { UserExtended, LanWithTeams, LanExtended } from './schema';
 import { Helpers } from './helpers';
-
-export type LanStatus = {
-    started: boolean;
-    ended: boolean;
-    active: boolean;
-}
 
 export type Context = {
     currentPath: string;
     currentUrl: string;
     discordAuthUrl: string;
     user: UserExtended | undefined;
-    currentLan: LanWithTeams | undefined;
-    lanStatus: LanStatus;
+    isAdmin: boolean;
+    currentLan: LanExtended | undefined;
     lans: LanWithTeams[];
     helpers: Helpers;
 }

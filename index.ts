@@ -4,13 +4,7 @@ import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
 
 import { getContext } from './context';
-import {
-    splitByDay,
-    getLanDays,
-    getUrl,
-    isUserError,
-    getLanStatus,
-} from './util';
+import { splitByDay, getLanDays, getUrl, isUserError, withLanStatus } from './util';
 import setupCommands from './commands';
 import { Team } from './schema';
 import adminRouter from './admin';
@@ -27,6 +21,10 @@ import {
     getUserPoints,
     getIntroChallenges,
     claimChallenge,
+    checkIsAdmin,
+    getOrCreateIntroChallenge,
+    checkIsEligible,
+    getOrCreateUserLan,
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
@@ -75,15 +73,29 @@ app.use(async (request, response, next) => {
     const discordAuthUrl = DISCORD_AUTH_URL;
 
     const lans = await getLansCached(db);
-    const currentLan = await getCurrentUserLan(db, request, response, userId, lans);
-    const lanStatus = getLanStatus(currentLan);
+    const isAdmin = await checkIsAdmin(db, userId);
+    const currentLan = withLanStatus(await getCurrentUserLan(db, request, response, isAdmin, lans));
 
     const user = request.session.userId ? await getUser(db, currentLan, request.session.userId) : undefined;
 
-    // Hide current team until event has started
-    if (user && !lanStatus.started) user.team = undefined;
+    if (user) {
+        if (currentLan?.status.active && !user.isEnrolled) {
+            if (await checkIsEligible(db, user, currentLan)) {
+                // TODO: Also assign team if started
+                await getOrCreateUserLan(db, user, currentLan);
+                await getOrCreateIntroChallenge(db, 'Login', currentLan, user);
+                user.isEnrolled = true;
+            }
+        }
 
-    request.context = { currentPath, currentUrl, discordAuthUrl, user, currentLan, lanStatus, lans, helpers };
+        // Hide current team until event has started
+        if (!currentLan?.status.started) {
+            user.team = undefined;
+        }
+    }
+    request.context = {
+        currentPath, currentUrl, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
+    };
 
     next();
 });

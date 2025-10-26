@@ -18,8 +18,7 @@ export const User = pgTable('User', {
     steamAvatar: varchar(),
 });
 export type User = NullToUndefined<typeof User.$inferSelect>;
-export type UserWithTeam = User & { team: Team | undefined };
-export type UserExtended = User & { roles: string[], team: Team | undefined, lanId: number | undefined };
+export type UserExtended = User & { team: Team | undefined, isEnrolled: boolean };
 
 export const userRelations = relations(User, ({ many }) => ({
     userLans: many(UserLan),
@@ -70,10 +69,10 @@ export const teamRelations = relations(Team, ({ one }) => ({
 export const UserLan = pgTable('UserLan', {
     userId: integer().references(() => User.id).notNull(),
     lanId: integer().references(() => Lan.id).notNull(),
-    teamId: integer().references(() => Team.id).notNull(),
+    teamId: integer().references(() => Team.id),
 }, (table) => [
-    primaryKey({ columns: [table.userId, table.lanId, table.teamId] }),
-    unique('UserLan_userId_and_lanId_unique').on(table.userId, table.lanId),
+    primaryKey({ columns: [table.userId, table.lanId] }),
+    unique('UserLan_teamId_and_lanId_unique').on(table.teamId, table.lanId),
 ]);
 export type UserLan = NullToUndefined<typeof UserLan.$inferSelect>;
 
@@ -174,6 +173,12 @@ export const eventTimeslotRelations = relations(EventTimeslot, ({ one }) => ({
     }),
 }));
 
+export type LanStatus = {
+    started: boolean;
+    ended: boolean;
+    active: boolean;
+}
+
 export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
@@ -185,6 +190,7 @@ export const Lan = pgTable('Lan', {
 });
 export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
 export type LanWithTeams = Lan & { teams: Team[] };
+export type LanExtended = Lan & { teams: Team[], status: LanStatus };
 
 export const lanRelations = relations(Lan, ({ many }) => ({
     teams: many(Team),

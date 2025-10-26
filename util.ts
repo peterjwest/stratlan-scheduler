@@ -2,8 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { LanStatus } from './context';
-import { User, UserExtended, Team, Event, Lan, EventTimeslot, LanWithTeams } from './schema';
+import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -12,7 +11,6 @@ import {
     TeamName,
     SCORE_TYPE_NAMES,
     ScoreType,
-    MODERATOR_ROLES,
 } from './constants';
 
 type DayEvents = {
@@ -226,14 +224,6 @@ export function hasEventStarted(lan: Lan | undefined): boolean {
     return Boolean(lan?.eventStart && new Date() > lan.eventStart);
 }
 
-export function isAdmin(user: UserExtended | undefined): boolean {
-    return Boolean(user?.roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role)));
-}
-
-export function isEligible(lan: Lan, user: UserExtended | undefined): boolean {
-    return isAdmin(user) || Boolean(user?.roles.includes(lan.role || ''));
-}
-
 export function isLanStarted(lan: Lan) {
     return Boolean(lan.eventStart && new Date() > lan.eventStart);
 }
@@ -242,10 +232,11 @@ export function isLanEnded(lan: Lan) {
     return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
 }
 
-export function getLanStatus(lan?: Lan): LanStatus {
+export function withLanStatus(lan?: LanWithTeams): LanExtended | undefined {
+    if (!lan) return undefined;
     const started = Boolean(lan && isLanStarted(lan));
     const ended = Boolean(!lan || isLanEnded(lan));
-    return { started, ended, active: started && !ended }
+    return { ...lan, status: { started, ended, active: started && !ended }};
 }
 
 export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {

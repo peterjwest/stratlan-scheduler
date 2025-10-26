@@ -49,20 +49,17 @@ export async function getUserWithLan(
 ): Promise<UserExtended | undefined> {
 
     const data = normalise((
-        await db.select({ user: User, userLan: UserLan, roles: sql<string[]>`json_agg(${UserRole.role})` })
+        await db.select({ user: User, userLan: UserLan })
         .from(User)
-        .leftJoin(UserRole, eq(UserRole.userId, User.id))
         .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
-        .groupBy(User.id, UserLan.teamId, UserLan.userId, UserLan.lanId)
         .where(eq(User.id, id))
     )[0]);
 
     if (!data) return;
     return {
         ...data.user,
-        roles: data.roles,
         team: lan && getTeam(lan, data.userLan?.teamId),
-        lanId: data.userLan?.lanId,
+        isEnrolled: Boolean(data.userLan),
     };
 }
 
@@ -73,22 +70,32 @@ export async function getUser(
     if (lan) return getUserWithLan(db, lan, userId);
 
     const data = normalise((
-        await db.select({ user: User, roles: sql<string[]>`json_agg(${UserRole.role})` })
+        await db.select({ user: User })
         .from(User)
-        .leftJoin(UserRole, eq(UserRole.userId, User.id))
-        .groupBy(User.id)
         .where(eq(User.id, userId))
     )[0]);
 
     if (!data) return;
-    return { ...data.user, roles: data.roles, team: undefined, lanId: undefined };
+    return { ...data.user, team: undefined, isEnrolled: false };
 }
 
-export async function isAdmin(db: DatabaseClient, userId: number): Promise<boolean> {
+export async function checkIsAdmin(db: DatabaseClient, userId: number | undefined): Promise<boolean> {
+    if (!userId) return false;
     return (
         await db.select({ id: UserRole.id })
         .from(UserRole)
         .where(and(eq(UserRole.userId, userId), inArray(UserRole.role, MODERATOR_ROLES)))
+    ).length > 0;
+}
+
+export async function checkIsEligible(db: DatabaseClient, user: User, lan: Lan): Promise<boolean> {
+    return (
+        await db.select({ id: UserRole.id })
+        .from(UserRole)
+        .where(and(
+            eq(UserRole.userId, user.id),
+            or(eq(UserRole.role, lan.role || ''), inArray(UserRole.role, MODERATOR_ROLES))
+        ))
     ).length > 0;
 }
 
@@ -191,7 +198,7 @@ export async function awardScore(
 export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: ScoreType | undefined): Promise<ScoreExtended[]> {
     if (!lan) return [];
 
-    const conditions = [eq(Score.lanId, lan.id)];
+    const conditions = [eq(Score.lanId, lan.id), or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
     if (type) conditions.push(eq(Score.type, type));
 
     const Assigner = alias(User, 'Assigner');
@@ -201,7 +208,7 @@ export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: Sco
         .leftJoin(Event, eq(Score.eventId, Event.id))
         .leftJoin(Assigner, eq(Score.assignerId, Assigner.id))
         .leftJoin(User, eq(Score.userId, User.id))
-        .leftJoin(UserLan, and(eq(UserLan.userId, User.id), inArray(UserLan.teamId, lan.teams.map((team) => team.id))))
+        .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .orderBy(desc(Score.createdAt))
         .where(and(...conditions))
     );
@@ -325,13 +332,11 @@ export async function getTimeslotActivities(
         })
         .from(GameActivity)
         .leftJoin(User, eq(User.id, GameActivity.userId))
-        .leftJoin(UserRole, eq(UserRole.userId, User.id))
         .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .where(and(
             eq(GameActivity.gameId, event.gameId),
             lt(GameActivity.startTime, getTimeslotEnd(eventTimeslot)),
             or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
-            eq(UserRole.role, lan.role || ''),
         ))
     );
 }
@@ -398,4 +403,13 @@ export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, c
     }).returning())[0]);
 
     await db.update(IntroChallenge).set({ scoreId: score.id }).where(eq(IntroChallenge.id, challengeId));
+}
+
+export async function getOrCreateUserLan(db: DatabaseClient, user: User, lan: Lan): Promise<UserLan> {
+    const userLan = normalise(await db.query.UserLan.findFirst({
+        where: and(eq(UserLan.userId, user.id), eq(UserLan.lanId, lan.id)),
+    }));
+    if (userLan) return userLan;
+
+    return normalise((await db.insert(UserLan).values({ userId: user.id, lanId: lan.id }).returning())[0]);
 }

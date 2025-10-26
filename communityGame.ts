@@ -12,7 +12,7 @@ import {
     datesEqual,
     maxDate,
     roundToNextMinutes,
-    getLanStatus,
+    withLanStatus,
 } from './util';
 import { EVENT_TIMESLOT_MINUTES,
     EVENT_TIMESLOT_THRESHOLD, COMMUNITY_GAMES_SCORE_INTERVAL } from './constants';
@@ -61,9 +61,8 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
 }
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
-    const currentLan = await getCurrentLanCached(db);
-    const lanStatus = getLanStatus(currentLan);
-    if (!currentLan || !lanStatus.active) return;
+    const currentLan = withLanStatus(await getCurrentLanCached(db));
+    if (!currentLan?.status.active) return;
 
     console.log('Scoring community games:');
     try {

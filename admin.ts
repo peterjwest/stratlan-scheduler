@@ -3,7 +3,7 @@ import zod from 'zod';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { parseInteger, formatScoreType, isAdmin, getTeam, UserError } from './util';
+import { parseInteger, formatScoreType, getTeam, UserError } from './util';
 import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { ScoreType } from './constants';
@@ -33,7 +33,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
 
     router.use((request: Request, response: Response, next: NextFunction) => {
         const context = getContext(request, 'LOGGED_IN');
-        if (!isAdmin(context.user)) return response.status(403).send('Unauthorised');
+        if (!context.isAdmin) return response.status(403).send('Unauthorised');
         next();
     });
 
@@ -46,6 +46,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ];
+        console.log(await getScores(db, context.currentLan, query.type));
         response.render('admin/points', {
             ...context,
             filters,
@@ -66,7 +67,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
     router.post('/assign', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
-        if (context.lanStatus.ended) {
+        if (context.currentLan?.status.ended) {
             throw new UserError('You can\'t submit any more scores, this LAN has ended!');
         }
 

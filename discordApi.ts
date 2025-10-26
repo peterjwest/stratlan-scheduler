@@ -2,7 +2,7 @@ import lodash from 'lodash';
 import zod from 'zod';
 import { REST, Routes, Activity, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { User } from './schema';
-import { getLanStatus, normalise } from './util';
+import { withLanStatus, normalise } from './util';
 import {
     getCurrentLanCached,
     endFinishedActivities,
@@ -114,9 +114,8 @@ export function loginClient(discordToken: string) {
 
 export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
     discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
-        const currentLan = await getCurrentLanCached(db);
-        const lanStatus = getLanStatus(currentLan);
-        if (!currentLan || !lanStatus.active) return;
+        const currentLan = withLanStatus(await getCurrentLanCached(db));
+        if (!currentLan?.status.active) return;
 
         const user = await getUserByDiscordId(db, newPresence.userId);
         if (!user) return;

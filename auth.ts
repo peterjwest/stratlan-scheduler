@@ -3,16 +3,14 @@ import zod from 'zod';
 import { Client } from 'discord.js';
 import lodash from 'lodash';
 
-import { LanWithTeams } from './schema';
+import { LanExtended, LanWithTeams } from './schema';
 import { getContext } from './context';
-import { regenerateSession, saveSession, destroySession } from './util';
+import { regenerateSession, saveSession, destroySession, withLanStatus } from './util';
 import {
     DatabaseClient,
     createOrUpdateUserByDiscordId,
     updateRoles,
-    getOrCreateIntroChallenge,
     getCurrentLanCached,
-    isAdmin,
 } from './database';
 import { getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember } from './discordApi';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
@@ -22,7 +20,6 @@ export default function (db: DatabaseClient, discordClient: Client) {
     const router = Router();
 
     router.get('/login', async (request, response) => {
-        const context = getContext(request);
         const query = zod.object({ code: zod.string() }).parse(request.query);
 
         // Check access token is valid by fetching user
@@ -50,11 +47,6 @@ export default function (db: DatabaseClient, discordClient: Client) {
         request.session.userId = user.id;
         await saveSession(request);
 
-        if (context.currentLan) {
-            // TODO: Create UserLan if eligible
-            await getOrCreateIntroChallenge(db, 'Login', context.currentLan, user);
-        }
-
         response.redirect(request.cookies['login-redirect'] || '/');
     });
 
@@ -68,21 +60,21 @@ export default function (db: DatabaseClient, discordClient: Client) {
 }
 
 export async function getCurrentUserLan(
-    db: DatabaseClient, request: Request, response: Response, userId: number | undefined, lans: LanWithTeams[],
-) {
+    db: DatabaseClient, request: Request, response: Response, isAdmin: boolean, lans: LanWithTeams[],
+): Promise<LanExtended | undefined> {
     const currentLan = await getCurrentLanCached(db);
-    if (userId && await isAdmin(db, userId)) {
+    if (isAdmin) {
         // If there's no current LAN, admins get the last one as default
-        if (!currentLan) return lodash.last(lans);
+        if (!currentLan) return withLanStatus(lodash.last(lans));
 
         if (request.cookies['selected-lan']) {
             // Don't set a cookie for the default currentLan
             if (currentLan?.id === Number(request.cookies['selected-lan'])) {
                 response.clearCookie('selected-lan', { path: '/' });
             } else {
-                return lans.find((lan) => lan.id === Number(request.cookies['selected-lan']));
+                return withLanStatus(lans.find((lan) => lan.id === Number(request.cookies['selected-lan'])));
             }
         }
     }
-    return currentLan;
+    return withLanStatus(currentLan);
 }

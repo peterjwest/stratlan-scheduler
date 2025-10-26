@@ -34,4 +34,4 @@ block body
                 +dropdown("eventId", events, undefined, false, 'None', (event) => event.name)
 
             div(class="mt-2")
-                input(type="submit" name="submit" value="Submit" disabled=lanStatus.ended class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
+                input(type="submit" name="submit" value="Submit" disabled=!currentLan || currentLan.status.ended class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

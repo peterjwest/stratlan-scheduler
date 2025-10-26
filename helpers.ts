@@ -8,7 +8,6 @@ import {
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
-    isAdmin,
     isUserError,
 } from './util';
 import { getAvatarUrl } from './discordApi';
@@ -24,7 +23,6 @@ const helpers = {
     groupEvents,
     getScheduleHours,
     getEventScheduleStyles,
-    isAdmin,
     isUserError,
 }
 
