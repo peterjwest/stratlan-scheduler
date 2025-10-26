@@ -46,7 +46,6 @@ export default function (db: DatabaseClient, csrf: Csrf) {
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ];
-        console.log(await getScores(db, context.currentLan, query.type));
         response.render('admin/points', {
             ...context,
             filters,
