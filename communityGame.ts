@@ -1,10 +1,21 @@
 import { eq } from 'drizzle-orm';
 import lodash from 'lodash';
 
-import { DatabaseClient, getCurrentLan, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
+import { DatabaseClient, getCurrentLanCached, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
 import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema';
-import { getEventEnd, minDate, diffMinutes, getTimeslotTimes, getTimeslotEnd, datesEqual, maxDate, roundToNextMinutes, isLanActive } from './util';
-import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD, COMMUNITY_GAMES_SCORE_INTERVAL } from './constants';
+import {
+    getEventEnd,
+    minDate,
+    diffMinutes,
+    getTimeslotTimes,
+    getTimeslotEnd,
+    datesEqual,
+    maxDate,
+    roundToNextMinutes,
+    getLanStatus,
+} from './util';
+import { EVENT_TIMESLOT_MINUTES,
+    EVENT_TIMESLOT_THRESHOLD, COMMUNITY_GAMES_SCORE_INTERVAL } from './constants';
 
 export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameActivity[]) {
     return lodash.sum(activities.map((activity) => {
@@ -50,8 +61,9 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
 }
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
-    const currentLan = await getCurrentLan(db);
-    if (!currentLan || !isLanActive(currentLan)) return;
+    const currentLan = await getCurrentLanCached(db);
+    const lanStatus = getLanStatus(currentLan);
+    if (!currentLan || !lanStatus.active) return;
 
     console.log('Scoring community games:');
     try {

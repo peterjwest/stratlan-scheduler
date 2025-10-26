@@ -3,7 +3,7 @@ import zod from 'zod';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { parseInteger, formatScoreType, isAdmin, getTeam, isLanEnded, isEligible, UserError } from './util';
+import { parseInteger, formatScoreType, isAdmin, getTeam, UserError } from './util';
 import { Event } from './schema';
 import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
 import { ScoreType } from './constants';
@@ -45,7 +45,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
             { name: formatScoreType('Awarded'), url: '/admin/points?type=Awarded' },
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
-        ]
+        ];
         response.render('admin/points', {
             ...context,
             filters,
@@ -66,7 +66,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
     router.post('/assign', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
-        if (isLanEnded(context.currentLan)) {
+        if (context.lanStatus.ended) {
             throw new UserError('You can\'t submit any more scores, this LAN has ended!');
         }
 
@@ -79,11 +79,13 @@ export default function (db: DatabaseClient, csrf: Csrf) {
         }
 
         if (body.type === 'player') {
-            const player = await getUser(db, body.userId);
-            if (!player) throw new Error(`Player ${body.userId} not found`);
-
-            if (!isEligible(context.currentLan, player)) {
-                throw new Error(`Player ${body.userId} does not have the required role ${context.currentLan.role}`);
+            const player = await getUser(db, context.currentLan, body.userId);
+            if (!player) {
+                if (await getUser(db, undefined, body.userId)) {
+                    throw new Error(`Player ${body.userId} not part of ${context.currentLan.name} LAN`);
+                } else {
+                    throw new Error(`Player ${body.userId} not found`);
+                }
             }
 
             await awardScore(

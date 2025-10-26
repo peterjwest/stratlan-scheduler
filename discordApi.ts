@@ -2,7 +2,7 @@ import lodash from 'lodash';
 import zod from 'zod';
 import { REST, Routes, Activity, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { User } from './schema';
-import { isLanActive } from './util';
+import { getLanStatus, normalise } from './util';
 import {
     getCurrentLanCached,
     endFinishedActivities,
@@ -15,14 +15,14 @@ import {
 export const DiscordUser = zod.object({
     id: zod.string(),
     username: zod.string(),
-    avatar: zod.union([zod.string(), zod.null()]),
-    global_name: zod.union([zod.string(), zod.null()]),
+    avatar: zod.union([zod.string(), zod.undefined()]),
+    global_name: zod.union([zod.string(), zod.undefined()]),
     premium_type: zod.number(),
 });
 export type DiscordUser = zod.infer<typeof DiscordUser>;
 
 export const DiscordGuildMember = zod.object({
-    nick: zod.union([zod.string(), zod.null()]),
+    nick: zod.union([zod.string(), zod.undefined()]),
     roles: zod.array(zod.string()),
     mute: zod.boolean(),
     joined_at: zod.string(),
@@ -48,13 +48,13 @@ type OAuthResponse = zod.infer<typeof OAuthResponse>;
 
 export async function getDiscordUser(accessToken: string): Promise<DiscordUser> {
     const rest = new REST({ authPrefix: 'Bearer' }).setToken(accessToken);
-    return DiscordUser.parse(await rest.get(Routes.user()));
+    return DiscordUser.parse(normalise(await rest.get(Routes.user())));
 }
 
 export async function getDiscordGuildMember(
     discordClient: Client, guildId: string, userId: string,
 ): Promise<DiscordGuildMember> {
-    return DiscordGuildMember.parse(await discordClient.rest.get(Routes.guildMember(guildId, userId)));
+    return DiscordGuildMember.parse(normalise(await discordClient.rest.get(Routes.guildMember(guildId, userId))));
 }
 
 export async function getGuildRoles(discordClient: Client, guildId: string) {
@@ -115,7 +115,8 @@ export function loginClient(discordToken: string) {
 export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
     discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
         const currentLan = await getCurrentLanCached(db);
-        if (!currentLan || !isLanActive(currentLan)) return;
+        const lanStatus = getLanStatus(currentLan);
+        if (!currentLan || !lanStatus.active) return;
 
         const user = await getUserByDiscordId(db, newPresence.userId);
         if (!user) return;

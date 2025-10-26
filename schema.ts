@@ -1,11 +1,13 @@
-import { integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique } from 'drizzle-orm/pg-core';
+import {
+    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey
+} from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
+import { NullToUndefined } from './util';
 import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
 
 export const User = pgTable('User', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    teamId: integer().references(() => Team.id),
     discordId: varchar().notNull().unique(),
     discordUsername: varchar().notNull(),
     discordNickname: varchar(),
@@ -15,15 +17,29 @@ export const User = pgTable('User', {
     steamUsername: varchar(),
     steamAvatar: varchar(),
 });
-export type User = typeof User.$inferSelect;
-export type UserWithRoles = User & { roles: string[] };
+export type User = NullToUndefined<typeof User.$inferSelect>;
+export type UserWithTeam = User & { team: Team | undefined };
+export type UserExtended = User & { roles: string[], team: Team | undefined, lanId: number | undefined };
+
+export const userRelations = relations(User, ({ many }) => ({
+    userLans: many(UserLan),
+    roles: many(UserRole),
+}));
+
 
 export const UserRole = pgTable('UserRole', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userId: integer().references(() => User.id).notNull(),
     role: varchar().notNull(),
 });
-export type UserRole = typeof UserRole.$inferSelect;
+export type UserRole = NullToUndefined<typeof UserRole.$inferSelect>;
+
+export const userRoleRelations = relations(UserRole, ({ one }) => ({
+    user: one(User, {
+        fields: [UserRole.userId],
+        references: [User.id],
+    }),
+}));
 
 export const Session = pgTable('Session', {
     sid: varchar().primaryKey().notNull(),
@@ -32,7 +48,7 @@ export const Session = pgTable('Session', {
 }, (table) => [
     index('Session_expire_idx').on(table.expire),
 ]);
-export type Session = typeof Session.$inferSelect;
+export type Session = NullToUndefined<typeof Session.$inferSelect>;
 
 export const Team = pgTable('Team', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -41,12 +57,34 @@ export const Team = pgTable('Team', {
 }, (table) => [
     unique('Team_name_and_lan_unique').on(table.name, table.lanId),
 ]);
-export type Team = typeof Team.$inferSelect;
+export type Team = NullToUndefined<typeof Team.$inferSelect>;
 
 export const teamRelations = relations(Team, ({ one }) => ({
     lan: one(Lan, {
         fields: [Team.lanId],
         references: [Lan.id],
+    }),
+}));
+
+
+export const UserLan = pgTable('UserLan', {
+    userId: integer().references(() => User.id).notNull(),
+    lanId: integer().references(() => Lan.id).notNull(),
+    teamId: integer().references(() => Team.id).notNull(),
+}, (table) => [
+    primaryKey({ columns: [table.userId, table.lanId, table.teamId] }),
+    unique('UserLan_userId_and_lanId_unique').on(table.userId, table.lanId),
+]);
+export type UserLan = NullToUndefined<typeof UserLan.$inferSelect>;
+
+export const userLanRelations = relations(UserLan, ({ one }) => ({
+    user: one(User, {
+        fields: [UserLan.userId],
+        references: [User.id],
+    }),
+    team: one(Team, {
+        fields: [UserLan.teamId],
+        references: [Team.id],
     }),
 }));
 
@@ -70,7 +108,13 @@ export const Score = pgTable('Score', {
         sql`(${table.teamId} IS NOT NULL AND ${table.userId} IS NULL) OR (${table.teamId} IS NULL AND ${table.userId} IS NOT NULL)`,
     ),
 ]);
-export type Score = typeof Score.$inferSelect;
+export type Score = NullToUndefined<typeof Score.$inferSelect>;
+export type ScoreExtended = Score & {
+    team: Team | undefined,
+    event: Event | undefined,
+    assigner: User | undefined,
+    user: User | undefined,
+};
 
 export const scoreRelations = relations(Score, ({ one }) => ({
     user: one(User, {
@@ -105,7 +149,7 @@ export const Event = pgTable('Event', {
     createdBy: integer().references(() => User.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
-export type Event = typeof Event.$inferSelect;
+export type Event = NullToUndefined<typeof Event.$inferSelect>;
 export type EventWithTimeslots = Event & { timeslots: EventTimeslot[] };
 
 export const eventRelations = relations(Event, ({ one, many }) => ({
@@ -121,7 +165,7 @@ export const EventTimeslot = pgTable('EventTimeslot', {
     eventId: integer().references(() => Event.id).notNull(),
     time: timestamp({ withTimezone: true }).notNull(),
 });
-export type EventTimeslot = typeof EventTimeslot.$inferSelect;
+export type EventTimeslot = NullToUndefined<typeof EventTimeslot.$inferSelect>;
 
 export const eventTimeslotRelations = relations(EventTimeslot, ({ one }) => ({
     event: one(Event, {
@@ -139,7 +183,7 @@ export const Lan = pgTable('Lan', {
     eventStart: timestamp({ withTimezone: true }),
     eventEnd: timestamp({ withTimezone: true }),
 });
-export type Lan = typeof Lan.$inferSelect;
+export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
 export type LanWithTeams = Lan & { teams: Team[] };
 
 export const lanRelations = relations(Lan, ({ many }) => ({
@@ -154,8 +198,8 @@ export const GameActivity = pgTable('GameActivity', {
     startTime: timestamp({ withTimezone: true }).notNull(),
     endTime: timestamp({ withTimezone: true }),
 });
-export type GameActivity = typeof GameActivity.$inferSelect;
-export type GameActivityWithTeam = GameActivity & { teamId: number | null };
+export type GameActivity = NullToUndefined<typeof GameActivity.$inferSelect>;
+export type GameActivityWithTeam = GameActivity & { teamId: number | undefined };
 
 export const gameActivityRelations = relations(GameActivity, ({ one }) => ({
     user: one(User, {
@@ -172,7 +216,7 @@ export const Game = pgTable('Game', {
     id: varchar().primaryKey().notNull(),
     name: varchar().notNull(),
 });
-export type Game = typeof Game.$inferSelect;
+export type Game = NullToUndefined<typeof Game.$inferSelect>;
 
 export const IntroChallengeTypeEnum = pgEnum('IntroChallengeType', INTRO_CHALLENGE_TYPES);
 
@@ -183,14 +227,18 @@ export const IntroChallenge = pgTable('IntroChallenge', {
     userId: integer().references(() => User.id).notNull(),
     scoreId: integer().references(() => Score.id),
 });
-export type IntroChallenge = typeof IntroChallenge.$inferSelect;
+export type IntroChallenge = NullToUndefined<typeof IntroChallenge.$inferSelect>;
 
 export default {
     User,
+    userRelations,
     UserRole,
+    userRoleRelations,
     Session,
     Team,
     teamRelations,
+    UserLan,
+    userLanRelations,
     Score,
     scoreRelations,
     Event,

@@ -1,10 +1,19 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import zod from 'zod';
 import { Client } from 'discord.js';
+import lodash from 'lodash';
 
+import { LanWithTeams } from './schema';
 import { getContext } from './context';
 import { regenerateSession, saveSession, destroySession } from './util';
-import { DatabaseClient, createOrUpdateUserByDiscordId, updateRoles, getOrCreateIntroChallenge } from './database';
+import {
+    DatabaseClient,
+    createOrUpdateUserByDiscordId,
+    updateRoles,
+    getOrCreateIntroChallenge,
+    getCurrentLanCached,
+    isAdmin,
+} from './database';
 import { getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember } from './discordApi';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
 import { DISCORD_RETURN_URL } from './constants';
@@ -42,6 +51,7 @@ export default function (db: DatabaseClient, discordClient: Client) {
         await saveSession(request);
 
         if (context.currentLan) {
+            // TODO: Create UserLan if eligible
             await getOrCreateIntroChallenge(db, 'Login', context.currentLan, user);
         }
 
@@ -55,4 +65,24 @@ export default function (db: DatabaseClient, discordClient: Client) {
     });
 
     return router;
+}
+
+export async function getCurrentUserLan(
+    db: DatabaseClient, request: Request, response: Response, userId: number | undefined, lans: LanWithTeams[],
+) {
+    const currentLan = await getCurrentLanCached(db);
+    if (userId && await isAdmin(db, userId)) {
+        // If there's no current LAN, admins get the last one as default
+        if (!currentLan) return lodash.last(lans);
+
+        if (request.cookies['selected-lan']) {
+            // Don't set a cookie for the default currentLan
+            if (currentLan?.id === Number(request.cookies['selected-lan'])) {
+                response.clearCookie('selected-lan', { path: '/' });
+            } else {
+                return lans.find((lan) => lan.id === Number(request.cookies['selected-lan']));
+            }
+        }
+    }
+    return currentLan;
 }

@@ -1,17 +1,21 @@
 import { Request } from 'express';
 
-import { UserWithRoles, Team, LanWithTeams } from './schema';
+import { UserExtended, LanWithTeams } from './schema';
 import { Helpers } from './helpers';
+
+export type LanStatus = {
+    started: boolean;
+    ended: boolean;
+    active: boolean;
+}
 
 export type Context = {
     currentPath: string;
     currentUrl: string;
     discordAuthUrl: string;
-    user: UserWithRoles | undefined;
-    team: Team | undefined;
+    user: UserExtended | undefined;
     currentLan: LanWithTeams | undefined;
-    lanStarted: boolean;
-    lanEnded: boolean;
+    lanStatus: LanStatus;
     lans: LanWithTeams[];
     helpers: Helpers;
 }
@@ -21,7 +25,7 @@ type ContextWithLan = Context & {
 }
 
 type ContextLoggedIn = ContextWithLan & {
-    user: UserWithRoles;
+    user: UserExtended;
 }
 
 export function getContext(request: Request): Context;

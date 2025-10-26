@@ -2,25 +2,20 @@ import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
-import lodash from 'lodash';
 
 import { getContext } from './context';
 import {
     splitByDay,
     getLanDays,
     getUrl,
-    getTeam,
-    isAdmin,
-    isEligible,
-    isLanStarted,
-    isLanEnded,
     isUserError,
+    getLanStatus,
 } from './util';
 import setupCommands from './commands';
-import { Team, LanWithTeams } from './schema';
+import { Team } from './schema';
 import adminRouter from './admin';
 import steamRouter from './steam';
-import authRouter from './auth';
+import authRouter, { getCurrentUserLan } from './auth';
 import helpers from './helpers';
 import getCsrf from './csrf';
 import {
@@ -28,7 +23,6 @@ import {
     getUser,
     getTeamPoints,
     getEvents,
-    getCurrentLanCached,
     getLansCached,
     getUserPoints,
     getIntroChallenges,
@@ -75,46 +69,21 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
-    const user = request.session.userId ? await getUser(db, request.session.userId) : undefined;
+    const userId = request.session.userId;
+    const currentPath = getUrl(request.originalUrl).path;
+    const currentUrl = request.originalUrl;
+    const discordAuthUrl = DISCORD_AUTH_URL;
 
-    const lans: LanWithTeams[] = await getLansCached(db);
-    let currentLan = await getCurrentLanCached(db);
-    let lanEnded = !currentLan || isLanEnded(currentLan);
+    const lans = await getLansCached(db);
+    const currentLan = await getCurrentUserLan(db, request, response, userId, lans);
+    const lanStatus = getLanStatus(currentLan);
+
+    const user = request.session.userId ? await getUser(db, currentLan, request.session.userId) : undefined;
 
     // Hide current team until event has started
-    const lanStarted = Boolean(currentLan && isLanStarted(currentLan));
-    if (user && !lanStarted) user.teamId = null;
+    if (user && !lanStatus.started) user.team = undefined;
 
-    if (isAdmin(user)) {
-        // If there's no current LAN, admins get the last one as default
-        if (!currentLan) {
-            currentLan = lodash.last(lans);
-            lanEnded = true;
-        }
-
-        if (request.cookies['selected-lan']) {
-            // Don't set a cookie for the default currentLan
-            if (currentLan?.id === Number(request.cookies['selected-lan'])) {
-                response.clearCookie('selected-lan', { path: '/' });
-            } else {
-                currentLan = lans.find((lan) => lan.id === Number(request.cookies['selected-lan']));
-                lanEnded = true;
-            }
-        }
-    }
-
-    request.context = {
-        currentPath: getUrl(request.originalUrl).path,
-        currentUrl: request.originalUrl,
-        discordAuthUrl: DISCORD_AUTH_URL,
-        user,
-        team: user && currentLan && getTeam(currentLan, user.teamId),
-        currentLan,
-        lanStarted,
-        lanEnded,
-        lans,
-        helpers,
-    };
+    request.context = { currentPath, currentUrl, discordAuthUrl, user, currentLan, lanStatus, lans, helpers };
 
     next();
 });
@@ -137,7 +106,6 @@ app.get('/', async (request, response) => {
         points: context.user ? await getUserPoints(db, context.currentLan, context.user) : 0,
         constants: { INTRO_CHALLENGE_POINTS },
         introChallenges: await getIntroChallenges(db, context.currentLan, context.user),
-        isEligible: isEligible(context.currentLan, context.user),
     });
 });
 

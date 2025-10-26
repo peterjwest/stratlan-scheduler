@@ -267,6 +267,27 @@
       "when": 1761403036681,
       "tag": "0037_team_check",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1761482971198,
+      "tag": "0038_remove_user_team",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1761483081308,
+      "tag": "0039_user_lans",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1761483238541,
+      "tag": "0040_user_lans_uniqueness",
+      "breakpoints": true
     }
   ]
 }

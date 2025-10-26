@@ -3,7 +3,7 @@ extends layout.pug
 block body
     section(class="mb-4")
         h2(class="text-2xl font-semibold mb-3") How to take part:
-        if user && !isEligible
+        if user && !user.lanId
             p(class="bg-[#d57e31] inline-block px-4 py-3 mb-6 rounded")
                 span(class="text-bold")="Warning: "
                 = "You need the "
@@ -30,15 +30,15 @@ block body
             li(class="flex-grow flex-1 mb-3 relative")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
                     | Wait for the event to start
-                if lanStarted
+                if lanStatus.started
                     img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
 
             li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
-                    if team
+                    if user && user.team
                         span="You're on team "
-                        span(class=`inline-block px-1.5 py-1 -my-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(team)}`)
-                            =team.name
+                        span(class=`inline-block px-1.5 py-1 -my-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(user.team)}`)
+                            =user.team.name
                         img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
                     else
                         | Find out your team

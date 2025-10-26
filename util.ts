@@ -2,7 +2,8 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, UserWithRoles, Team, Event, Lan, EventTimeslot, LanWithTeams } from './schema';
+import { LanStatus } from './context';
+import { User, UserExtended, Team, Event, Lan, EventTimeslot, LanWithTeams } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -98,7 +99,7 @@ export function formatScoreType(type: ScoreType) {
     return SCORE_TYPE_NAMES[type];
 }
 
-export function getTeam(lan: LanWithTeams, teamId: number | null): Team | undefined {
+export function getTeam(lan: LanWithTeams, teamId: number | undefined): Team | undefined {
     return lan.teams.find((team) => team.id === teamId);
 }
 
@@ -225,24 +226,26 @@ export function hasEventStarted(lan: Lan | undefined): boolean {
     return Boolean(lan?.eventStart && new Date() > lan.eventStart);
 }
 
-export function isAdmin(user: UserWithRoles | undefined): boolean {
+export function isAdmin(user: UserExtended | undefined): boolean {
     return Boolean(user?.roles.find((role) => (MODERATOR_ROLES as readonly string[]).includes(role)));
 }
 
-export function isEligible(lan: Lan, user: UserWithRoles | undefined): boolean {
+export function isEligible(lan: Lan, user: UserExtended | undefined): boolean {
     return isAdmin(user) || Boolean(user?.roles.includes(lan.role || ''));
-}
-
-export function isLanEnded(lan: Lan) {
-    return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
 }
 
 export function isLanStarted(lan: Lan) {
     return Boolean(lan.eventStart && new Date() > lan.eventStart);
 }
 
-export function isLanActive(lan: Lan) {
-    return isLanStarted(lan) && !isLanEnded(lan);
+export function isLanEnded(lan: Lan) {
+    return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
+}
+
+export function getLanStatus(lan?: Lan): LanStatus {
+    const started = Boolean(lan && isLanStarted(lan));
+    const ended = Boolean(!lan || isLanEnded(lan));
+    return { started, ended, active: started && !ended }
 }
 
 export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {
@@ -258,4 +261,22 @@ export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T
         }) as T,
         () => lastUpdate = undefined,
     ];
+}
+
+export type NullToUndefined<T> = T extends null
+    ? undefined
+    : T extends (infer U)[]
+    ? NullToUndefined<U>[]
+    : T extends Record<string, unknown>
+    ? { [K in keyof T]: NullToUndefined<T[K]> }
+    : T;
+
+export function normalise<T>(object: T): NullToUndefined<T> {
+    if (object === null || object === undefined) return undefined as any;
+    if ((object as any).constructor.name === 'Object' || Array.isArray(object)) {
+        for (const key in object) {
+            object[key] = normalise(object[key]) as any;
+        }
+    }
+    return object as any;
 }
