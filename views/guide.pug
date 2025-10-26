@@ -3,7 +3,7 @@ extends layout.pug
 block body
     section(class="mb-4")
         h2(class="text-2xl font-semibold mb-3") How to take part:
-        if user && !user.isEnrolled
+        if currentLan && !currentLan.isEnded && user && !user.isEnrolled
             p(class="bg-[#d57e31] inline-block px-4 py-3 mb-6 rounded")
                 span(class="text-bold")="Warning: "
                 = "You need the "

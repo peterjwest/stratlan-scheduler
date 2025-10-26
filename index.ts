@@ -79,7 +79,7 @@ app.use(async (request, response, next) => {
     const user = request.session.userId ? await getUser(db, currentLan, request.session.userId) : undefined;
 
     if (user) {
-        if (currentLan?.isActive && !user.isEnrolled) {
+        if (currentLan && !currentLan?.isEnded && !user.isEnrolled) {
             if (await checkIsEligible(db, user, currentLan)) {
                 // TODO: Also assign team if started
                 await getOrCreateUserLan(db, user, currentLan);
