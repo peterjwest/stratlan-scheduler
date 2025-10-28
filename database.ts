@@ -137,9 +137,9 @@ export async function createOrUpdateUserByDiscordId(
 ): Promise<User> {
     const existingUser = await getUserByDiscordId(db, discordId);
     if (existingUser) {
-        return normalise((await db.update(User).set(data).where(eq(User.id, existingUser.id)).returning())[0]);
+        return normalise((await db.update(User).set(data).where(eq(User.id, existingUser.id)).returning())[0]!);
     }
-    return normalise((await db.insert(User).values({ discordId, ...data }).returning())[0]);
+    return normalise((await db.insert(User).values({ discordId, ...data }).returning())[0]!);
 }
 
 export async function updateUser(db: DatabaseClient, userId: number, data: Partial<User>) {
@@ -192,7 +192,7 @@ export async function awardScore(
         points: points,
         reason: reason,
         eventId: event?.id,
-    }).returning())[0]);
+    }).returning())[0]!);
 }
 
 export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: ScoreType | undefined): Promise<ScoreExtended[]> {
@@ -235,7 +235,7 @@ export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): P
             or(eq(Score.teamId, team.id), eq(UserLan.teamId, team.id)),
         ))
     );
-    return results[0].total || 0;
+    return results[0]!.total || 0;
 }
 
 export async function getUserPoints(db: DatabaseClient, lan: Lan, user: User): Promise<number> {
@@ -244,7 +244,7 @@ export async function getUserPoints(db: DatabaseClient, lan: Lan, user: User): P
         .from(Score)
         .where(and(eq(Score.userId, user.id), eq(Score.lanId, lan.id)))
     );
-    return results[0].total || 0;
+    return results[0]!.total || 0;
 }
 
 export async function getEvents(db: DatabaseClient, lan: Lan): Promise<Event[]> {
@@ -311,7 +311,7 @@ export async function getOrCreateGame(db: DatabaseClient, gameId: string, gameNa
     let game = await db.query.Game.findFirst({ where: eq(Game.id, gameId) });
     if (game) return game;
 
-    return (await db.insert(Game).values({ id: gameId, name: gameName }).returning())[0];
+    return (await db.insert(Game).values({ id: gameId, name: gameName }).returning())[0]!;
 }
 
 export async function getGameActivity(
@@ -391,7 +391,7 @@ export async function getOrCreateIntroChallenge(
         where: and(eq(IntroChallenge.type, type), eq(IntroChallenge.userId, user.id)),
     }));
     if (challenge) return challenge;
-    return normalise((await db.insert(IntroChallenge).values({ lanId: lan.id, userId: user.id, type: type }).returning())[0]);
+    return normalise((await db.insert(IntroChallenge).values({ lanId: lan.id, userId: user.id, type: type }).returning())[0]!);
 }
 
 type IntroChallengeMap = {
@@ -426,7 +426,7 @@ export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, c
         lanId: lan.id,
         userId: user.id,
         points: INTRO_CHALLENGE_POINTS[introChallenge.type],
-    }).returning())[0]);
+    }).returning())[0]!);
 
     await db.update(IntroChallenge).set({ scoreId: score.id }).where(eq(IntroChallenge.id, challengeId));
 }
@@ -437,5 +437,5 @@ export async function getOrCreateUserLan(db: DatabaseClient, user: User, lan: La
     }));
     if (userLan) return userLan;
 
-    return normalise((await db.insert(UserLan).values({ userId: user.id, lanId: lan.id }).returning())[0]);
+    return normalise((await db.insert(UserLan).values({ userId: user.id, lanId: lan.id }).returning())[0]!);
 }

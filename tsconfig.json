@@ -12,6 +12,7 @@
     "noUnusedLocals": true,
     "strictNullChecks": true,
     "strictBindCallApply": true,
+    "noUncheckedIndexedAccess": true,
     "alwaysStrict": true,
     "baseUrl": ".",
     "esModuleInterop": true

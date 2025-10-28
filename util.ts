@@ -96,7 +96,7 @@ export function formatDateTime(date: Date) {
 }
 
 export function formatDay(date: Date) {
-    return DAYS[date.getDay()];
+    return DAYS[date.getDay()] as string;
 }
 
 export function formatTimestamp(date: Date) {
@@ -153,7 +153,7 @@ export function groupEvents(events: Event[]): Event[][][] {
     if (events.length === 0) return [];
 
     let groups = [];
-    let groupEnd = getEventEnd(events[0]);
+    let groupEnd = getEventEnd(events[0]!);
     let columns: Event[][] = [];
     for (const event of events) {
         if (event.startTime >= groupEnd) {
@@ -162,13 +162,13 @@ export function groupEvents(events: Event[]): Event[][][] {
             groupEnd = getEventEnd(event);
         }
         for (let i = 0; i <= columns.length; i++) {
-            if (i == columns.length) {
+            if (i === columns.length) {
                 columns.push([event]);
-                break
+                break;
             }
-            const lastEvent = last(columns[i]);
+            const lastEvent = last(columns[i]!);
             if (!lastEvent || event.startTime >= getEventEnd(lastEvent)) {
-                columns[i].push(event);
+                columns[i]!.push(event);
                 break;
             }
         }

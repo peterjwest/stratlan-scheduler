@@ -3,7 +3,7 @@ extends ../layout.pug
 block body
     div(class="flex mb-4 space-x-2")
         for filter of filters
-            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.url == currentUrl ? 'bg-highlight' : ''}`)= filter.name
+            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.url === currentUrl ? 'bg-highlight' : ''}`)= filter.name
 
     table(class="w-full text-left")
         tr
