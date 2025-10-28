@@ -31,8 +31,6 @@ input[disabled] {
     --color-highlight: #5c4299;
     --color-highlight-accent: #9267c0;
     --color-discord: #5865F2;
-    --color-team-red: var(--color-rose-800);
-    --color-team-blue: var(--color-indigo-800);
     --color-border: var(--color-violet-300);
 
     --color-red-primary: #dc0000;
