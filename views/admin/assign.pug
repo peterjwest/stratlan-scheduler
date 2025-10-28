@@ -16,7 +16,7 @@ block body
                 span Player
                 input(name="type" type="radio" value="player" required class="w-0")
 
-        div(class="grid grid-cols-[repeat(2,min-content)]")
+        div(class="grid grid-cols-[repeat(2,max-content)]")
             label(data-player-field class="py-2 px-3 grid grid-cols-subgrid col-span-2 hidden")
                 span(class="py-2 pr-3") Player
                 +dropdown("userId", users, undefined, true, 'Select player', helpers.formatName)

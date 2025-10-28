@@ -210,3 +210,16 @@ if (lanSelect) {
         window.location.reload();
     });
 }
+
+const datetimes = Array.from(document.querySelectorAll('[data-datetime]'));
+datetimes.forEach((datetime) => {
+    const input = datetime.querySelector('[data-datetime-input]');
+    const setButton = datetime.querySelector('[data-datetime-set]');
+    const clearButton = datetime.querySelector('[data-datetime-clear]');
+    setButton?.addEventListener('click', () => {
+        input.value = new Date().toISOString().slice(0,16);
+    });
+    clearButton?.addEventListener('click', () => {
+        input.value = null;
+    });
+});

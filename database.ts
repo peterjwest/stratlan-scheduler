@@ -273,6 +273,32 @@ export async function getLans(db: DatabaseClient): Promise<LanWithTeams[]> {
 
 export const [getLansCached, clearLansCache] = cacheCall(getLans);
 
+export async function getLan(db: DatabaseClient, lanId: number): Promise<LanWithTeams | undefined> {
+    return normalise(await db.query.Lan.findFirst({ where: eq(Lan.id, lanId), with: { teams: true } }));
+}
+
+export async function createLan(db: DatabaseClient, data: Omit<Lan, 'id'>) {
+    await db.insert(Lan).values({
+        ...data,
+        eventStart: data.eventStart || null,
+        eventEnd: data.eventEnd || null,
+    });
+
+    clearCurrentLanCache();
+    clearLansCache();
+}
+
+export async function updateLan(db: DatabaseClient, lan: Lan, data: Omit<Lan, 'id'>) {
+    await db.update(Lan).set({
+        ...data,
+        eventStart: data.eventStart || null,
+        eventEnd: data.eventEnd || null,
+    }).where(eq(Lan.id, lan.id));
+
+    clearCurrentLanCache();
+    clearLansCache();
+}
+
 export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {
     await db.update(GameActivity).set({ endTime: sql`NOW()` }).where(and(
         eq(GameActivity.userId, user.id),

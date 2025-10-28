@@ -5,8 +5,29 @@ import { Csrf } from './csrf';
 import { getContext } from 'context';
 import { parseInteger, formatScoreType, getTeam, UserError } from './util';
 import { Event } from './schema';
-import { getUser, getMinimalUsers, getEvent, getMinimalEvents, getScores, awardScore, DatabaseClient } from './database';
+import {
+    getUser,
+    getMinimalUsers,
+    getEvent,
+    getMinimalEvents,
+    getScores,
+    awardScore,
+    getLans,
+    getLan,
+    createLan,
+    updateLan,
+    DatabaseClient,
+} from './database';
 import { ScoreType } from './constants';
+
+const LanData = zod.object({
+    name: zod.string(),
+    role: zod.string(),
+    eventStart: zod.string().transform((date) => date ? new Date(date) : undefined),
+    eventEnd: zod.string().transform((date) => date ? new Date(date) : undefined),
+    scheduleStart: zod.string().transform((date) => new Date(date)),
+    scheduleEnd: zod.string().transform((date) => new Date(date)),
+});
 
 const AssignPoints = zod.object({
     points: zod.string().transform((id) => parseInteger(id)),
@@ -35,6 +56,46 @@ export default function (db: DatabaseClient, csrf: Csrf) {
         const context = getContext(request, 'LOGGED_IN');
         if (!context.isAdmin) return response.status(403).send('Unauthorised');
         next();
+    });
+
+    router.get('/lans', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        response.render('admin/lans/lans', {
+            ...context,
+            lans: await getLans(db),
+        });
+    });
+
+    router.get('/lans/create', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        response.render('admin/lans/create', context);
+    });
+
+    router.post('/lans/create', async (request: Request, response: Response) => {
+        const body = LanData.parse(request.body);
+
+        await createLan(db, body);
+        response.redirect('/admin/lans');
+    });
+
+    router.get('/lans/:lanId', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        const lan = await getLan(db, Number(request.params.lanId));
+
+        if (!lan) throw new UserError('Lan not found.');
+
+        response.render('admin/lans/lan', { ...context, lan });
+    });
+
+    router.post('/lans/:lanId', async (request: Request, response: Response) => {
+        const body = LanData.parse(request.body);
+        const lan = await getLan(db, Number(request.params.lanId));
+
+        if (!lan) throw new UserError('Lan not found.');
+
+        await updateLan(db, lan, body);
+        response.redirect('/admin/lans');
     });
 
     router.get('/points', async (request: Request, response: Response) => {

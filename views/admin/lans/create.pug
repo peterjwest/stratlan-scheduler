@@ -1,0 +1,79 @@
+extends ../../layout.pug
+
+block body
+    form(action=`/admin/lans/create` method="post")
+        h2(class="text-2xl font-semibold mb-4") Create LAN
+
+        input(type="hidden" name="csrf" value=csrf)
+
+        div(class="grid grid-cols-[repeat(2,max-content)]")
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
+                span(class="py-2 pr-3") Name
+                input(name="name" type="text" required maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
+                span(class="py-2 pr-3") Discord role
+                input(name="role" type="text" required maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-datetime)
+                span(class="py-2 pr-3") Starts at
+                input(
+                    name="eventStart"
+                    type="datetime-local"
+                    data-datetime-input
+                    class="py-2 px-3.5 border border-border/80 rounded-sm"
+                )
+                div
+                    button(
+                        type="button"
+                        data-datetime-set
+                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Set now
+                    button(
+                        type="button"
+                        data-datetime-clear
+                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Clear
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-datetime)
+                span(class="py-2 pr-3") Ends at
+                input(
+                    name="eventEnd"
+                    type="datetime-local"
+                    data-datetime-input
+                    class="py-2 px-3.5 border border-border/80 rounded-sm"
+                )
+                div
+                    button(
+                        type="button"
+                        data-datetime-set
+                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Set now
+                    button(
+                        type="button"
+                        data-datetime-clear
+                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Clear
+
+            h3(class="text-lg font-semibold mt-4 mb-2 grid-cols-subgrid col-span-3") Dates to show on schedule
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
+                span(class="py-2 pr-3") First day
+                input(
+                    name="scheduleStart"
+                    type="date"
+                    required
+                    class="py-2 px-3.5 border border-border/80 rounded-sm"
+                )
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
+                span(class="py-2 pr-3") Last day
+                input(
+                    name="scheduleEnd"
+                    type="date"
+                    required
+                    class="py-2 px-3.5 border border-border/80 rounded-sm"
+                )
+
+            div(class="mt-2")
+                input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

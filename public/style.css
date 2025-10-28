@@ -13,6 +13,10 @@ html, body {
     box-sizing: border-box;
 }
 
+input {
+  color-scheme: dark;
+}
+
 input[type=submit], button {
     cursor: pointer;
 }

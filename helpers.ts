@@ -1,6 +1,10 @@
 import {
     formatDate,
+    formatHourAsTime,
     formatTime,
+    formatDateTime,
+    formatDay,
+    formatTimestamp,
     formatName,
     formatScoreType,
     getTeam,
@@ -14,7 +18,11 @@ import { getAvatarUrl } from './discordApi';
 
 const helpers = {
     formatDate,
+    formatHourAsTime,
     formatTime,
+    formatDateTime,
+    formatDay,
+    formatTimestamp,
     formatName,
     formatScoreType,
     getTeam,

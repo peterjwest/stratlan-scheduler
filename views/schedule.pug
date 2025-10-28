@@ -4,14 +4,14 @@ block body
     div(class="flex-none lg:flex")
         div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
             for hour of helpers.getScheduleHours()
-                div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatTime(hour)
+                div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
 
         for dayEvents of eventsByDay
             div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 160px);")
                 div(class="flex h-full")
                     div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
                         for hour of helpers.getScheduleHours()
-                            div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatTime(hour)
+                            div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
                     div(class="flex-grow flex flex-col")
                         h2(class="font-semibold py-2")= dayEvents.day
                         div(class="border-r border-b border-border/40 flex-grow flex flex-col relative")

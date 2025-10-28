@@ -45,18 +45,14 @@ export function parseInteger(value: string, radix = 10) {
 }
 
 const DAYS = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
+    'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
 ];
-
-export function getDay(date: Date) {
-    return DAYS[date.getDay()];
-}
 
 export function getDayStart(date: Date) {
     const dayStart = new Date(date);
@@ -78,15 +74,33 @@ function padTimeComponent(value: number) {
     return String(value).padStart(2, '0');
 }
 
-export function formatTime(time: Date | number, withSeconds = false) {
-    if (typeof time === 'number') return `${padTimeComponent(time % 24)}:00`;
+export function formatHourAsTime(hour: number) {
+    return `${padTimeComponent(hour % 24)}:00`;
+}
+
+export function formatTime(time: Date) {
     const hours = padTimeComponent(time.getHours());
     const minutes = padTimeComponent(time.getMinutes());
-    return `${hours}:${minutes}${withSeconds ? ':' + padTimeComponent(time.getSeconds()) : ''}`;
+    return `${hours}:${minutes}`;
 }
 
 export function formatDate(date: Date) {
-    return `${formatTime(date, true)} ${getDay(date)}`;
+    const year = date.getFullYear();
+    const month = padTimeComponent(date.getMonth() + 1);
+    const day = padTimeComponent(date.getDate());
+    return `${year}-${month}-${day}`;
+}
+
+export function formatDateTime(date: Date) {
+    return `${formatDay(date)} ${formatTime(date)}, ${formatDate(date)}`;
+}
+
+export function formatDay(date: Date) {
+    return DAYS[date.getDay()];
+}
+
+export function formatTimestamp(date: Date) {
+    return `${formatDate(date)}T${formatTime(date)}`;
 }
 
 export function formatName(user: User) {
@@ -166,7 +180,7 @@ export function groupEvents(events: Event[]): Event[][][] {
 
 export function splitByDay(events: Event[], days: Date[]): DayEvents[] {
     return days.map((date) => ({
-        day: getDay(date),
+        day: formatDay(date),
         events: events.filter((event) => event.startTime > getDayStart(date) && event.startTime < getDayEnd(date)),
     }));
 }
