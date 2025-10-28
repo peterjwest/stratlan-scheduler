@@ -4,7 +4,6 @@ import { Client } from 'discord.js';
 import lodash from 'lodash';
 
 import { LanExtended, LanWithTeams } from './schema';
-import { getContext } from './context';
 import { regenerateSession, saveSession, destroySession, withLanStatus } from './util';
 import {
     DatabaseClient,
