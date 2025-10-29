@@ -6,6 +6,7 @@ import { Helpers } from './helpers';
 export type Context = {
     currentPath: string;
     currentUrl: string;
+    csrfToken: string;
     discordAuthUrl: string;
     user: UserExtended | undefined;
     isAdmin: boolean;

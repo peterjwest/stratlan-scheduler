@@ -70,6 +70,7 @@ app.use(async (request, response, next) => {
     const userId = request.session.userId;
     const currentPath = getUrl(request.originalUrl).path;
     const currentUrl = request.originalUrl;
+    const csrfToken = csrf.generateToken(request);
     const discordAuthUrl = DISCORD_AUTH_URL;
 
     const lans = await getLansCached(db);
@@ -94,7 +95,7 @@ app.use(async (request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
+        currentPath, currentUrl, csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
     };
 
     next();

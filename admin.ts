@@ -118,7 +118,6 @@ export default function (db: DatabaseClient, csrf: Csrf) {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/assign', {
             ...context,
-            csrf: csrf.generateToken(request),
             events: await getMinimalEvents(db, context.currentLan),
             users: await getMinimalUsers(db, context.currentLan),
         });
