@@ -71,7 +71,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
         response.render('admin/lans/create', context);
     });
 
-    router.post('/lans/create', async (request: Request, response: Response) => {
+    router.post('/lans/create', csrf.protect, async (request: Request, response: Response) => {
         const body = LanData.parse(request.body);
 
         await createLan(db, body);
@@ -88,7 +88,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
         response.render('admin/lans/lan', { ...context, lan });
     });
 
-    router.post('/lans/:lanId', async (request: Request, response: Response) => {
+    router.post('/lans/:lanId', csrf.protect, async (request: Request, response: Response) => {
         const body = LanData.parse(request.body);
         const lan = await getLan(db, Number(request.params.lanId));
 
