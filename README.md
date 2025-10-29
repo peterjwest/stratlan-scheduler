@@ -1,7 +1,6 @@
 # TODO:
 
 Objectives:
-- LAN selector to mobile menu
 - Add "GameIdentifier" table to allow multiple IDs per game
 - Dashboard page
   - Teams

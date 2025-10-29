@@ -202,14 +202,14 @@ loginButtons.forEach((loginButton) => {
     });
 });
 
-const lanSelect = document.querySelector('[data-lan-select]');
-if (lanSelect) {
-    const input = document.querySelector('[data-dropdown-input]');
+const lanSelects = Array.from(document.querySelectorAll('[data-lan-select]'));
+lanSelects.forEach((lanSelect) => {
+    const input = lanSelect.querySelector('[data-dropdown-input]');
     input.addEventListener('change', () => {
         setCookie('selected-lan', input.value);
         window.location.reload();
     });
-}
+});
 
 const datetimes = Array.from(document.querySelectorAll('[data-datetime]'));
 datetimes.forEach((datetime) => {

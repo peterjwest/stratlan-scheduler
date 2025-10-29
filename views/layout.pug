@@ -40,6 +40,9 @@ html(lang="en" class="h-full")
                                         +navigationLink('/admin/assign', 'Assign points')
                                         +navigationLink('/admin/lans', 'Manage LANs')
 
+                                    div(class="block md:hidden" data-lan-select)
+                                        +dropdown("lanId", lans, currentLan, true, 'Select LAN', (lan) => lan.name)
+
             main(class="flex-grow")
                 div(class="max-w-7xl mx-auto relative")
                     header(class="flex header h-16")
@@ -48,7 +51,7 @@ html(lang="en" class="h-full")
                                 img(src="/menu.svg" class="p-2 w-12 h-12")
 
                         if isAdmin
-                            div(class="p-3" data-lan-select)
+                            div(class="p-3 hidden md:block" data-lan-select)
                                 +dropdown("lanId", lans, currentLan, true, 'Select LAN', (lan) => lan.name)
 
                         if user
