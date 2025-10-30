@@ -22,7 +22,7 @@ html(lang="en" class="h-full")
                                 h1(class="")
                                     a(href="/")
                                         img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px] mb-1.5")
-                                img(src="/red-vs-blue.png" class="h-[45px] px-3")
+                                img(src="/red-vs-blue.png" class="h-[46px] px-2")
 
                             div(class="px-5 pb-4 space-y-3")
                                 section
@@ -35,7 +35,7 @@ html(lang="en" class="h-full")
 
                                 if isAdmin
                                     section
-                                        div(class="text-xl") Admin
+                                        div(class="text-xl pb-1") Admin
                                         +navigationLink('/admin/points', 'Points log')
                                         +navigationLink('/admin/assign', 'Assign points')
                                         +navigationLink('/admin/lans', 'Manage LANs')
