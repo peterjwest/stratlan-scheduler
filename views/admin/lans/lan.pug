@@ -15,47 +15,8 @@ block body
                 span(class="py-2 pr-3") Discord role
                 input(name="role" type="text" required value=lan.role maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
 
-            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-datetime)
-                span(class="py-2 pr-3") Starts at
-                input(
-                    name="eventStart"
-                    type="datetime-local"
-                    data-datetime-input
-                    value=lan.eventStart && helpers.formatTimestamp(lan.eventStart)
-                    class="py-2 px-3.5 border border-border/80 rounded-sm"
-                )
-                div
-                    button(
-                        type="button"
-                        data-datetime-set
-                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                    ) Set now
-                    button(
-                        type="button"
-                        data-datetime-clear
-                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                    ) Clear
-
-            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-datetime)
-                span(class="py-2 pr-3") Ends at
-                input(
-                    name="eventEnd"
-                    type="datetime-local"
-                    data-datetime-input
-                    value=lan.eventEnd && helpers.formatTimestamp(lan.eventEnd)
-                    class="py-2 px-3.5 border border-border/80 rounded-sm"
-                )
-                div
-                    button(
-                        type="button"
-                        data-datetime-set
-                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                    ) Set now
-                    button(
-                        type="button"
-                        data-datetime-clear
-                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                    ) Clear
+            +datetime("eventStart", "Starts at", lan.eventStart)
+            +datetime("eventEnd", "Ends at", lan.eventEnd)
 
             h3(class="text-lg font-semibold mt-4 mb-2 grid-cols-subgrid col-span-3") Dates to show on schedule
 
@@ -79,5 +40,6 @@ block body
                     class="py-2 px-3.5 border border-border/80 rounded-sm"
                 )
 
-            div(class="mt-2")
-                input(type="submit" name="submit" value="Submit" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
+            div(class="mt-2 flex gap-2")
+                input(type="submit" name="submit" value="Save" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
+                input(type="reset" value="Reset" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

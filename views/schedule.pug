@@ -22,6 +22,9 @@ block body
                                     for event of column
                                         div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
                                             - const marginRight = index === group.length - 1 ? 'mr-1' : 'mr-0';
-                                            div(class=`flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden`)
+                                            div(class=`relative flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden`)
                                                 div(class="text-sm")= event.name
                                                 div(class="text-xs")= helpers.formatTime(event.startTime)
+                                                if isAdmin
+                                                    a(href=`/admin/events/${event.id}` class="w-8 absolute p-2 right-0 top-0 bg-highlight rounded-md")
+                                                        img(src="/edit.svg")

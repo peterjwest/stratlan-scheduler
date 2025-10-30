@@ -269,19 +269,32 @@ export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T
     ];
 }
 
-export type NullToUndefined<T> = T extends null
-    ? undefined
-    : T extends (infer U)[]
+export type ConvertType<From, To, Type> = Type extends From
+    ? To
+    : Type extends (infer U)[]
     ? NullToUndefined<U>[]
-    : T extends Record<string, unknown>
-    ? { [K in keyof T]: NullToUndefined<T[K]> }
-    : T;
+    : Type extends Record<string, unknown>
+    ? { [K in keyof Type]: NullToUndefined<Type[K]> }
+    : Type;
 
-export function normalise<T>(object: T): NullToUndefined<T> {
+export type NullToUndefined<T> = ConvertType<null, undefined, T>;
+export type UndefinedToNull<T> = ConvertType<undefined, null, T>;
+
+export function fromNulls<T>(object: T): NullToUndefined<T> {
     if (object === null || object === undefined) return undefined as any;
     if ((object as any).constructor.name === 'Object' || Array.isArray(object)) {
         for (const key in object) {
-            object[key] = normalise(object[key]) as any;
+            object[key] = fromNulls(object[key]) as any;
+        }
+    }
+    return object as any;
+}
+
+export function toNulls<T>(object: T): UndefinedToNull<T> {
+    if (object === null || object === undefined) return null as any;
+    if ((object as any).constructor.name === 'Object' || Array.isArray(object)) {
+        for (const key in object) {
+            object[key] = toNulls(object[key]) as any;
         }
     }
     return object as any;

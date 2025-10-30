@@ -2,7 +2,7 @@ import lodash from 'lodash';
 import zod from 'zod';
 import { REST, Routes, Activity, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { User } from './schema';
-import { withLanStatus, normalise } from './util';
+import { withLanStatus, fromNulls } from './util';
 import {
     getCurrentLanCached,
     endFinishedActivities,
@@ -48,13 +48,13 @@ type OAuthResponse = zod.infer<typeof OAuthResponse>;
 
 export async function getDiscordUser(accessToken: string): Promise<DiscordUser> {
     const rest = new REST({ authPrefix: 'Bearer' }).setToken(accessToken);
-    return DiscordUser.parse(normalise(await rest.get(Routes.user())));
+    return DiscordUser.parse(fromNulls(await rest.get(Routes.user())));
 }
 
 export async function getDiscordGuildMember(
     discordClient: Client, guildId: string, userId: string,
 ): Promise<DiscordGuildMember> {
-    return DiscordGuildMember.parse(normalise(await discordClient.rest.get(Routes.guildMember(guildId, userId))));
+    return DiscordGuildMember.parse(fromNulls(await discordClient.rest.get(Routes.guildMember(guildId, userId))));
 }
 
 export async function getGuildRoles(discordClient: Client, guildId: string) {
@@ -65,7 +65,7 @@ export async function getGuildRoles(discordClient: Client, guildId: string) {
 }
 
 export function mapRoleIds(roles: { [key: string]: Role }, roleIds: string[]) {
-    return roleIds.map((roleId) => roles[roleId].name);
+    return roleIds.map((roleId) => roles[roleId]!.name);
 }
 
 export async function getDiscordAccessToken(

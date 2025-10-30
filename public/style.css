@@ -17,7 +17,7 @@ input {
   color-scheme: dark;
 }
 
-input[type=submit], button {
+input[type=submit], input[type=reset], button {
     cursor: pointer;
 }
 

@@ -15,6 +15,20 @@ if (pointsTypeRadios.length && pointsPlayerField) {
     }
 }
 
+const eventGameInput = document.querySelector('[data-event-game] [data-player-input]');
+const eventPoints = document.querySelector('[data-event-points]');
+
+if (eventGameInput && eventPoints) {
+    const eventPointsInput = eventPoints.querySelector('[data-event-points-input]');
+    eventGameInput.addEventListener('change', (event) => {
+        const hasGame = Boolean(eventGameInput.value);
+        eventPoints.classList[hasGame ? 'remove' : 'add']('hidden');
+        if (!hasGame) {
+            eventPointsInput.value = 0;
+        }
+    });
+}
+
 const menuButtons = document.querySelectorAll('[data-menu]');
 const navigation = document.querySelector('nav');
 
@@ -103,11 +117,10 @@ for (const dropdown of dropdowns) {
         }
     }
 
-    function selectOption(element) {
-        const id = element.getAttribute('data-value');
+    function selectOption(id) {
         input.value = id;
         input.dispatchEvent(new Event('change'));
-        selected.textContent = input.options[input.selectedIndex].textContent;
+        selected.textContent = input.options[input.selectedIndex]?.textContent || selected.getAttribute('data-placeholder');
     }
 
     button.addEventListener('click', (event) => {
@@ -161,15 +174,20 @@ for (const dropdown of dropdowns) {
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
                 closeMenu();
-                selectOption(event.currentTarget);
+                selectOption(event.currentTarget.getAttribute('data-value'));
             }
         })
 
         item.addEventListener('click', (event) => {
             closeMenu();
-            selectOption(event.currentTarget);
+            selectOption(event.currentTarget.getAttribute('data-value'));
         })
     }
+
+    if (input.form) input.form.addEventListener('reset', () => {
+        closeMenu();
+        setTimeout(() => selectOption(input.value), 0);
+    });
 
     document.addEventListener('click', closeMenu);
 }
