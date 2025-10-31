@@ -287,11 +287,7 @@ export async function getLan(db: DatabaseClient, lanId: number): Promise<LanWith
 }
 
 export async function createLan(db: DatabaseClient, data: Omit<Lan, 'id'>) {
-    await db.insert(Lan).values({
-        ...data,
-        eventStart: data.eventStart || null,
-        eventEnd: data.eventEnd || null,
-    });
+    await db.insert(Lan).values(toNulls(data));
 
     clearCurrentLanCache();
     clearLansCache();
