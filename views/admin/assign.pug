@@ -9,12 +9,14 @@ block body
         div(class="flex space-x-3 items-center mb-3")
             - const radioButtonClass = 'py-1.5 px-3 cursor-pointer rounded-lg border border-border/50';
             each team in currentLan.teams
-                label(data-points-type class=`${radioButtonClass} has-[:checked]:${helpers.getTeamBackground(team)} has-[:focus]:border-white`)
+                label(data-points-team class=`${radioButtonClass} has-[:checked]:${helpers.getTeamBackground(team)} has-[:focus]:border-white`)
                     span=team.name
-                    input(name="type" type="radio" value=team.id required class="w-0")
-            label(data-points-type class=`${radioButtonClass} has-[:checked]:bg-highlight has-[:focus]:border-white`)
+                    input(name="teamId" type="radio" value=team.id required class="w-0")
+            label(data-points-team class=`${radioButtonClass} has-[:checked]:bg-highlight has-[:focus]:border-white`)
                 span Player
-                input(name="type" type="radio" value="player" required class="w-0")
+                input(name="teamId" type="radio" value="" required class="w-0")
+
+            input(data-points-type name="type" type="hidden" value="" required)
 
         div(class="grid grid-cols-[repeat(2,max-content)]")
             label(data-player-field class="py-2 px-3 grid grid-cols-subgrid col-span-2 hidden")

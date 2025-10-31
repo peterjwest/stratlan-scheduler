@@ -1,13 +1,15 @@
-const pointsTypeRadios = Array.from(document.querySelectorAll('[data-points-type]'));
+const pointsTeamRadios = Array.from(document.querySelectorAll('[data-points-team]'));
+const pointsTypeInput = document.querySelector('[data-points-type]');
 const pointsPlayerField = document.querySelector('[data-player-field]');
 const pointsPlayerInput = document.querySelector('[data-player-input]');
 
-if (pointsTypeRadios.length && pointsPlayerField) {
-    for (const pointsTypeRadio of pointsTypeRadios) {
+if (pointsTeamRadios.length && pointsPlayerField && pointsTypeInput) {
+    for (const pointsTypeRadio of pointsTeamRadios) {
         pointsTypeRadio.addEventListener('change', (event) => {
-            const isPlayer = event.target.value === 'player';
+            const isPlayer = event.target.value === '';
             pointsPlayerField.classList[isPlayer ? 'remove' : 'add']('hidden');
             pointsPlayerInput.required = isPlayer ? 'required' : undefined;
+            pointsTypeInput.value = isPlayer ? 'player' : 'team';
             if (!isPlayer) {
                 pointsPlayerInput.value = '';
             }

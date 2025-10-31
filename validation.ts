@@ -1,41 +1,72 @@
 
 import zod from 'zod';
 
-import { parseInteger } from './util';
 import { ScoreType } from './constants';
+
+const dateType = (
+    zod.string()
+    .transform((date) => new Date(date))
+    .refine((value) => !isNaN(Number(value)), {
+        error: 'Expected a valid datetime'
+    })
+
+);
+const dateTypeOptional = (
+    zod.string()
+    .transform((date) => date ? new Date(date) : undefined)
+    .refine((value) => value === undefined || !isNaN(Number(value)), {
+        error: 'Expected a valid datetime'
+    })
+);
+
+const integerType = (
+    zod.string()
+    .transform((id) => parseInt(id, 10))
+    .refine((value) => Number.isInteger(value), {
+        error: 'Expected an integer'
+    })
+);
+
+const integerTypeOptional = (
+    zod.string()
+    .transform((id) => id === '' ? undefined : parseInt(id, 10))
+    .refine((value) => value === undefined || Number.isInteger(value), {
+        error: 'Expected an integer'
+    })
+);
 
 export const LanData = zod.object({
     name: zod.string(),
     role: zod.string(),
-    eventStart: zod.string().transform((date) => date ? new Date(date) : undefined),
-    eventEnd: zod.string().transform((date) => date ? new Date(date) : undefined),
-    scheduleStart: zod.string().transform((date) => new Date(date)),
-    scheduleEnd: zod.string().transform((date) => new Date(date)),
+    eventStart: dateTypeOptional,
+    eventEnd: dateTypeOptional,
+    scheduleStart: dateType,
+    scheduleEnd: dateType,
 });
 export type LanData = zod.infer<typeof LanData>;
 
 export const EventData = zod.object({
     name: zod.string(),
     description: zod.string(),
-    startTime: zod.string().transform((date) => date ? new Date(date) : undefined),
-    duration: zod.string().transform((value) => parseInt(value, 10)),
-    gameId: zod.string().transform((id) => id ? parseInt(id, 10) : undefined),
-    points: zod.string().transform((value) => parseInt(value, 10)),
+    startTime: dateType,
+    duration: integerType,
+    gameId: integerTypeOptional,
+    points: integerType,
 });
 export type EventData = zod.infer<typeof EventData>;
 
 export const BaseAssignPoints = zod.object({
-    points: zod.string().transform((id) => parseInteger(id)),
+    points: integerType,
     reason: zod.string(),
-    eventId: zod.string().transform((id) => id ? parseInteger(id) : undefined),
-    submit: zod.literal('Submit'),
+    eventId: integerTypeOptional,
 });
 const AssignTeamPoints = BaseAssignPoints.extend({
-    type: zod.string().transform((id) => parseInteger(id)),
+    type: zod.literal('team'),
+    teamId: integerType,
 });
 const AssignPlayerPoints = BaseAssignPoints.extend({
-    type: zod.literal(['player']),
-    userId: zod.string().transform((id) => parseInteger(id)),
+    type: zod.literal('player'),
+    userId: integerType,
 });
 export const AssignPointsData = zod.union([AssignPlayerPoints, AssignTeamPoints]);
 export type AssignPointsData = zod.infer<typeof AssignPointsData>;

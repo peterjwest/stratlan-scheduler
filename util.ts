@@ -38,12 +38,6 @@ export async function destroySession(request: Request) {
     return promisify(request.session.destroy.bind(request.session))();
 }
 
-export function parseInteger(value: string, radix = 10) {
-    const number = parseInt(value, radix);
-    if (Number.isInteger(number)) return number;
-    throw new Error(`Expected an integer, got '${value}'`);
-}
-
 const DAYS = [
     'Sun',
     'Mon',

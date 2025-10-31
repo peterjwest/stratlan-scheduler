@@ -152,7 +152,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
                 db, context.currentLan, context.user, data.points, data.reason, event, player,
             );
         } else {
-            const team = getTeam(context.currentLan, data.type);
+            const team = getTeam(context.currentLan, data.teamId);
             if (!team) throw new Error(`Team ${data.type} not found`);
 
             await awardScore(
