@@ -15,7 +15,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "events_id_seq",
+            "name": "Event_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -102,7 +102,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "scores_id_seq",
+            "name": "Score_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -263,7 +263,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "teams_id_seq",
+            "name": "Team_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -307,7 +307,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "users_id_seq",
+            "name": "User_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",

@@ -2,7 +2,7 @@
 
 Objectives:
 - Issues
-  - Rename sequences
+  - Allow multiple games per event
 - Dashboard page
   - Score over time algorithm
   - Fancy scores

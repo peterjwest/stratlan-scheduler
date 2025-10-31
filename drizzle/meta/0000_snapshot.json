@@ -15,7 +15,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "users_id_seq",
+            "name": "User_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",

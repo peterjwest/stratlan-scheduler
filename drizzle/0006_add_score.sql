@@ -1,6 +1,6 @@
 CREATE TYPE "public"."ScoreType" AS ENUM('Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement');--> statement-breakpoint
 CREATE TABLE "scores" (
-	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "scores_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "Score_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"teamId" integer,
 	"type" "ScoreType" NOT NULL,
 	"userId" integer,
