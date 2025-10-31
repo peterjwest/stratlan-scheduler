@@ -1,29 +1,40 @@
 # TODO:
 
 Objectives:
-- Add "GameIdentifier" table to allow multiple IDs per game
+- Issues
+  - Rename sequences
 - Dashboard page
-  - Teams
-- Assign teams (Red vs. Blue)
-- Team check page
-  - Assign team roles button
+  - Score over time algorithm
+  - Fancy scores
+  - Show latest scores
+  - Show highest recent
 - Schedule
-  - CRUD
+  - Warn about changing event after start???
+    - Existing timeslots?
+  - Create event
+  - Delete event
   - Schedule commands
   - Discord integration / sync
-  - LTG integration
   - Colour code by location
   - Clip events and minimum visual length
-- Score log
-  - Pagination
-  - Search by user
 - QR code setup
   - Set event optional
   - Assign points
   - Print page
 - Admin
-  - Users page ordered by score
-  - User page with score listing
+  - Scores page
+    - Users page ordered by score
+    - User page with score listing
+    - Pagination?
+  - Team managepage
+    - Randomise
+    - Assign team roles button
+- Fix session storage for anonymous users (?)
+- Privacy policy
+- Cookie policy
+
+## LATER:
+
 - Achievements
   - CRUD
   - Monitor achievements
@@ -35,9 +46,8 @@ Objectives:
     - If achievement time inside activity time, give points
     - Limit to player count??
     - How to tell groups??
-- Fix session storage for anonymous users
-- Privacy policy
-- Cookie policy
+- Scehdule
+  - LTG integration
 
 https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?appid=440&key=12B147D46A513F406504BE202991C520&steamid=76561197961493121
 

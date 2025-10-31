@@ -1,6 +1,7 @@
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm';
+import lodash from 'lodash';
 
 import schema, {
     User,
@@ -16,6 +17,7 @@ import schema, {
     Lan,
     LanWithTeams,
     Game,
+    GameIdentifier,
     GameActivity,
     GameActivityWithTeam,
     IntroChallenge,
@@ -31,6 +33,7 @@ import {
     MODERATOR_ROLES,
 } from './constants';
 import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls } from './util';
+import { ApplicationActivity } from './discordApi';
 
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
@@ -301,19 +304,67 @@ export async function updateLan(db: DatabaseClient, lan: Lan, data: LanData) {
     clearLansCache();
 }
 
-export async function endFinishedActivities(db: DatabaseClient, user: User, activityIds: string[]): Promise<void> {
+export async function endFinishedActivities(db: DatabaseClient, user: User, games: Game[]): Promise<void> {
     await db.update(GameActivity).set({ endTime: sql`NOW()` }).where(and(
         eq(GameActivity.userId, user.id),
-        not(inArray(GameActivity.gameId, activityIds)),
+        not(inArray(GameActivity.gameId, games.map((game) => game.id))),
         isNull(GameActivity.endTime),
     ));
 }
 
-export async function getOrCreateGame(db: DatabaseClient, gameId: string, gameName: string): Promise<Game> {
-    let game = await db.query.Game.findFirst({ where: eq(Game.id, gameId) });
-    if (game) return game;
+export async function getOrCreateGames(db: DatabaseClient, activities: ApplicationActivity[]): Promise<Game[]> {
+    const existingIdentifiers = await db.query.GameIdentifier.findMany({
+        where: inArray(GameIdentifier.id, activities.map((activity) => activity.applicationId)),
+    });
+    const existingApplicationIds = new Set(existingIdentifiers.map((item) => item.id));
+    const missingActivities = activities.filter(
+        ({ applicationId }) => !existingApplicationIds.has(applicationId),
+    );
 
-    return (await db.insert(Game).values({ id: gameId, name: gameName }).returning())[0]!;
+    const identifiedGames = await db.query.Game.findMany({
+        where: inArray(Game.id, existingIdentifiers.map((item) => item.gameId))
+    });
+
+    const activitiesById = lodash.keyBy(activities, 'applicationId');
+    const activitiesByGameId = Object.fromEntries(
+        existingIdentifiers.map((identifier) => [identifier.gameId, activitiesById[identifier.id]]),
+    );
+    for (const game of identifiedGames) {
+        const activity = activitiesByGameId[game.id] as ApplicationActivity;
+        if (game.name !== activity.name) {
+            console.warn(`Warning: Activity "${activity.name}" conflicts with existing Game "${game.name}"`);
+        }
+    }
+
+    identifiedGames.filter((game) => existingApplicationIds)
+
+    if (missingActivities.length === 0) {
+        return identifiedGames;
+    }
+
+    const existingGames = await db.query.Game.findMany({
+        where: inArray(Game.name, missingActivities.map((item) => item.name))
+    });
+    const existingGameNames = new Set(existingGames.map((item) => item.name));
+
+    const missingGameActivities = missingActivities.filter(({ name }) => !existingGameNames.has(name));
+
+    const createdGames = missingGameActivities.length > 0 ? (
+        await db.insert(Game)
+        .values(missingGameActivities.map(({ name }) => ({ name })))
+        .returning()
+    ) : [];
+    const nonIdentifiedGames = existingGames.concat(createdGames);
+    const nonIdentifiedGamesByName = lodash.keyBy(nonIdentifiedGames, 'name');
+
+    await db.insert(GameIdentifier).values(missingActivities.map(({ applicationId, name }) => {
+        return {
+            id: applicationId,
+            gameId: nonIdentifiedGamesByName[name]!.id,
+        };
+    })).returning();
+
+    return identifiedGames.concat(nonIdentifiedGames);
 }
 
 export async function getGames(db: DatabaseClient): Promise<Game[]> {
@@ -321,17 +372,20 @@ export async function getGames(db: DatabaseClient): Promise<Game[]> {
 }
 
 export async function getGameActivity(
-    db: DatabaseClient, gameId: string, startTime: Date,
+    db: DatabaseClient, lan: Lan, user: User, game: Game,
 ): Promise<GameActivity | undefined> {
     return fromNulls(await db.query.GameActivity.findFirst({
-        where: and(eq(GameActivity.gameId, gameId), eq(GameActivity.startTime, startTime)),
+        where: and(
+            eq(GameActivity.lanId, lan.id),
+            eq(GameActivity.userId, user.id),
+            eq(GameActivity.gameId, game.id),
+        ),
     }));
 }
 
 export async function createGameActivity(
-    db: DatabaseClient, lan: Lan, user: User, gameId: string, gameName: string, startTime: Date,
+    db: DatabaseClient, lan: Lan, user: User, game: Game, startTime: Date,
 ) {
-    const game = await getOrCreateGame(db, gameId, gameName);
     return (await db.insert(GameActivity).values({
         lanId: lan.id,
         userId: user.id,
@@ -341,11 +395,11 @@ export async function createGameActivity(
 }
 
 export async function getOrCreateGameActivity(
-    db: DatabaseClient, lan: Lan, user: User, gameId: string, gameName: string, startTime: Date,
+    db: DatabaseClient, lan: Lan, user: User, game: Game, startTime: Date,
 ) {
-    const gameActivity = await getGameActivity(db, gameId, startTime);
+    const gameActivity = await getGameActivity(db, lan, user, game);
     if (gameActivity) return gameActivity;
-    await createGameActivity(db, lan, user, gameId, gameName, startTime);
+    await createGameActivity(db, lan, user, game, startTime);
 }
 
 export async function getTimeslotActivities(

@@ -142,7 +142,7 @@ export const Event = pgTable('Event', {
     startTime: timestamp({ withTimezone: true }).notNull(),
     duration: integer().notNull(),
     isOfficial: boolean().notNull(),
-    gameId: varchar().references(() => Game.id),
+    gameId: integer().references(() => Game.id),
     points: integer().notNull().default(0),
     timeslotCount: integer().notNull().default(0),
     createdBy: integer().references(() => User.id),
@@ -199,7 +199,7 @@ export const GameActivity = pgTable('GameActivity', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     lanId: integer().references(() => Lan.id).notNull(),
     userId: integer().references(() => User.id).notNull(),
-    gameId: varchar().references(() => Game.id).notNull(),
+    gameId: integer().references(() => Game.id).notNull(),
     startTime: timestamp({ withTimezone: true }).notNull(),
     endTime: timestamp({ withTimezone: true }),
 });
@@ -218,10 +218,16 @@ export const gameActivityRelations = relations(GameActivity, ({ one }) => ({
 }));
 
 export const Game = pgTable('Game', {
-    id: varchar().primaryKey().notNull(),
-    name: varchar().notNull(),
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull().unique(),
 });
 export type Game = NullToUndefined<typeof Game.$inferSelect>;
+
+export const GameIdentifier = pgTable('GameIdentifier', {
+    id: varchar().primaryKey().notNull(),
+    gameId: integer().references(() => Game.id).notNull(),
+});
+export type GameIdentifier = NullToUndefined<typeof GameIdentifier.$inferSelect>;
 
 export const IntroChallengeTypeEnum = pgEnum('IntroChallengeType', INTRO_CHALLENGE_TYPES);
 
@@ -255,5 +261,6 @@ export default {
     GameActivity,
     gameActivityRelations,
     Game,
+    GameIdentifier,
     IntroChallenge,
 };

@@ -19,7 +19,7 @@ export const EventData = zod.object({
     description: zod.string(),
     startTime: zod.string().transform((date) => date ? new Date(date) : undefined),
     duration: zod.string().transform((value) => parseInt(value, 10)),
-    gameId: zod.string().transform((id) => id ? id : undefined),
+    gameId: zod.string().transform((id) => id ? parseInt(id, 10) : undefined),
     points: zod.string().transform((value) => parseInt(value, 10)),
 });
 export type EventData = zod.infer<typeof EventData>;

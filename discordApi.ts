@@ -6,6 +6,7 @@ import { withLanStatus, fromNulls } from './util';
 import {
     getCurrentLanCached,
     endFinishedActivities,
+    getOrCreateGames,
     getOrCreateGameActivity,
     getUserByDiscordId,
     getOrCreateIntroChallenge,
@@ -45,6 +46,9 @@ const OAuthResponse = zod.object({
 });
 type OAuthResponse = zod.infer<typeof OAuthResponse>;
 
+export type ApplicationActivity = Activity & {
+    applicationId: string,
+}
 
 export async function getDiscordUser(accessToken: string): Promise<DiscordUser> {
     const rest = new REST({ authPrefix: 'Bearer' }).setToken(accessToken);
@@ -120,17 +124,19 @@ export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) 
         const user = await getUserByDiscordId(db, newPresence.userId);
         if (!user) return;
 
-        await endFinishedActivities(db, user, getActivityIds(newPresence.activities));
+        const activities = newPresence.activities.filter(
+            (activity): activity is ApplicationActivity => Boolean(activity.applicationId),
+        );
+        const games = await getOrCreateGames(db, activities);
+        await endFinishedActivities(db, user, games);
 
-        if (newPresence.activities.length > 0) {
+        if (games.length > 0) {
             await getOrCreateIntroChallenge(db, 'GameActivity', currentLan, user);
         }
 
-        for (const activity of newPresence.activities) {
-            if (!activity.applicationId) continue;
-
+        for (const game of games) {
             await getOrCreateGameActivity(
-                db, currentLan, user, activity.applicationId, activity.name, activity.createdAt,
+                db, currentLan, user, game, new Date(),
             );
         }
     });
