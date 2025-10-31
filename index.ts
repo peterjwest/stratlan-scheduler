@@ -25,7 +25,6 @@ import {
     getOrCreateIntroChallenge,
     checkIsEligible,
     getOrCreateUserLan,
-    getOrCreateGames,
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
