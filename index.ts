@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
 import sessionStore from 'connect-pg-simple';
+import lodash from 'lodash';
 
 import { getContext } from './context';
 import { splitByDay, getLanDays, getUrl, isUserError, withLanStatus } from './util';
@@ -122,6 +123,21 @@ app.get('/', async (request, response) => {
     });
 });
 
+app.use('/dashboard', async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
+
+    const teamPoints: Array<{ team: Team, points: number }> = [];
+    for (const team of context.currentLan.teams) {
+        teamPoints.push({ team, points: await getTeamPoints(db, context.currentLan, team) });
+    }
+
+    // TODO: Get progression
+    const lanProgress = 0.5;
+    const maxPoints = lodash.maxBy(teamPoints, 'points')?.points;
+    // TODO: Slowly animate max points on change
+    response.render('dashboard', { ...context, teamPoints, lanProgress, maxPoints });
+});
+
 app.get('/schedule', async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     const events = await getEvents(db, context.currentLan);
@@ -130,15 +146,6 @@ app.get('/schedule', async (request, response) => {
         ...context,
         eventsByDay: splitByDay(events, getLanDays(context.currentLan)),
     });
-});
-
-app.use('/dashboard', async (request, response) => {
-    const context = getContext(request, 'WITH_LAN');
-    const teamPoints: Array<{ team: Team, points: number }> = [];
-    for (const team of context.currentLan.teams) {
-        teamPoints.push({ team, points: await getTeamPoints(db, context.currentLan, team) });
-    }
-    response.render('dashboard', { ...context, teamPoints });
 });
 
 /** Require login for following routes */

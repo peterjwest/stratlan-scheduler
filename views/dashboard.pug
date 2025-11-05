@@ -1,6 +1,14 @@
 extends layout.pug
 
 block body
-    ul
-        each team in teamPoints
-            li= `${team.team.name} points: ${team.points}`
+    article(class="flex justify-center mt-12")
+        each data in teamPoints
+            div(class="flex-grow flex justify-center max-w-[400px]")
+                div(class="w-[60%] max-w-[300px]")
+                    div(class="relative w-full  border border-border/50" style="min-height: max(200px, calc(100vh - 320px));")
+                        div(
+                            class=`absolute bottom-0 w-full ${helpers.getTeamBackground(data.team)}`
+                            style=`height: ${100 * lanProgress * data.points / maxPoints}%;`
+                        )
+
+                    img(class="w-full py-4 px-[10%]" src=data.team.name === "Red" ? "/red.png" : "/blue.png")
