@@ -7,6 +7,8 @@ import schema, {
     User,
     UserExtended,
     UserRole,
+    UserGroup,
+    Group,
     UserLan,
     Team,
     Score,
@@ -38,10 +40,12 @@ import { ApplicationActivity } from './discordApi';
 export type DatabaseClient = NodePgDatabase<typeof schema>;
 
 type UserData = {
-    accessToken: string,
+    discordId: string,
     discordUsername: string,
-    discordNickname: string | undefined,
-    discordAvatarId: string | undefined,
+    discordNickname?: string,
+    discordAvatarId?: string,
+    accessToken?: string,
+    seatPickerName?: string,
 };
 
 export function getDatabaseClient(postgresUrl: string): DatabaseClient {
@@ -83,6 +87,13 @@ export async function getUser(
     return { ...data.user, team: undefined, isEnrolled: false };
 }
 
+export async function getUsersByUsernames(db: DatabaseClient, usernames: string[]): Promise<MinimalUser[]> {
+    return fromNulls(await db.query.User.findMany({
+        columns: { id: true, discordUsername: true, discordNickname: true },
+        where: inArray(User.discordUsername, usernames),
+    }));
+}
+
 export async function checkIsAdmin(db: DatabaseClient, userId: number | undefined): Promise<boolean> {
     if (!userId) return false;
     return (
@@ -108,12 +119,15 @@ export async function getEvent(db: DatabaseClient, lan: Lan, eventId: number): P
 }
 
 export async function updateEvent(db: DatabaseClient, event: Event, data: EventData) {
-    console.log(toNulls(data));
     await db.update(Event).set(toNulls(data)).where(eq(Event.id, event.id));
 }
 
 export async function getUserByDiscordId(db: DatabaseClient, discordId: string): Promise<User | undefined> {
     return fromNulls(await db.query.User.findFirst({ where: eq(User.discordId, discordId) }));
+}
+
+export async function getUsersByDiscordIds(db: DatabaseClient, discordIds: string[]): Promise<User[]> {
+    return fromNulls(await db.query.User.findMany({ where: inArray(User.discordId, discordIds) }));
 }
 
 interface MinimalEvent {
@@ -141,14 +155,19 @@ export async function getMinimalUsers(db: DatabaseClient, lan: Lan): Promise<Min
     );
 }
 
-export async function createOrUpdateUserByDiscordId(
-    db: DatabaseClient, discordId: string, data: UserData,
-): Promise<User> {
-    const existingUser = await getUserByDiscordId(db, discordId);
+export async function createOrUpdateUser(db: DatabaseClient, data: UserData): Promise<User> {
+    const existingUser = await getUserByDiscordId(db, data.discordId);
     if (existingUser) {
         return fromNulls((await db.update(User).set(toNulls(data)).where(eq(User.id, existingUser.id)).returning())[0]!);
     }
-    return fromNulls((await db.insert(User).values({ discordId, ...data }).returning())[0]!);
+    return fromNulls((await db.insert(User).values(toNulls(data)).returning())[0]!);
+}
+
+export async function createOrUpdateSeatPickerUsers(db: DatabaseClient, data: UserData[]): Promise<User[]> {
+    return fromNulls(await db.insert(User).values(toNulls(data)).onConflictDoUpdate({
+        target: User.discordId,
+        set: { seatPickerName: sql`excluded."seatPickerName"` },
+    }).returning());
 }
 
 export async function updateUser(db: DatabaseClient, userId: number, data: Partial<User>) {
@@ -160,6 +179,13 @@ export async function updateRoles(db: DatabaseClient, user: User, roles: string[
         await tx.delete(UserRole).where(eq(UserRole.userId, user.id));
         await tx.insert(UserRole).values(roles.map((role) => ({ userId: user.id, role })));
     });
+}
+
+export async function createGroups(db: DatabaseClient, groups: string[]) {
+    return fromNulls(await db.insert(Group).values(groups.map((name) => ({ name }))).onConflictDoUpdate({
+        target: Group.name,
+        set: { name: sql`excluded."name"` },
+    }).returning());
 }
 
 export async function createTeams(db: DatabaseClient, lan: Lan, teamNames: readonly TeamName[]): Promise<Team[]> {
@@ -494,4 +520,20 @@ export async function getOrCreateUserLan(db: DatabaseClient, user: User, lan: La
     if (userLan) return userLan;
 
     return fromNulls((await db.insert(UserLan).values({ userId: user.id, lanId: lan.id }).returning())[0]!);
+}
+
+export async function deleteUserGroups(db: DatabaseClient, users: User[]) {
+    await db.delete(UserGroup).where(inArray(UserGroup.userId, users.map((user) => user.id)));
+}
+
+export async function createUserGroups(db: DatabaseClient, userGroups: Array<{ user: User, groups: Group[] }>) {
+    const data = lodash.flatten(userGroups.map(({ user, groups }) => {
+        return groups.map((group) => ({ userId: user.id, groupId: group.id }));
+    }));
+    await db.insert(UserGroup).values(data);
+}
+
+export async function replaceUserGroups(db: DatabaseClient, userGroups: Array<{ user: User, groups: Group[] }>) {
+    await deleteUserGroups(db, userGroups.map(({ user }) => user));
+    await createUserGroups(db, userGroups);
 }

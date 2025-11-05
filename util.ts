@@ -18,6 +18,10 @@ type DayEvents = {
     events: Event[];
 }
 
+export type Required<Type> = {
+  [Key in keyof Type]-?: Type[Key];
+}
+
 export class UserError extends Error { }
 
 export function isUserError(error: any): error is UserError {
@@ -292,4 +296,28 @@ export function toNulls<T>(object: T): UndefinedToNull<T> {
         }
     }
     return object as any;
+}
+
+/** Returns a name lowercased, and stripped of basic punctuation, emojis and bracketed sections.  */
+export function normaliseName(name: string) {
+    return (
+        name
+        .toLowerCase()
+        .replace(/[\s_.]/g, '')
+        .replace(/\p{Emoji_Presentation}/gu, '')
+        .replace(/^\[[^\]]+\]\s*/, '')
+        .replace(/^\([^)]+\)\s*/, '')
+    );
+}
+
+/** Returns whether either string is a substring, at the start or end, of the other. */
+export function isEdgeSubstring(a: string, b: string) {
+    [a, b] = a.length > b.length ? [a, b] : [b, a];
+    return (a.slice(0, b.length) === b || a.slice(-b.length) === b);
+}
+
+/** Returns whether either string is a substring, at the start or end, of the other. */
+export function withinThreshold(a: string, b: string, ratio: number) {
+    [a, b] = a.length > b.length ? [a, b] : [b, a];
+    return b.length / a.length >= ratio;
 }

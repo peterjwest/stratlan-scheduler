@@ -38,6 +38,7 @@ const integerTypeOptional = (
 export const LanData = zod.object({
     name: zod.string(),
     role: zod.string(),
+    seatPickerCode: zod.string(),
     eventStart: dateTypeOptional,
     eventEnd: dateTypeOptional,
     scheduleStart: dateType,

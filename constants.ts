@@ -46,6 +46,14 @@ export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querys
     scope: 'identify',
 });
 
+export const DISCORD_LOGIN_URL = 'https://discord.com/login';
+export const DISCORD_HOMEPAGE_URL = 'https://discord.com';
+export const DISCORD_ASSET_URL = 'https://discord.com/assets/favicon.ico';
+
+export const SEATPICKER_LOGIN_URL = 'https://seatpicker.stratlan.co.uk/login/discord';
+export const SEATPICKER_URL = 'https://seatpicker.stratlan.co.uk/';
+export const SEATPICKER_SEATING_URL = 'https://seatpicker.stratlan.co.uk/seating';
+
 export const SCHEDULE_START_TIME = 10;
 export const SCHEDULE_END_TIME = 26;
 

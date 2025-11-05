@@ -18,11 +18,11 @@ export const DiscordUser = zod.object({
     username: zod.string(),
     avatar: zod.union([zod.string(), zod.undefined()]),
     global_name: zod.union([zod.string(), zod.undefined()]),
-    premium_type: zod.number(),
 });
 export type DiscordUser = zod.infer<typeof DiscordUser>;
 
 export const DiscordGuildMember = zod.object({
+    user: DiscordUser,
     nick: zod.union([zod.string(), zod.undefined()]),
     roles: zod.array(zod.string()),
     mute: zod.boolean(),
@@ -53,6 +53,15 @@ export type ApplicationActivity = Activity & {
 export async function getDiscordUser(accessToken: string): Promise<DiscordUser> {
     const rest = new REST({ authPrefix: 'Bearer' }).setToken(accessToken);
     return DiscordUser.parse(fromNulls(await rest.get(Routes.user())));
+}
+
+export async function getDiscordGuildMembers(
+    discordClient: Client, guildId: string,
+): Promise<DiscordGuildMember[]> {
+    return zod.array(DiscordGuildMember).parse(fromNulls(await discordClient.rest.get(
+        Routes.guildMembers(guildId),
+        { query: new URLSearchParams({ limit: '1000' }) },
+    )));
 }
 
 export async function getDiscordGuildMember(

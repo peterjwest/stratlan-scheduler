@@ -1,12 +1,20 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Client } from 'discord.js';
+import lodash from 'lodash';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { formatScoreType, getTeam, UserError } from './util';
+import { formatScoreType, getTeam, UserError, Required } from './util';
 import { Event } from './schema';
+import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker';
+import { getDiscordGuildMembers } from './discordApi';
+import { DISCORD_GUILD_ID } from './environment';
 import {
     getUser,
     getMinimalUsers,
+    createOrUpdateSeatPickerUsers,
+    createGroups,
+    replaceUserGroups,
     getEvent,
     getMinimalEvents,
     updateEvent,
@@ -26,7 +34,7 @@ import {
     AssignPointsData,
 } from './validation';
 
-export default function (db: DatabaseClient, csrf: Csrf) {
+export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
     const router = Router();
 
     router.use((request: Request, response: Response, next: NextFunction) => {
@@ -57,9 +65,7 @@ export default function (db: DatabaseClient, csrf: Csrf) {
 
     router.get('/lans/:lanId', async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
-
         const lan = await getLan(db, Number(request.params.lanId));
-
         if (!lan) throw new UserError('Lan not found.');
 
         response.render('admin/lans/lan', { ...context, lan });
@@ -68,11 +74,43 @@ export default function (db: DatabaseClient, csrf: Csrf) {
     router.post('/lans/:lanId', csrf.protect, async (request: Request, response: Response) => {
         const data = LanData.parse(request.body);
         const lan = await getLan(db, Number(request.params.lanId));
-
         if (!lan) throw new UserError('Lan not found.');
 
         await updateLan(db, lan, data);
         response.redirect('/admin/lans');
+    });
+
+    router.post('/lans/:lanId/groups', csrf.protect, async (request: Request, response: Response) => {
+        const lan = await getLan(db, Number(request.params.lanId));
+        if (!lan) throw new UserError('Lan not found.');
+
+        const seatPickerUsers = await getSeatPickerData(db, lan);
+        const guildMembers = await getDiscordGuildMembers(discordClient, DISCORD_GUILD_ID);
+
+        matchSeatPickerUsers(seatPickerUsers, guildMembers);
+
+        const matchedUserData = seatPickerUsers.filter((data): data is Required<SeatPickerUser> => Boolean(data.discord));
+        const users = await createOrUpdateSeatPickerUsers(db, matchedUserData.map((data) => ({
+            discordId: data.discord.user.id,
+            discordUsername: data.discord.user.username,
+            discordNickname: data.discord.nick || data.discord.user.global_name,
+            discordAvatarId: data.discord.user.avatar,
+            seatPickerName: data.name,
+        })));
+
+        const groupNames = lodash.uniq(lodash.flatten(matchedUserData.map((data) => data.groups)));
+        const groups = await createGroups(db, groupNames);
+
+        const usersByDiscordId = lodash.keyBy(users, 'discordId');
+        const groupsByName = lodash.keyBy(groups, 'name');
+        const userGroups = matchedUserData.map((data) => ({
+            user: usersByDiscordId[data.discord.user.id]!,
+            groups: data.groups.map((name) => groupsByName[name]!),
+        }));
+
+        await replaceUserGroups(db, userGroups);
+
+        response.redirect(`/admin/lans/${lan.id}`);
     });
 
     router.get('/events/:eventId', async (request: Request, response: Response) => {

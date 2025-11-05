@@ -162,7 +162,7 @@ app.get('/claim/:challengeId', async (request, response) => {
 });
 
 app.use('/steam', steamRouter(db));
-app.use('/admin', adminRouter(db, csrf));
+app.use('/admin', adminRouter(db, csrf, discordClient));
 
 /** 404 handler */
 app.use((request: Request, response: Response) => {

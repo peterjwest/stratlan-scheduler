@@ -16,6 +16,7 @@ export const User = pgTable('User', {
     steamId: varchar(),
     steamUsername: varchar(),
     steamAvatar: varchar(),
+    seatPickerName: varchar(),
 });
 export type User = NullToUndefined<typeof User.$inferSelect>;
 export type UserExtended = User & { team: Team | undefined, isEnrolled: boolean };
@@ -39,6 +40,19 @@ export const userRoleRelations = relations(UserRole, ({ one }) => ({
         references: [User.id],
     }),
 }));
+
+export const Group = pgTable('Group', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull().unique(),
+});
+export type Group = NullToUndefined<typeof Group.$inferSelect>;
+
+export const UserGroup = pgTable('UserGroup', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer().references(() => User.id).notNull(),
+    groupId: integer().references(() => Group.id).notNull(),
+});
+export type UserGroup = NullToUndefined<typeof UserGroup.$inferSelect>;
 
 export const Session = pgTable('Session', {
     sid: varchar().primaryKey().notNull(),
@@ -177,6 +191,7 @@ export const Lan = pgTable('Lan', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull(),
     role: varchar(),
+    seatPickerCode: varchar(),
     scheduleStart: date({ mode: 'date' }).notNull(),
     scheduleEnd: date({ mode: 'date' }).notNull(),
     eventStart: timestamp({ withTimezone: true }),
@@ -240,11 +255,20 @@ export const IntroChallenge = pgTable('IntroChallenge', {
 });
 export type IntroChallenge = NullToUndefined<typeof IntroChallenge.$inferSelect>;
 
+export const Cache = pgTable('Cache', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar().notNull().unique(),
+    value: json().notNull(),
+});
+export type Cache = NullToUndefined<typeof Cache.$inferSelect>;
+
 export default {
     User,
     userRelations,
     UserRole,
     userRoleRelations,
+    Group,
+    UserGroup,
     Session,
     Team,
     teamRelations,
@@ -263,4 +287,5 @@ export default {
     Game,
     GameIdentifier,
     IntroChallenge,
+    Cache,
 };

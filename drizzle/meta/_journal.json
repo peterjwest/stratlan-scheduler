@@ -309,6 +309,34 @@
       "when": 1761873467531,
       "tag": "0043_unique_game_name",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1762001828121,
+      "tag": "0044_cache",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1762005934537,
+      "tag": "0045_seat_picker_code",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1762267280750,
+      "tag": "0046_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1762267332697,
+      "tag": "0047_seat_picker_name",
+      "breakpoints": true
     }
   ]
 }

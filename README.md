@@ -3,6 +3,7 @@
 Objectives:
 - Issues
   - Allow multiple games per event
+  - Prevent moving events off the edge of the schedule
 - Dashboard page
   - Score over time algorithm
   - Fancy scores

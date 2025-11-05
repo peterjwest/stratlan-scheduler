@@ -7,7 +7,7 @@ import { LanExtended, LanWithTeams } from './schema';
 import { regenerateSession, saveSession, destroySession, withLanStatus } from './util';
 import {
     DatabaseClient,
-    createOrUpdateUserByDiscordId,
+    createOrUpdateUser,
     updateRoles,
     getCurrentLanCached,
 } from './database';
@@ -34,8 +34,9 @@ export default function (db: DatabaseClient, discordClient: Client) {
         const serverRoles = await getGuildRoles(discordClient, DISCORD_GUILD_ID);
         const roles = mapRoleIds(serverRoles, discordMember.roles);
 
-        const user = await createOrUpdateUserByDiscordId(db, discordUser.id, {
+        const user = await createOrUpdateUser(db, {
             accessToken,
+            discordId: discordUser.id,
             discordUsername: discordUser.username,
             discordNickname: discordMember.nick || discordUser.global_name,
             discordAvatarId: discordUser.avatar,
