@@ -3,23 +3,23 @@ extends layout.pug
 block body
     div(class="flex-none lg:flex")
         div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
-            for hour of helpers.getScheduleHours()
+            each hour of helpers.getScheduleHours()
                 div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
 
-        for dayEvents of eventsByDay
+        each dayEvents of eventsByDay
             div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 160px);")
                 div(class="flex h-full")
                     div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
-                        for hour of helpers.getScheduleHours()
+                        each hour of helpers.getScheduleHours()
                             div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
                     div(class="flex-grow flex flex-col")
                         h2(class="font-semibold py-2")= dayEvents.day
                         div(class="border-r border-b border-border/40 flex-grow flex flex-col relative")
-                            for hour of helpers.getScheduleHours()
+                            each hour of helpers.getScheduleHours()
                                 div(class="flex-1 flex-grow border-t border-border/40")
-                            for group of helpers.groupEvents(dayEvents.events)
-                                for [column, index] of group.map((column, index) => [column, index])
-                                    for event of column
+                            each group of helpers.groupEvents(dayEvents.events)
+                                each [column, index] of group.map((column, index) => [column, index])
+                                    each event of column
                                         div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
                                             - const marginRight = index === group.length - 1 ? 'mr-1' : 'mr-0';
                                             div(class=`relative flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden`)

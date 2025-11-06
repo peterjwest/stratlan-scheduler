@@ -8,7 +8,7 @@ block body
 
         div(class="flex space-x-3 items-center mb-3")
             - const radioButtonClass = 'py-1.5 px-3 cursor-pointer rounded-lg border border-border/50';
-            each team in currentLan.teams
+            each team of currentLan.teams
                 label(data-points-team class=`${radioButtonClass} has-[:checked]:${helpers.getTeamBackground(team)} has-[:focus]:border-white`)
                     span=team.name
                     input(name="teamId" type="radio" value=team.id required class="w-0")

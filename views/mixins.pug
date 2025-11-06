@@ -19,7 +19,7 @@ mixin dropdown(name, options, selectedId, required, placeholder, formatLabel)
         select(data-dropdown-input data-player-input name=name class="hidden")
             if !required
                 option(value="")= None
-            each option in options
+            each option of options
                 option(value=option.id selected=(option.id === selectedId))=formatLabel(option)
         button(data-dropdown-button type="button" class="w-full py-2 px-3.5 border border-border/80 rounded-sm text-left flex items-center")
             span(class="flex-grow" data-dropdown-selected data-placeholder=placeholder)= selected ? formatLabel(selected) : placeholder
@@ -30,7 +30,7 @@ mixin dropdown(name, options, selectedId, required, placeholder, formatLabel)
             div(class="max-h-60 overflow-y-auto")
                 if !required
                     div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value="") None
-                each option in options
+                each option of options
                     div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value=option.id)
                         =formatLabel(option)
 
