@@ -20,6 +20,7 @@ export const User = pgTable('User', {
 });
 export type User = NullToUndefined<typeof User.$inferSelect>;
 export type UserExtended = User & { team: Team | undefined, isEnrolled: boolean };
+export type UserExtendedWithGroups = UserExtended & { groups: Group[] };
 
 export const userRelations = relations(User, ({ many }) => ({
     userLans: many(UserLan),
@@ -46,6 +47,7 @@ export const Group = pgTable('Group', {
     name: varchar().notNull().unique(),
 });
 export type Group = NullToUndefined<typeof Group.$inferSelect>;
+export type GroupWithMembers = Group & { members: UserExtended[] };
 
 export const UserGroup = pgTable('UserGroup', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -71,6 +73,7 @@ export const Team = pgTable('Team', {
     unique('Team_name_and_lan_unique').on(table.name, table.lanId),
 ]);
 export type Team = NullToUndefined<typeof Team.$inferSelect>;
+export type TeamWithMembers = Team & { members: UserExtended[] };
 
 export const teamRelations = relations(Team, ({ one }) => ({
     lan: one(Lan, {
@@ -86,7 +89,7 @@ export const UserLan = pgTable('UserLan', {
     teamId: integer().references(() => Team.id),
 }, (table) => [
     primaryKey({ columns: [table.userId, table.lanId] }),
-    unique('UserLan_teamId_and_lanId_unique').on(table.teamId, table.lanId),
+    unique('UserLan_teamId_lanId_userId_unique').on(table.teamId, table.lanId, table.userId),
 ]);
 export type UserLan = NullToUndefined<typeof UserLan.$inferSelect>;
 

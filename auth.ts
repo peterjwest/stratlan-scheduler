@@ -4,13 +4,8 @@ import { Client } from 'discord.js';
 import lodash from 'lodash';
 
 import { LanExtended, LanWithTeams } from './schema';
-import { regenerateSession, saveSession, destroySession, withLanStatus } from './util';
-import {
-    DatabaseClient,
-    createOrUpdateUser,
-    updateRoles,
-    getCurrentLanCached,
-} from './database';
+import { regenerateSession, saveSession, destroySession, withLanStatus, discordDataToUser } from './util';
+import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } from './database';
 import { getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember } from './discordApi';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
 import { DISCORD_RETURN_URL } from './constants';
@@ -35,11 +30,8 @@ export default function (db: DatabaseClient, discordClient: Client) {
         const roles = mapRoleIds(serverRoles, discordMember.roles);
 
         const user = await createOrUpdateUser(db, {
+            ...discordDataToUser(discordUser, discordMember),
             accessToken,
-            discordId: discordUser.id,
-            discordUsername: discordUser.username,
-            discordNickname: discordMember.nick || discordUser.global_name,
-            discordAvatarId: discordUser.avatar,
         });
         await updateRoles(db, user, roles);
 

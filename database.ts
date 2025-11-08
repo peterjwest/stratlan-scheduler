@@ -1,11 +1,12 @@
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm';
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, SQL } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import schema, {
     User,
     UserExtended,
+    UserExtendedWithGroups,
     UserRole,
     UserGroup,
     Group,
@@ -52,21 +53,38 @@ export function getDatabaseClient(postgresUrl: string): DatabaseClient {
     return drizzle(postgresUrl, { schema });
 }
 
+export async function getLanUsers(db: DatabaseClient, lan: LanWithTeams, groups: Group[]): Promise<UserExtendedWithGroups[]> {
+    const data = fromNulls(
+        await db.select({ user: User, userLan: UserLan, groupIds: sql<string[]>`array_agg("UserGroup"."groupId")` })
+        .from(User)
+        .innerJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
+        .leftJoin(UserGroup, eq(UserGroup.userId, User.id))
+        .groupBy(User.id, UserLan.userId, UserLan.lanId)
+    );
+
+    const groupsById = lodash.keyBy(groups, 'id');
+    return data.map((item) => ({
+        ...item.user,
+        team: getTeam(lan, item.userLan!.teamId),
+        isEnrolled: true,
+        groups: item.groupIds.filter((groupId) => groupId).map((groupId) => groupsById[groupId]!),
+    }));
+}
+
 export async function getUserWithLan(
     db: DatabaseClient, lan: LanWithTeams, id: number,
 ): Promise<UserExtended | undefined> {
-
     const data = fromNulls((
         await db.select({ user: User, userLan: UserLan })
         .from(User)
-        .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .where(eq(User.id, id))
+        .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
     )[0]);
 
     if (!data) return;
     return {
         ...data.user,
-        team: lan && getTeam(lan, data.userLan?.teamId),
+        team: getTeam(lan, data.userLan?.teamId),
         isEnrolled: Boolean(data.userLan),
     };
 }
@@ -74,7 +92,6 @@ export async function getUserWithLan(
 export async function getUser(
     db: DatabaseClient, lan: LanWithTeams | undefined, userId: number,
 ): Promise<UserExtended | undefined> {
-
     if (lan) return getUserWithLan(db, lan, userId);
 
     const data = fromNulls((
@@ -85,13 +102,6 @@ export async function getUser(
 
     if (!data) return;
     return { ...data.user, team: undefined, isEnrolled: false };
-}
-
-export async function getUsersByUsernames(db: DatabaseClient, usernames: string[]): Promise<MinimalUser[]> {
-    return fromNulls(await db.query.User.findMany({
-        columns: { id: true, discordUsername: true, discordNickname: true },
-        where: inArray(User.discordUsername, usernames),
-    }));
 }
 
 export async function checkIsAdmin(db: DatabaseClient, userId: number | undefined): Promise<boolean> {
@@ -536,4 +546,18 @@ export async function createUserGroups(db: DatabaseClient, userGroups: Array<{ u
 export async function replaceUserGroups(db: DatabaseClient, userGroups: Array<{ user: User, groups: Group[] }>) {
     await deleteUserGroups(db, userGroups.map(({ user }) => user));
     await createUserGroups(db, userGroups);
+}
+
+export async function getGroups(db: DatabaseClient): Promise<Group[]> {
+    return db.query.Group.findMany();
+}
+
+export async function updateTeams(db: DatabaseClient, lan: Lan, users: UserExtended[]) {
+    const userIds = users.map((user) => user.id);
+    const cases = users.map((user) => sql<number>`when ${UserLan.userId} = ${user.id} then ${user.team!.id}`);
+    const setTeamId = sql.join([sql`cast((case`, ...cases, sql`end) as integer)`], sql.raw(' '));
+    await (
+        db.update(UserLan).set({ teamId: setTeamId })
+        .where(and(inArray(UserLan.userId, userIds), eq(UserLan.lanId, lan.id)))
+    );
 }

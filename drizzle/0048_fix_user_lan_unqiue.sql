@@ -1,0 +1,2 @@
+ALTER TABLE "UserLan" DROP CONSTRAINT "UserLan_teamId_and_lanId_unique";--> statement-breakpoint
+ALTER TABLE "UserLan" ADD CONSTRAINT "UserLan_teamId_lanId_userId_unique" UNIQUE("teamId","lanId","userId");

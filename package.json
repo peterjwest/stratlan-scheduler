@@ -30,7 +30,7 @@
     "@types/express-session": "^1.18.2",
     "@types/lodash": "^4.17.20",
     "@types/node-steam-openid": "^1.0.3",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.31.6",
     "tsup": "^8.5.0",
     "tsx": "^4.20.3"
   },

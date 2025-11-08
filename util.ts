@@ -12,6 +12,7 @@ import {
     SCORE_TYPE_NAMES,
     ScoreType,
 } from './constants';
+import { DiscordUser, DiscordGuildMember } from './discordApi';
 
 type DayEvents = {
     day: string;
@@ -320,4 +321,13 @@ export function isEdgeSubstring(a: string, b: string) {
 export function withinThreshold(a: string, b: string, ratio: number) {
     [a, b] = a.length > b.length ? [a, b] : [b, a];
     return b.length / a.length >= ratio;
+}
+
+export function discordDataToUser(user: DiscordUser, member: DiscordGuildMember) {
+    return {
+        discordId: user.id,
+        discordUsername: user.username,
+        discordNickname: member.nick || user.global_name,
+        discordAvatarId: user.avatar,
+    };
 }

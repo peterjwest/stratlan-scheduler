@@ -4,20 +4,17 @@ import lodash from 'lodash';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { formatScoreType, getTeam, UserError, Required } from './util';
-import { Event } from './schema';
-import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker';
-import { getDiscordGuildMembers } from './discordApi';
-import { DISCORD_GUILD_ID } from './environment';
+import { formatScoreType, getTeam, UserError } from './util';
+import { randomiseTeams } from './teams';
 import {
+    getLanUsers,
     getUser,
     getMinimalUsers,
-    createOrUpdateSeatPickerUsers,
-    createGroups,
-    replaceUserGroups,
+    getGroups,
     getEvent,
     getMinimalEvents,
     updateEvent,
+    updateTeams,
     getGames,
     getScores,
     awardScore,
@@ -80,39 +77,6 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.redirect('/admin/lans');
     });
 
-    router.post('/lans/:lanId/groups', csrf.protect, async (request: Request, response: Response) => {
-        const lan = await getLan(db, Number(request.params.lanId));
-        if (!lan) throw new UserError('Lan not found.');
-
-        const seatPickerUsers = await getSeatPickerData(db, lan);
-        const guildMembers = await getDiscordGuildMembers(discordClient, DISCORD_GUILD_ID);
-
-        matchSeatPickerUsers(seatPickerUsers, guildMembers);
-
-        const matchedUserData = seatPickerUsers.filter((data): data is Required<SeatPickerUser> => Boolean(data.discord));
-        const users = await createOrUpdateSeatPickerUsers(db, matchedUserData.map((data) => ({
-            discordId: data.discord.user.id,
-            discordUsername: data.discord.user.username,
-            discordNickname: data.discord.nick || data.discord.user.global_name,
-            discordAvatarId: data.discord.user.avatar,
-            seatPickerName: data.name,
-        })));
-
-        const groupNames = lodash.uniq(lodash.flatten(matchedUserData.map((data) => data.groups)));
-        const groups = await createGroups(db, groupNames);
-
-        const usersByDiscordId = lodash.keyBy(users, 'discordId');
-        const groupsByName = lodash.keyBy(groups, 'name');
-        const userGroups = matchedUserData.map((data) => ({
-            user: usersByDiscordId[data.discord.user.id]!,
-            groups: data.groups.map((name) => groupsByName[name]!),
-        }));
-
-        await replaceUserGroups(db, userGroups);
-
-        response.redirect(`/admin/lans/${lan.id}`);
-    });
-
     router.get('/events/:eventId', async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
@@ -170,11 +134,8 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         const data = AssignPointsData.parse(request.body);
 
-        let event: Event | undefined;
-        if (data.eventId) {
-            event = await getEvent(db, context.currentLan, data.eventId);
-            if (!event) throw new Error(`Event ${data.eventId} not found`);
-        }
+        const event = data.eventId && await getEvent(db, context.currentLan, data.eventId);
+        if (!event) throw new Error(`Event ${data.eventId} not found`);
 
         if (data.type === 'player') {
             const player = await getUser(db, context.currentLan, data.userId);
@@ -200,6 +161,32 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         response.redirect('/admin/points');
     });
+
+    router.get('/teams', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const groups = await getGroups(db);
+        const users = await getLanUsers(db, context.currentLan, groups);
+
+        response.render('admin/teams', { ...context, users });
+    });
+
+    router.post('/teams/randomise', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        // await updateGroups(db, discordClient, context.currentLan);
+
+        const groups = await getGroups(db);
+        const users = await getLanUsers(db, context.currentLan, groups);
+        const userTeams = randomiseTeams(context.currentLan.teams, groups, users);
+
+        for (const [user, team] of userTeams) {
+            user.team = team;
+        }
+        await updateTeams(db, context.currentLan, users);
+
+        response.redirect('/admin/teams');
+    });
+
 
     return router;
 }
