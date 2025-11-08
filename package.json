@@ -23,7 +23,8 @@
     "css:watch": "pnpm css:build --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "heroku-postbuild": "npm run build && mkdir  ./.cache && mv /app/.cache/puppeteer ./.cache"
+    "heroku-postbuild": "npm run build && mkdir  ./.cache && mv /app/.cache/puppeteer ./.cache",
+    "heroku:sync-groups": "heroku run --size=standard-2x sync-groups"
   },
   "devDependencies": {
     "@types/connect-pg-simple": "^7.0.3",
