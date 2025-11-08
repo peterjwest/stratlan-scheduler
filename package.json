@@ -21,7 +21,8 @@
     "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
     "css:watch": "pnpm css:build --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "heroku-postbuild": "npm run build && mkdir  ./.cache && mv /app/.cache/puppeteer ./.cache"
   },
   "devDependencies": {
     "@types/connect-pg-simple": "^7.0.3",
