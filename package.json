@@ -24,7 +24,7 @@
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "heroku-postbuild": "npm run build && mkdir  ./.cache && mv /app/.cache/puppeteer ./.cache",
-    "groups:sync": "tsx --env-file=.env syncGroups.ts",
+    "groups:sync": "tsx syncGroups.ts",
     "groups:sync:heroku": "heroku run --size=standard-2x sync-groups",
     "tsx": "tsx --env-file=.env"
   },
