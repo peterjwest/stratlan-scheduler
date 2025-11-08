@@ -1,11 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Client } from 'discord.js';
-import lodash from 'lodash';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
 import { formatScoreType, getTeam, UserError } from './util';
-import { randomiseTeams } from './teams';
+import { randomiseTeams, updateGroups } from './teams';
 import {
     getLanUsers,
     getUser,
@@ -173,8 +172,6 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
     router.post('/teams/randomise', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
-        // await updateGroups(db, discordClient, context.currentLan);
-
         const groups = await getGroups(db);
         const users = await getLanUsers(db, context.currentLan, groups);
         const userTeams = randomiseTeams(context.currentLan.teams, groups, users);
@@ -187,6 +184,13 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.redirect('/admin/teams');
     });
 
+    router.post('/teams/sync-groups', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        await updateGroups(db, discordClient, context.currentLan);
+
+        response.redirect('/admin/teams');
+    });
 
     return router;
 }
