@@ -1,7 +1,6 @@
 # TODO:
 
 Objectives:
-- Fix crash not in Discord server
 - Event start
   - Assign Discord roles
 - Stress testing
@@ -11,14 +10,12 @@ Objectives:
   - Prevent moving events off the edge of the schedule
 - Dashboard page
   - Fancy scores
-  - Show highest recent
+  - Show highest recent scores
 - Schedule
   - Warn about changing event after start???
     - Improve handling of existing timeslots
   - Create event
   - Delete event
-  - Schedule commands
-  - Discord integration / sync
   - Colour code by location
   - Clip events and minimum visual length
 - QR code setup
@@ -30,16 +27,17 @@ Objectives:
     - Users page ordered by score
     - User page with score listing
     - Pagination?
-  - Teams page
-    - Audit trail for team changes
 - Mobile
   - Fix tables on mobile view
 - Privacy policy
 - Cookie policy
-- Super admin
 
 ## LATER:
 
+- Super admin
+- Schedule
+  - Schedule commands
+  - Discord integration / sync
 - Achievements
   - CRUD
   - Monitor achievements
@@ -53,6 +51,8 @@ Objectives:
     - How to tell groups??
 - Scehdule
   - LTG integration
+- Teams page
+  - Audit trail for team changes
 
 https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?appid=440&key=12B147D46A513F406504BE202991C520&steamid=76561197961493121
 
