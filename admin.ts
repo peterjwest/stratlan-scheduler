@@ -8,6 +8,7 @@ import { randomiseTeams } from './teams';
 import {
     getLanUsers,
     getUser,
+    getUserWithLan,
     getMinimalUsers,
     getGroups,
     getEvent,
@@ -21,6 +22,7 @@ import {
     getLan,
     createLan,
     updateLan,
+    updateTeam,
     DatabaseClient,
 } from './database';
 import {
@@ -185,6 +187,21 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
             user.team = team;
         }
         await updateTeams(db, context.currentLan, users);
+
+        response.redirect('/admin/teams');
+    });
+
+    router.post('/teams/switch/:userId', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        const user = await getUserWithLan(db, context.currentLan,  Number(request.params.userId));
+        if (!user) throw new UserError('User not found');
+
+        console.log(user);
+        const teams = context.currentLan.teams;
+        const teamIndex = teams.findIndex((team) => team.id === user.team?.id);
+        const newTeam = teams[(teamIndex + teams.length + 1) % teams.length]!;
+        await updateTeam(db, context.currentLan, user, newTeam);
 
         response.redirect('/admin/teams');
     });

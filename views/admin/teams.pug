@@ -4,7 +4,7 @@ block body
     h2(class="text-2xl font-semibold mb-4") Manage teams
 
     div(class="flex mb-3 gap-2")
-        form(action=`/admin/teams/randomise` method="post" class="mr-3")
+        form(action="/admin/teams/randomise" method="post" class="mr-3")
             input(type="hidden" name="csrf" value=csrfToken)
             input(type="submit" name="submit" disabled=currentLan.isStarted value="Randomise" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
         each team of teams
@@ -24,7 +24,11 @@ block body
                     each group of listUser.groups
                         span(class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
                             =group.name
-                span(class="px-3 py-2 self-center")
+                span(class="px-3 py-2 self-center flex gap-2 items-center")
                     if listUser.team
-                        span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(listUser.team)}`)
-                            =listUser.team.name
+                        div
+                            span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(listUser.team)}`)
+                                =listUser.team.name
+                        form(action=`/admin/teams/switch/${listUser.id}` method="post")
+                            input(type="hidden" name="csrf" value=csrfToken)
+                            input(type="submit" name="submit" disabled=currentLan.isStarted value="Switch" class="py-1 px-2 rounded-md border border-border/80 bg-highlight")

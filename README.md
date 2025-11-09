@@ -28,8 +28,6 @@ Objectives:
     - Users page ordered by score
     - User page with score listing
     - Pagination?
-  - Team manage page
-    - Add change team button
 - Fix session storage for anonymous users (?)
 - Privacy policy
 - Cookie policy

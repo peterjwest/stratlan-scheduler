@@ -565,7 +565,14 @@ export async function getGroups(db: DatabaseClient): Promise<Group[]> {
     return db.query.Group.findMany();
 }
 
-export async function updateTeams(db: DatabaseClient, lan: Lan, users: UserExtended[]) {
+export async function updateTeam(db: DatabaseClient, lan: Lan, user: User, team: Team): Promise<void> {
+    await (
+        db.update(UserLan).set({ teamId: team.id })
+        .where(and(eq(UserLan.userId, user.id), eq(UserLan.lanId, lan.id)))
+    );
+}
+
+export async function updateTeams(db: DatabaseClient, lan: Lan, users: UserExtended[]): Promise<void> {
     const userIds = users.map((user) => user.id);
     const cases = users.map((user) => sql<number>`when ${UserLan.userId} = ${user.id} then ${user.team!.id}`);
     const setTeamId = sql.join([sql`cast((case`, ...cases, sql`end) as integer)`], sql.raw(' '));
