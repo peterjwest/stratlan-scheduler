@@ -25,7 +25,7 @@ export const SCORE_TYPE_NAMES = {
     'CommunityGame': 'Community game',
     'OneTimeCode': 'QR code',
     'Achievement': 'Steam achievement',
-    'IntroChallenge': 'Introductory challenge',
+    'IntroChallenge': 'Intro challenge',
 } as const satisfies { [Property in ScoreType]: string };
 
 export const INTRO_CHALLENGE_TYPES = ['Login', 'GameActivity', 'OneTimeCode'] as const;
