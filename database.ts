@@ -200,7 +200,9 @@ export async function updateUser(db: DatabaseClient, userId: number, data: Parti
 export async function updateRoles(db: DatabaseClient, user: User, roles: string[]) {
     await db.transaction(async (tx) => {
         await tx.delete(UserRole).where(eq(UserRole.userId, user.id));
-        await tx.insert(UserRole).values(roles.map((role) => ({ userId: user.id, role })));
+        if (roles.length > 0) {
+            await tx.insert(UserRole).values(roles.map((role) => ({ userId: user.id, role })));
+        }
     });
 }
 
