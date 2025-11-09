@@ -1,4 +1,6 @@
-import { Router, Request, Response } from 'express';
+import { promisify } from 'node:util';
+
+import { Router, Request, Response, RequestHandler } from 'express';
 import zod from 'zod';
 import { Client } from 'discord.js';
 import lodash from 'lodash';
@@ -10,7 +12,7 @@ import { getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDi
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
 import { DISCORD_RETURN_URL } from './constants';
 
-export default function (db: DatabaseClient, discordClient: Client) {
+export default function (db: DatabaseClient, discordClient: Client, expressSession: RequestHandler) {
     const router = Router();
 
     router.get('/login', async (request, response) => {
@@ -34,6 +36,8 @@ export default function (db: DatabaseClient, discordClient: Client) {
             accessToken,
         });
         await updateRoles(db, user, roles);
+
+        await promisify(expressSession)(request, response);
 
         await regenerateSession(request);
         request.session.userId = user.id;

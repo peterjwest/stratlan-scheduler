@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { csrfSync, CsrfSynchronisedProtection, CsrfTokenGenerator } from 'csrf-sync';
 
 export type Csrf = {
@@ -8,7 +7,11 @@ export type Csrf = {
 
 export default function getCsrf(): Csrf {
     const csrf = csrfSync({
-        getTokenFromRequest: (request: Request) => request.body.csrf,
+        getTokenFromRequest: (request) => request.body.csrf,
+        getTokenFromState: (request) => request.session?.csrfToken,
+        storeTokenInState: (request, token) => {
+            if (request.session) request.session.csrfToken = token;
+        },
     });
     return {
         protect: csrf.csrfSynchronisedProtection,

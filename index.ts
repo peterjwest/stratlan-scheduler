@@ -1,7 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
-import expressSession from 'express-session';
-import sessionStore from 'connect-pg-simple';
 import lodash from 'lodash';
 
 import { getContext } from './context';
@@ -29,16 +27,9 @@ import {
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
-import {
-    PORT,
-    HOST,
-    SECURE_COOKIE,
-    SESSION_SECRET,
-    DISCORD_TOKEN,
-    DISCORD_CLIENT_ID,
-    DATABASE_URL,
-} from './environment';
-import { COOKIE_MAX_AGE, DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './constants';
+import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
+import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './constants';
+import { getExpressSession, getConditionalSession } from './session';
 
 const csrf = getCsrf();
 
@@ -54,21 +45,16 @@ const app = express();
 
 app.use(cookieParser());
 
-const SessionStore = sessionStore(expressSession);
-app.use(expressSession({
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { httpOnly: true, secure: SECURE_COOKIE, maxAge: COOKIE_MAX_AGE },
-    store: new SessionStore({ conString: DATABASE_URL, tableName: 'Session' }),
-}));
+const expressSession = getExpressSession();
+
+app.use(getConditionalSession(expressSession));
 
 app.use(express.urlencoded());
 app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
-    const userId = request.session.userId;
+    const userId = request.session?.userId;
     const currentPath = getUrl(request.originalUrl).path;
     const currentUrl = request.originalUrl;
     const csrfToken = csrf.generateToken(request);
@@ -78,7 +64,7 @@ app.use(async (request, response, next) => {
     const isAdmin = await checkIsAdmin(db, userId);
     const currentLan = withLanStatus(await getCurrentUserLan(db, request, response, isAdmin, lans));
 
-    const user = request.session.userId ? await getUser(db, currentLan, request.session.userId) : undefined;
+    const user = userId ? await getUser(db, currentLan, userId) : undefined;
 
     if (user) {
         if (currentLan && !currentLan?.isEnded && !user.isEnrolled) {
@@ -102,7 +88,7 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.use('/auth', authRouter(db, discordClient));
+app.use('/auth', authRouter(db, discordClient, expressSession));
 
 /** Require current LAN for following routes */
 app.use(async (request, response, next) => {
