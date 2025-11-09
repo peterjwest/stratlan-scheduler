@@ -1,7 +1,7 @@
-extends ../layout.pug
+extends ../../layout.pug
 
 block body
-    form(action="/admin/assign" method="post")
+    form(action="/admin/points/assign" method="post")
         h2(class="text-2xl font-semibold mb-4") Assign points
 
         input(type="hidden" name="csrf" value=csrfToken)

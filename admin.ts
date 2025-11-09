@@ -43,7 +43,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
     router.get('/lans', async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
-        response.render('admin/lans/lans', {
+        response.render('admin/lans/list', {
             ...context,
             lans: await getLans(db),
         });
@@ -66,7 +66,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const lan = await getLan(db, Number(request.params.lanId));
         if (!lan) throw new UserError('Lan not found.');
 
-        response.render('admin/lans/lan', { ...context, lan });
+        response.render('admin/lans/edit', { ...context, lan });
     });
 
     router.post('/lans/:lanId', csrf.protect, async (request: Request, response: Response) => {
@@ -110,23 +110,23 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
         ];
-        response.render('admin/points', {
+        response.render('admin/points/list', {
             ...context,
             filters,
             assignedScores: await getScores(db, context.currentLan, query.type),
         });
     });
 
-    router.get('/assign', async (request: Request, response: Response) => {
+    router.get('/points/assign', async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
-        response.render('admin/assign', {
+        response.render('admin/points/create', {
             ...context,
             events: await getMinimalEvents(db, context.currentLan),
             users: await getMinimalUsers(db, context.currentLan),
         });
     });
 
-    router.post('/assign', csrf.protect, async (request: Request, response: Response) => {
+    router.post('/points/assign', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (context.currentLan?.isEnded) {
