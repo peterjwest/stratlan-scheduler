@@ -135,8 +135,8 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         const data = AssignPointsData.parse(request.body);
 
-        const event = data.eventId && await getEvent(db, context.currentLan, data.eventId);
-        if (!event) throw new Error(`Event ${data.eventId} not found`);
+        const event = data.eventId ? await getEvent(db, context.currentLan, data.eventId) : undefined;
+        if (data.eventId && !event) throw new Error(`Event ${data.eventId} not found`);
 
         if (data.type === 'player') {
             const player = await getUser(db, context.currentLan, data.userId);
