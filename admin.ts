@@ -4,7 +4,7 @@ import { Client } from 'discord.js';
 import { Csrf } from './csrf';
 import { getContext } from 'context';
 import { formatScoreType, getTeam, UserError } from './util';
-import { randomiseTeams, updateGroups } from './teams';
+import { randomiseTeams } from './teams';
 import {
     getLanUsers,
     getUser,
@@ -180,14 +180,6 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
             user.team = team;
         }
         await updateTeams(db, context.currentLan, users);
-
-        response.redirect('/admin/teams');
-    });
-
-    router.post('/teams/sync-groups', csrf.protect, async (request: Request, response: Response) => {
-        const context = getContext(request, 'LOGGED_IN');
-
-        await updateGroups(db, discordClient, context.currentLan);
 
         response.redirect('/admin/teams');
     });

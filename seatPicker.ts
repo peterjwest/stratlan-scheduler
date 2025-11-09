@@ -79,7 +79,7 @@ async function discordResumeSession(db: DatabaseClient, page: Page): Promise<boo
 export async function getSeatPickerData(db: DatabaseClient, lan: Lan): Promise<SeatPickerUser[]> {
     if (!lan.seatPickerCode) throw new Error('LAN has no seatPickerCode');
 
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
     const success = await discordResumeSession(db, page);

@@ -16,16 +16,13 @@
   "scripts": {
     "start": "tsx index.ts",
     "start:dev": "tsx --env-file=.env index.ts",
-    "build": "pnpm static:build && pnpm css:build && pnpm puppeteer:install",
-    "puppeteer:install": "puppeteer browsers install chrome",
+    "build": "pnpm static:build && pnpm css:build",
     "static:build": "rsync -a --exclude='style.css' public build/",
     "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
     "css:watch": "pnpm css:build --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "heroku-postbuild": "npm run build && mkdir  ./.cache && mv /app/.cache/puppeteer ./.cache",
-    "groups:sync": "tsx syncGroups.ts",
-    "groups:sync:heroku": "heroku run --size=standard-2x sync-groups",
+    "groups:update": "tsx --env-file=.env updateGroups.ts",
     "tsx": "tsx --env-file=.env"
   },
   "devDependencies": {
@@ -41,6 +38,7 @@
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.11",
+    "@types/pg": "^8.15.6",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "csrf-sync": "^4.2.1",

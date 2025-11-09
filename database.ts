@@ -1,3 +1,4 @@
+import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, SQL } from 'drizzle-orm';
@@ -38,7 +39,7 @@ import {
 import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls } from './util';
 import { ApplicationActivity } from './discordApi';
 
-export type DatabaseClient = NodePgDatabase<typeof schema>;
+export type DatabaseClient = NodePgDatabase<typeof schema> & { disconnect: () => Promise<void> };
 
 type UserData = {
     discordId: string,
@@ -49,8 +50,10 @@ type UserData = {
     seatPickerName?: string,
 };
 
-export function getDatabaseClient(postgresUrl: string): DatabaseClient {
-    return drizzle(postgresUrl, { schema });
+export function getDatabaseClient(postgresUrl: string, remote = false): DatabaseClient {
+    const client = new Pool({ connectionString: postgresUrl, ssl: remote ? { rejectUnauthorized: false }: false });
+    const db = drizzle(client, { schema });
+    return Object.assign(db, { disconnect: () => client.end() });
 }
 
 export async function getLanUsers(db: DatabaseClient, lan: LanWithTeams, groups: Group[]): Promise<UserExtendedWithGroups[]> {
