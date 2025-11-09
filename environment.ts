@@ -11,9 +11,9 @@ export const Environment = zod.object({
     DISCORD_GUILD_ID: zod.string(),
     STEAM_API_KEY: zod.string(),
     DATABASE_URL: zod.string(),
-    GROUP_SYNC_DATABASE_URL: zod.string().optional(),
-    SEATPICKER_DISCORD_USERNAME: zod.string(),
-    SEATPICKER_DISCORD_PASSWORD: zod.string(),
+    REMOTE_DATABASE_URL: zod.string().optional(),
+    SEATPICKER_DISCORD_USERNAME: zod.string().optional(),
+    SEATPICKER_DISCORD_PASSWORD: zod.string().optional(),
 });
 
 export const {
@@ -27,7 +27,7 @@ export const {
     DISCORD_GUILD_ID,
     STEAM_API_KEY,
     DATABASE_URL,
-    GROUP_SYNC_DATABASE_URL,
+    REMOTE_DATABASE_URL,
     SEATPICKER_DISCORD_USERNAME,
     SEATPICKER_DISCORD_PASSWORD,
 } = Environment.parse(process.env);

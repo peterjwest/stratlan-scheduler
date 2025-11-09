@@ -42,7 +42,7 @@ import { COOKIE_MAX_AGE, DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './cons
 
 const csrf = getCsrf();
 
-const db = await getDatabaseClient(DATABASE_URL);
+const db = await getDatabaseClient();
 
 await startScoringCommunityGames(db);
 

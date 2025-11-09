@@ -1,13 +1,11 @@
 import { getDatabaseClient, getCurrentLan } from './database';
 import { loginClient } from './discordApi';
-import { DISCORD_TOKEN, GROUP_SYNC_DATABASE_URL } from './environment';
+import { DISCORD_TOKEN } from './environment';
 import { updateGroups } from './teams';
 
-if (!GROUP_SYNC_DATABASE_URL) {
-    throw new Error('Env variable GROUP_SYNC_DATABASE_URL required')
-}
+const isRemote = process.argv[2] === '--remote';
 
-const db = await getDatabaseClient(GROUP_SYNC_DATABASE_URL, true);
+const db = await getDatabaseClient(isRemote);
 const discordClient = loginClient(DISCORD_TOKEN);
 const currentLan = await getCurrentLan(db);
 

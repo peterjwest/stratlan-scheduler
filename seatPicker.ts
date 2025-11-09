@@ -32,6 +32,10 @@ async function randomDelay(average: number) {
 }
 
 async function discordLogin(db: DatabaseClient, page: Page) {
+    if (!SEATPICKER_DISCORD_USERNAME || !SEATPICKER_DISCORD_PASSWORD) {
+        throw new Error('Env variables SEATPICKER_DISCORD_USERNAME and SEATPICKER_DISCORD_PASSWORD required');
+    }
+
     await page.goto(DISCORD_LOGIN_URL);
 
     await page.waitForSelector(

@@ -38,6 +38,7 @@ import {
 } from './constants';
 import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls } from './util';
 import { ApplicationActivity } from './discordApi';
+import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
 
 export type DatabaseClient = NodePgDatabase<typeof schema> & { disconnect: () => Promise<void> };
 
@@ -50,8 +51,14 @@ type UserData = {
     seatPickerName?: string,
 };
 
-export function getDatabaseClient(postgresUrl: string, remote = false): DatabaseClient {
-    const client = new Pool({ connectionString: postgresUrl, ssl: remote ? { rejectUnauthorized: false }: undefined });
+export function getDatabaseClient(isRemote = false): DatabaseClient {
+    let postgresUrl = DATABASE_URL;
+    if (isRemote) {
+        if (!REMOTE_DATABASE_URL) throw new Error('Env variable REMOTE_DATABASE_URL required');
+        postgresUrl = REMOTE_DATABASE_URL;
+    }
+
+    const client = new Pool({ connectionString: postgresUrl, ssl: isRemote ? { rejectUnauthorized: false }: undefined });
     const db = drizzle(client, { schema });
     return Object.assign(db, { disconnect: () => client.end() });
 }
