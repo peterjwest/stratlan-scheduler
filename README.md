@@ -1,13 +1,16 @@
 # TODO:
 
 Objectives:
+- Fix crash not in Discord server
+- Event start
+  - Assign Discord roles
+- Stress testing
+  - Indexes
 - Issues
   - Allow multiple games per event
   - Prevent moving events off the edge of the schedule
 - Dashboard page
-  - Score over time algorithm
   - Fancy scores
-  - Show latest scores
   - Show highest recent
 - Schedule
   - Warn about changing event after start???
