@@ -51,7 +51,7 @@ type UserData = {
 };
 
 export function getDatabaseClient(postgresUrl: string, remote = false): DatabaseClient {
-    const client = new Pool({ connectionString: postgresUrl, ssl: remote ? { rejectUnauthorized: false }: false });
+    const client = new Pool({ connectionString: postgresUrl, ssl: remote ? { rejectUnauthorized: false }: undefined });
     const db = drizzle(client, { schema });
     return Object.assign(db, { disconnect: () => client.end() });
 }
