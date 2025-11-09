@@ -36,7 +36,7 @@ import {
     INTRO_CHALLENGE_POINTS,
     MODERATOR_ROLES,
 } from './constants';
-import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls } from './util';
+import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls, formatName } from './util';
 import { ApplicationActivity } from './discordApi';
 import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
 
@@ -73,12 +73,15 @@ export async function getLanUsers(db: DatabaseClient, lan: LanWithTeams, groups:
     );
 
     const groupsById = lodash.keyBy(groups, 'id');
-    return data.map((item) => ({
+    return lodash.orderBy(data.map((item) => ({
         ...item.user,
         team: getTeam(lan, item.userLan!.teamId),
         isEnrolled: true,
-        groups: item.groupIds.filter((groupId) => groupId).map((groupId) => groupsById[groupId]!),
-    }));
+        groups: lodash.orderBy(
+            item.groupIds.filter((groupId) => groupId).map((groupId) => groupsById[groupId]!),
+            (group) => group.name.toLowerCase(),
+        ),
+    })), (user) => formatName(user).toLowerCase());
 }
 
 export async function getUserWithLan(

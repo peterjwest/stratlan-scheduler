@@ -2,7 +2,7 @@ import { promisify } from 'node:util';
 import { Request } from 'express';
 import lodash from 'lodash';
 
-import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended } from './schema';
+import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended, UserExtended } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -330,4 +330,11 @@ export function discordDataToUser(user: DiscordUser, member: DiscordGuildMember)
         discordNickname: member.nick || user.global_name,
         discordAvatarId: user.avatar,
     };
+}
+
+export function teamsWithCounts(teams: Team[], users: UserExtended[]) {
+    return teams.map((team) => ({
+        ...team,
+        count: lodash.sumBy(users, (user) => user.team?.id === team.id ? 1 : 0),
+    }));
 }

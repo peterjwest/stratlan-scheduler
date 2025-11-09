@@ -3,7 +3,7 @@ import { Client } from 'discord.js';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { formatScoreType, getTeam, UserError } from './util';
+import { formatScoreType, getTeam, UserError, teamsWithCounts} from './util';
 import { randomiseTeams } from './teams';
 import {
     getLanUsers,
@@ -165,12 +165,17 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const context = getContext(request, 'LOGGED_IN');
         const groups = await getGroups(db);
         const users = await getLanUsers(db, context.currentLan, groups);
+        const teams = teamsWithCounts(context.currentLan.teams, users);
 
-        response.render('admin/teams', { ...context, users });
+        response.render('admin/teams', { ...context, users, teams });
     });
 
     router.post('/teams/randomise', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
+
+        if (context.currentLan.isStarted) {
+            throw new UserError('Cannot randomise teams after LAN has started');
+        }
 
         const groups = await getGroups(db);
         const users = await getLanUsers(db, context.currentLan, groups);

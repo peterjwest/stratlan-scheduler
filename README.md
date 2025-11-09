@@ -1,6 +1,7 @@
 # TODO:
 
 Objectives:
+- Super admin
 - Issues
   - Allow multiple games per event
   - Prevent moving events off the edge of the schedule
@@ -28,8 +29,6 @@ Objectives:
     - User page with score listing
     - Pagination?
   - Team manage page
-    - Prevent randomisation after LAN start
-    - Show team counts
     - Add change team button
 - Fix session storage for anonymous users (?)
 - Privacy policy
