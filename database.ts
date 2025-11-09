@@ -145,6 +145,11 @@ export async function updateEvent(db: DatabaseClient, event: Event, data: EventD
     await db.update(Event).set(toNulls(data)).where(eq(Event.id, event.id));
 }
 
+export async function createEvent(db: DatabaseClient, lan: Lan, data: EventData) {
+    console.log({ ...toNulls(data), lanId: lan.id, isOfficial: true });
+    await db.insert(Event).values({ ...toNulls(data), lanId: lan.id, isOfficial: true });
+}
+
 export async function getUserByDiscordId(db: DatabaseClient, discordId: string): Promise<User | undefined> {
     return fromNulls(await db.query.User.findFirst({ where: eq(User.discordId, discordId) }));
 }

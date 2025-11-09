@@ -1,13 +1,13 @@
 extends layout.pug
 
 block body
-    div(class="flex-none lg:flex")
+    div(class="flex-none lg:flex relative")
         div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
             each hour of helpers.getScheduleHours()
                 div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
 
         each dayEvents of eventsByDay
-            div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 160px);")
+            div(class="flex-1 flex-grow min-h-[500px]" style="height: calc(100vh - 110px);")
                 div(class="flex h-full")
                     div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
                         each hour of helpers.getScheduleHours()
@@ -29,3 +29,7 @@ block body
                                                 if isAdmin
                                                     a(href=`/admin/events/${event.id}` class="w-8 absolute p-2 right-0 top-0 bg-highlight rounded-md")
                                                         img(src="/edit.svg")
+
+        if isAdmin
+            a(href="/admin/events/create" class="absolute px-4 py-2 bottom-3 right-4 bg-highlight text-2xl border border-highlight-accent rounded-full")
+                | +

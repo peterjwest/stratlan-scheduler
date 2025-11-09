@@ -14,7 +14,6 @@ Objectives:
 - Schedule
   - Warn about changing event after start???
     - Improve handling of existing timeslots
-  - Create event
   - Colour code by location
   - Clip events and minimum visual length
 - QR code setup

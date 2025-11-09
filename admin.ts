@@ -14,6 +14,7 @@ import {
     getEvent,
     getMinimalEvents,
     updateEvent,
+    createEvent,
     updateTeams,
     getGames,
     getScores,
@@ -76,6 +77,21 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         await updateLan(db, lan, data);
         response.redirect('/admin/lans');
+    });
+
+    router.get('/events/create', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const games = await getGames(db);
+
+        response.render('admin/events/create', { ...context, games });
+    });
+
+    router.post('/events/create', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const data = EventData.parse(request.body);
+
+        await createEvent(db, context.currentLan, data);
+        response.redirect('/schedule');
     });
 
     router.get('/events/:eventId', async (request: Request, response: Response) => {
