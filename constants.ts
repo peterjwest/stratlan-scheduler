@@ -6,7 +6,7 @@ import { HOST, DISCORD_CLIENT_ID } from './environment';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 
-export const MODERATOR_ROLES = ['Staff', 'Moderator'] as const;
+export const MODERATOR_ROLES = ['RVB Admin'] as const;
 
 export const TEAMS = ['Red', 'Blue'] as const;
 export type TeamName = typeof TEAMS[number];
