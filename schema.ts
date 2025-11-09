@@ -207,6 +207,7 @@ export type LanExtended = Lan & {
     isStarted: boolean,
     isEnded: boolean,
     isActive: boolean,
+    progress: number,
 };
 
 export const lanRelations = relations(Lan, ({ many }) => ({

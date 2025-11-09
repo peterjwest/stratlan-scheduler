@@ -114,14 +114,13 @@ app.use('/dashboard', async (request, response) => {
 
     const teamPoints: Array<{ team: Team, points: number }> = [];
     for (const team of context.currentLan.teams) {
-        teamPoints.push({ team, points: await getTeamPoints(db, context.currentLan, team) });
+        const points = context.currentLan.isStarted ? await getTeamPoints(db, context.currentLan, team) : 0;
+        teamPoints.push({ team, points });
     }
 
-    // TODO: Get progression
-    const lanProgress = 0.5;
     const maxPoints = lodash.maxBy(teamPoints, 'points')?.points;
     // TODO: Slowly animate max points on change
-    response.render('dashboard', { ...context, teamPoints, lanProgress, maxPoints });
+    response.render('dashboard', { ...context, teamPoints, maxPoints });
 });
 
 app.get('/schedule', async (request, response) => {

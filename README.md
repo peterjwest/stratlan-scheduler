@@ -1,7 +1,6 @@
 # TODO:
 
 Objectives:
-- Super admin
 - Issues
   - Allow multiple games per event
   - Prevent moving events off the edge of the schedule
@@ -12,7 +11,7 @@ Objectives:
   - Show highest recent
 - Schedule
   - Warn about changing event after start???
-    - Existing timeslots?
+    - Improve handling of existing timeslots
   - Create event
   - Delete event
   - Schedule commands
@@ -28,9 +27,13 @@ Objectives:
     - Users page ordered by score
     - User page with score listing
     - Pagination?
-- Fix session storage for anonymous users (?)
+  - Teams page
+    - Audit trail for team changes
+- Mobile
+  - Fix tables on mobile view
 - Privacy policy
 - Cookie policy
+- Super admin
 
 ## LATER:
 

@@ -13,6 +13,7 @@ import {
     getScheduleHours,
     getEventScheduleStyles,
     isUserError,
+    round,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 
@@ -32,6 +33,7 @@ const helpers = {
     getScheduleHours,
     getEventScheduleStyles,
     isUserError,
+    round,
 }
 
 export type Helpers = typeof helpers;

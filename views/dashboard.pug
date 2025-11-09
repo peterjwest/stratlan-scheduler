@@ -8,7 +8,11 @@ block body
                     div(class="relative w-full  border border-border/50" style="min-height: max(200px, calc(100vh - 320px));")
                         div(
                             class=`absolute bottom-0 w-full ${helpers.getTeamBackground(data.team)}`
-                            style=`height: ${100 * lanProgress * data.points / maxPoints}%;`
+                            style=`height: ${helpers.round(100 * currentLan.progress * data.points / maxPoints, 4)}%;`
                         )
+                            - const background = data.points > 0 ? helpers.getTeamBackground(data.team) : 'bg-highlight';
+                            div(class=`absolute top-[-16px] left-full pr-2 pl-4 py-1 ml-[2px] arrow-4 z-1 whitespace-nowrap ${background}`)
+                                =data.points
+                                span(class="hidden lg:inline")=' points'
 
                     img(class="w-full py-4 px-[10%]" src=data.team.name === "Red" ? "/red.png" : "/blue.png")

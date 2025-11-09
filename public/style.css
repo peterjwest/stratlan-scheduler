@@ -82,6 +82,16 @@ input[disabled] {
     background-image: var(--gradient-blue);
 }
 
+@utility arrow-* {
+    corner-shape: bevel round round bevel;
+    border-radius:
+        calc(var(--spacing) * --value(integer) * 2)
+        calc(var(--spacing) * --value(integer))
+        calc(var(--spacing) * --value(integer))
+        calc(var(--spacing) * --value(integer) * 2)
+    ;
+}
+
 @keyframes gradient {
     0% {
         background-position-y: 0 0;

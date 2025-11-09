@@ -245,12 +245,20 @@ export function isLanEnded(lan: Lan) {
     return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
 }
 
+export function getLanProgress(lan: Lan) {
+    if (!lan.eventStart || !isLanStarted(lan)) return 0;
+    if (!lan.eventEnd) return 0.5;
+    if (isLanEnded(lan)) return 1;
+    return (Date.now() - lan.eventStart.valueOf()) / (lan.eventEnd.valueOf() - lan.eventStart.valueOf());
+}
+
 export function withLanStatus(lan?: LanWithTeams): LanExtended | undefined {
     if (!lan) return undefined;
     const isStarted = Boolean(lan && isLanStarted(lan));
     const isEnded = Boolean(!lan || isLanEnded(lan));
     const isActive = isStarted && !isEnded;
-    return { ...lan, isStarted, isEnded, isActive };
+    const progress = getLanProgress(lan);
+    return { ...lan, isStarted, isEnded, isActive, progress };
 }
 
 export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {
@@ -337,4 +345,9 @@ export function teamsWithCounts(teams: Team[], users: UserExtended[]) {
         ...team,
         count: lodash.sumBy(users, (user) => user.team?.id === team.id ? 1 : 0),
     }));
+}
+
+export function round(value: number, decimalPlaces: number) {
+    const multiplier = 10 ** decimalPlaces;
+    return Math.round(value * (10 ** decimalPlaces)) / multiplier;
 }

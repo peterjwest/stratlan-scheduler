@@ -3,12 +3,12 @@ extends ../layout.pug
 block body
     h2(class="text-2xl font-semibold mb-4") Manage teams
 
-    div(class="flex mb-3 gap-2")
-        form(action="/admin/teams/randomise" method="post" class="mr-3")
+    div(class="flex mb-3 gap-2 items-center")
+        form(action="/admin/teams/randomise" method="post")
             input(type="hidden" name="csrf" value=csrfToken)
             input(type="submit" name="submit" disabled=currentLan.isStarted value="Randomise" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
         each team of teams
-            div(class=`py-1.5 px-3 rounded-lg ${helpers.getTeamBackground(team)}`)
+            div(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(team)}`)
                 =`${team.name}: ${team.count}`
 
     div(class="grid grid-cols-[repeat(3,max)]")
@@ -31,4 +31,4 @@ block body
                                 =listUser.team.name
                         form(action=`/admin/teams/switch/${listUser.id}` method="post")
                             input(type="hidden" name="csrf" value=csrfToken)
-                            input(type="submit" name="submit" disabled=currentLan.isStarted value="Switch" class="py-1 px-2 rounded-md border border-border/80 bg-highlight")
+                            input(type="submit" name="submit" vaalue="Switch" class="py-1 px-2 rounded-md border border-border/80 bg-highlight")
