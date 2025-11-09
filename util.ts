@@ -148,13 +148,15 @@ export function getTimeslotTimes(event: Event, timeslots: number): Date[] {
     return timeslotTimes;
 }
 
-export function groupEvents(events: Event[]): Event[][][] {
-    if (events.length === 0) return [];
+export function groupEvents(events: Event[], isAdmin: boolean): Event[][][] {
+    const filteredEvents = isAdmin ? events : events.filter((event) => !event.isCancelled);
+
+    if (filteredEvents.length === 0) return [];
 
     let groups = [];
-    let groupEnd = getEventEnd(events[0]!);
+    let groupEnd = getEventEnd(filteredEvents[0]!);
     let columns: Event[][] = [];
-    for (const event of events) {
+    for (const event of filteredEvents) {
         if (event.startTime >= groupEnd) {
             groups.push(columns);
             columns = [];

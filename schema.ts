@@ -159,6 +159,7 @@ export const Event = pgTable('Event', {
     startTime: timestamp({ withTimezone: true }).notNull(),
     duration: integer().notNull(),
     isOfficial: boolean().notNull(),
+    isCancelled: boolean().notNull().default(false),
     gameId: integer().references(() => Game.id),
     points: integer().notNull().default(0),
     timeslotCount: integer().notNull().default(0),

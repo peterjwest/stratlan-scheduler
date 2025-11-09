@@ -37,18 +37,18 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
     let erroneousTimeslots: EventTimeslot[] = [];
     let currentIndex = 0;
     for (const timeslotTime of timeslotTimes) {
-        while (event.timeslots[currentIndex]?.time < timeslotTime) {
-            erroneousTimeslots.push(event.timeslots[currentIndex]);
+        while (event.timeslots[currentIndex]!?.time < timeslotTime) {
+            erroneousTimeslots.push(event.timeslots[currentIndex]!);
             currentIndex++;
         }
-        if (event.timeslots[currentIndex] && datesEqual(event.timeslots[currentIndex].time, timeslotTime)) {
+        if (event.timeslots[currentIndex] && datesEqual(event.timeslots[currentIndex]!.time, timeslotTime)) {
             currentIndex++;
         } else {
             missingTimeslots.push(timeslotTime);
         }
     }
     while (currentIndex < event.timeslots.length) {
-        erroneousTimeslots.push(event.timeslots[currentIndex]);
+        erroneousTimeslots.push(event.timeslots[currentIndex]!);
         currentIndex++;
     }
 
@@ -93,7 +93,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                         const total = sumTimeslotActivities(timeslot, activities);
 
                         if (total > EVENT_TIMESLOT_MINUTES * EVENT_TIMESLOT_THRESHOLD) {
-                            const { teamId, userId } = activities[0];
+                            const { teamId, userId } = activities[0]!;
                             await tx.insert(Score).values({
                                 lanId: currentLan.id,
                                 teamId: teamId,

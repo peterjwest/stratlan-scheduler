@@ -53,6 +53,7 @@ export const EventData = zod.object({
     duration: integerType,
     gameId: integerTypeOptional,
     points: integerType,
+    isCancelled: zod.union([zod.literal('on'), zod.literal('')]).optional().transform((value) => value === 'on'),
 });
 export type EventData = zod.infer<typeof EventData>;
 

@@ -482,6 +482,7 @@ export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan)
     return fromNulls(await db.query.Event.findMany({
         where: and(
             eq(Event.lanId, lan.id),
+            eq(Event.isCancelled, false),
             isNotNull(Event.gameId),
             gt(Event.points, sql`0`),
             gt(sql`NOW()`, Event.startTime),

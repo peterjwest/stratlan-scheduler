@@ -17,12 +17,13 @@ block body
                         div(class="border-r border-b border-border/40 flex-grow flex flex-col relative")
                             each hour of helpers.getScheduleHours()
                                 div(class="flex-1 flex-grow border-t border-border/40")
-                            each group of helpers.groupEvents(dayEvents.events)
+                            each group of helpers.groupEvents(dayEvents.events, isAdmin)
                                 each [column, index] of group.map((column, index) => [column, index])
                                     each event of column
                                         div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
                                             - const marginRight = index === group.length - 1 ? 'mr-1' : 'mr-0';
-                                            div(class=`relative flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden`)
+                                            - const opacity = event.isCancelled ? 'opacity-50' : 'opacity-100';
+                                            div(class=`relative flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden ${opacity}`)
                                                 div(class="text-sm")= event.name
                                                 div(class="text-xs")= helpers.formatTime(event.startTime)
                                                 if isAdmin

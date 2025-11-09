@@ -344,6 +344,13 @@
       "when": 1762478784952,
       "tag": "0048_fix_user_lan_unqiue",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1762716035093,
+      "tag": "0049_cancelled_events",
+      "breakpoints": true
     }
   ]
 }
