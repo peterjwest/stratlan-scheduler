@@ -77,6 +77,10 @@ export async function getGuildRoles(discordClient: Client, guildId: string) {
     return lodash.keyBy(roles, 'id');
 }
 
+export async function getGuild(discordClient: Client, guildId: string) {
+    return zod.object({ name: zod.string() }).parse(await discordClient.rest.get(Routes.guild(guildId)));
+}
+
 export function mapRoleIds(roles: { [key: string]: Role }, roleIds: string[]) {
     return roleIds.map((roleId) => roles[roleId]!.name);
 }
