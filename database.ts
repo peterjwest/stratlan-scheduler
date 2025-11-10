@@ -146,7 +146,6 @@ export async function updateEvent(db: DatabaseClient, event: Event, data: EventD
 }
 
 export async function createEvent(db: DatabaseClient, lan: Lan, data: EventData) {
-    console.log({ ...toNulls(data), lanId: lan.id, isOfficial: true });
     await db.insert(Event).values({ ...toNulls(data), lanId: lan.id, isOfficial: true });
 }
 

@@ -213,7 +213,6 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const user = await getUserWithLan(db, context.currentLan,  Number(request.params.userId));
         if (!user) throw new UserError('User not found');
 
-        console.log(user);
         const teams = context.currentLan.teams;
         const teamIndex = teams.findIndex((team) => team.id === user.team?.id);
         const newTeam = teams[(teamIndex + teams.length + 1) % teams.length]!;
