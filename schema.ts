@@ -117,8 +117,10 @@ export const Score = pgTable('Score', {
     reason: varchar({ length: 256 }),
     eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),
+    hiddenCodeId: integer().references(() => HiddenCode.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 }, (table) => [
+    // TODO: More constraints
     check(
         "Team_teamId_or_userId",
         sql`(${table.teamId} IS NOT NULL AND ${table.userId} IS NULL) OR (${table.teamId} IS NULL AND ${table.userId} IS NOT NULL)`,
@@ -267,6 +269,19 @@ export const Cache = pgTable('Cache', {
 });
 export type Cache = NullToUndefined<typeof Cache.$inferSelect>;
 
+export const HiddenCode = pgTable('HiddenCode', {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    number: integer().notNull(),
+    name: varchar().notNull().unique(),
+    lanId: integer().references(() => Lan.id).notNull(),
+    code: varchar().notNull(),
+}, (table) => [
+    unique('HiddenCode_number_and_lan_unique').on(table.number, table.lanId),
+    unique('HiddenCode_code_and_lan_unique').on(table.code, table.lanId),
+]);
+export type HiddenCode = NullToUndefined<typeof HiddenCode.$inferSelect>;
+export type HiddenCodeExtended = HiddenCode & { url: string };
+
 export default {
     User,
     userRelations,
@@ -293,4 +308,5 @@ export default {
     GameIdentifier,
     IntroChallenge,
     Cache,
+    HiddenCode,
 };

@@ -5,6 +5,7 @@ Objectives:
   - Assign Discord roles
 - Stress testing
   - Indexes
+  - Cache assets
 - Issues
   - Allow multiple games per event
   - Prevent moving events off the edge of the schedule
@@ -16,10 +17,8 @@ Objectives:
     - Improve handling of existing timeslots
   - Colour code by location
   - Clip events and minimum visual length
-- QR code setup
-  - Set event optional
-  - Assign points
-  - Print page
+- Show player scores
+  - Show recent score animation
 - Admin
   - Scores page
     - Users page ordered by score

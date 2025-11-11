@@ -243,3 +243,71 @@ datetimes.forEach((datetime) => {
         input.value = null;
     });
 });
+
+const hiddenCodes = Array.from(document.querySelectorAll('[data-hidden-code]'));
+hiddenCodes.forEach((element) => {
+    element.classList.add('hidden');
+    new QRCode(element, {
+        text: element.dataset.hiddenCode,
+        width: 512,
+        height: 512,
+        colorDark : '#000000',
+        colorLight : '#ffffff',
+        correctLevel : QRCode.CorrectLevel.H
+    });
+    element.title = '';
+    setTimeout(() => {
+        element.classList.remove('hidden');
+    }, 10);
+});
+
+const printButtons = Array.from(document.querySelectorAll('[data-print-button]'));
+printButtons.forEach((printButton) => {
+    printButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.print();
+    });
+});
+
+const printSelect = document.querySelector('[data-print-select]');
+if (printSelect) {
+    const codeCheckboxes = Array.from(printSelect.querySelectorAll('[data-print-select-checkbox]'));
+    const selectAllCheckbox = printSelect.querySelector('[data-print-select-all-checkbox]');
+    const codes = Array.from(document.querySelectorAll('[data-print-code]'));
+
+    const printButton = printSelect.querySelector('[data-print-button]');
+    const selectedCodeCount = printSelect.querySelector('[data-print-select-count]');
+    const selectedCodes = {};
+
+    function updatePrintSelectCheckbox(checkbox) {
+        selectedCodes[checkbox.value] = checkbox.checked;
+        const count = Object.values(selectedCodes).filter((checked) => checked).length
+        selectedCodeCount.textContent = `(${count})`;
+        printButton.disabled = count === 0;
+        selectAllCheckbox.checked = count === codeCheckboxes.length;
+
+        const code = codes.find((code) => code.dataset.printCode === checkbox.value);
+        code.classList.toggle('hidden', !checkbox.checked);
+    }
+
+    codeCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', () => updatePrintSelectCheckbox(checkbox));
+    });
+
+    setTimeout(() => codeCheckboxes.forEach(updatePrintSelectCheckbox), 100);
+
+    selectAllCheckbox.addEventListener('change', () => {
+        codeCheckboxes.forEach((checkbox) => {
+            checkbox.checked = selectAllCheckbox.checked;
+            selectedCodes[checkbox.value] = selectAllCheckbox.checked;
+        });
+
+        const count = selectAllCheckbox.checked ? codeCheckboxes.length : 0;
+        selectedCodeCount.textContent = `(${count})`;
+        printButton.disabled = count === 0;
+
+        codes.forEach((code) => {
+            code.classList.toggle('hidden', !selectAllCheckbox.checked);
+        });
+    });
+}

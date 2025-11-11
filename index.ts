@@ -3,7 +3,16 @@ import cookieParser from 'cookie-parser';
 import lodash from 'lodash';
 
 import { getContext } from './context';
-import { splitByDay, getLanDays, getUrl, isUserError, withLanStatus } from './util';
+import {
+    splitByDay,
+    getLanDays,
+    getUrl,
+    isUserError,
+    withLanStatus,
+    absoluteUrl,
+    userIntroCode,
+    UserError,
+} from './util';
 import setupCommands from './commands';
 import { Team } from './schema';
 import adminRouter from './admin';
@@ -24,11 +33,13 @@ import {
     getOrCreateIntroChallenge,
     checkIsEligible,
     getOrCreateUserLan,
+    getHiddenCodeByCode,
+    getOrCreateHiddenCodeScore,
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
 import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
-import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS } from './constants';
+import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS, HIDDEN_CODE_POINTS } from './constants';
 import { getExpressSession, getConditionalSession } from './session';
 
 const csrf = getCsrf();
@@ -105,6 +116,7 @@ app.get('/', async (request, response) => {
         ...context,
         points: context.user ? await getUserPoints(db, context.currentLan, context.user) : 0,
         constants: { INTRO_CHALLENGE_POINTS },
+        hiddenCode: context.user ? absoluteUrl(`/intro/code/${userIntroCode(context.user)}`) : undefined,
         introChallenges: await getIntroChallenges(db, context.currentLan, context.user),
     });
 });
@@ -140,11 +152,34 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.get('/claim/:challengeId', async (request, response) => {
+app.get('/intro/claim/:challengeId', async (request, response) => {
     const context = getContext(request, 'LOGGED_IN');
     await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
     response.redirect('/');
 });
+
+app.get('/intro/code/:userCode', async (request, response) => {
+    const context = getContext(request, 'LOGGED_IN');
+    if (userIntroCode(context.user) === request.params.userCode) {
+        await getOrCreateIntroChallenge(db, 'HiddenCode', context.currentLan, context.user);
+    }
+    response.redirect('/');
+});
+
+app.get('/code/:hiddenCode', async (request, response) => {
+    const context = getContext(request, 'LOGGED_IN');
+    const code = await getHiddenCodeByCode(db, context.currentLan, request.params.hiddenCode);
+    if (!code) throw new UserError('Not a valid code, sorry!');
+
+    await getOrCreateHiddenCodeScore(db, context.user, code);
+
+    response.render('code', {
+        ...context,
+        points: HIDDEN_CODE_POINTS,
+        code,
+    });
+});
+
 
 app.use('/steam', steamRouter(db));
 app.use('/admin', adminRouter(db, csrf, discordClient));

@@ -16,27 +16,29 @@ export const TEAM_BACKGROUND_CLASSES = {
     'Blue': 'bg-team-blue',
 } as const satisfies { [Property in TeamName]: string };
 
-export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'OneTimeCode', 'Achievement', 'IntroChallenge'] as const;
+export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'HiddenCode', 'Achievement', 'IntroChallenge'] as const;
 export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
 
 export const SCORE_TYPE_NAMES = {
     'Awarded': 'Awarded',
     'CommunityGame': 'Community game',
-    'OneTimeCode': 'QR code',
+    'HiddenCode': 'Hidden code',
     'Achievement': 'Steam achievement',
     'IntroChallenge': 'Intro challenge',
 } as const satisfies { [Property in ScoreType]: string };
 
-export const INTRO_CHALLENGE_TYPES = ['Login', 'GameActivity', 'OneTimeCode'] as const;
+export const INTRO_CHALLENGE_TYPES = ['Login', 'GameActivity', 'HiddenCode'] as const;
 export const IntroChallengeType = zod.enum(INTRO_CHALLENGE_TYPES);
 export type IntroChallengeType = typeof INTRO_CHALLENGE_TYPES[number];
 
 export const INTRO_CHALLENGE_POINTS = {
     'Login': 50,
     'GameActivity': 50,
-    'OneTimeCode': 50,
+    'HiddenCode': 50,
 } as const satisfies { [Property in IntroChallengeType]: number };
+
+export const HIDDEN_CODE_POINTS = 50;
 
 export const DISCORD_RETURN_URL = `${HOST}/auth/login`;
 export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({

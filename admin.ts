@@ -24,6 +24,10 @@ import {
     createLan,
     updateLan,
     updateTeam,
+    getHiddenCodes,
+    getHiddenCode,
+    createHiddenCode,
+    updateHiddenCode,
     DatabaseClient,
 } from './database';
 import {
@@ -31,6 +35,7 @@ import {
     EventData,
     PointsQuery,
     AssignPointsData,
+    HiddenCodeData,
 } from './validation';
 
 export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
@@ -125,6 +130,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
             { name: formatScoreType('Awarded'), url: '/admin/points?type=Awarded' },
             { name: formatScoreType('CommunityGame'), url: '/admin/points?type=CommunityGame' },
             { name: formatScoreType('IntroChallenge'), url: '/admin/points?type=IntroChallenge' },
+            { name: formatScoreType('HiddenCode'), url: '/admin/points?type=HiddenCode' },
         ];
         response.render('admin/points/list', {
             ...context,
@@ -219,6 +225,45 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         await updateTeam(db, context.currentLan, user, newTeam);
 
         response.redirect('/admin/teams');
+    });
+
+    router.get('/codes', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const hiddenCodes = await getHiddenCodes(db, context.currentLan);
+
+        response.render('admin/codes/list', { ...context, hiddenCodes });
+    });
+
+    router.get('/codes/create', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+
+        response.render('admin/codes/create', context);
+    });
+
+    router.post('/codes/create', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const data = HiddenCodeData.parse(request.body);
+
+        await createHiddenCode(db, context.currentLan, data);
+        response.redirect('/admin/codes');
+    });
+
+    router.get('/codes/:codeId', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
+        if (!code) throw new UserError('Hidden code not found.');
+
+        response.render('admin/codes/edit', { ...context, code });
+    });
+
+    router.post('/codes/:codeId', csrf.protect, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const data = HiddenCodeData.parse(request.body);
+        const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
+        if (!code) throw new UserError('Hidden code not found.');
+
+        await updateHiddenCode(db, context.currentLan, code, data);
+        response.redirect('/admin/codes');
     });
 
     return router;

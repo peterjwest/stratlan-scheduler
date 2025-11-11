@@ -57,6 +57,11 @@ export const EventData = zod.object({
 });
 export type EventData = zod.infer<typeof EventData>;
 
+export const HiddenCodeData = zod.object({
+    name: zod.string(),
+});
+export type HiddenCodeData = zod.infer<typeof HiddenCodeData>;
+
 export const BaseAssignPoints = zod.object({
     points: integerType,
     reason: zod.string(),

@@ -1,6 +1,8 @@
 import { promisify } from 'node:util';
+import crypto from 'node:crypto';
 import { Request } from 'express';
 import lodash from 'lodash';
+import md5 from 'md5';
 
 import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended, UserExtended } from './schema';
 import {
@@ -12,12 +14,17 @@ import {
     SCORE_TYPE_NAMES,
     ScoreType,
 } from './constants';
+import { HOST } from './environment';
 import { DiscordUser, DiscordGuildMember } from './discordApi';
 
 type DayEvents = {
     day: string;
     events: Event[];
 }
+
+const CODE_CHARACTER_SET = [...getRange('a', 'z'), ...getRange('A', 'Z'), ...getRange('0', '9')];
+
+const RANDOM_RANGE = 2 ** 16;
 
 export type Required<Type> = {
   [Key in keyof Type]-?: Type[Key];
@@ -352,4 +359,22 @@ export function teamsWithCounts(teams: Team[], users: UserExtended[]) {
 export function round(value: number, decimalPlaces: number) {
     const multiplier = 10 ** decimalPlaces;
     return Math.round(value * (10 ** decimalPlaces)) / multiplier;
+}
+
+export function absoluteUrl(relativeUrl: string) {
+    return `${HOST}${relativeUrl}`;
+}
+
+export function userIntroCode(user: User) {
+    return md5(user.discordId).slice(0, 10)
+}
+
+function getRange(start: string, end: string) {
+    return lodash.range(start.charCodeAt(0), end.charCodeAt(0) + 1).map((code) => String.fromCharCode(code));
+}
+
+export function randomCode() {
+    return Array.from(crypto.getRandomValues(new Uint16Array(10))).map((value) => {
+        return CODE_CHARACTER_SET[Math.floor(CODE_CHARACTER_SET.length * value / RANDOM_RANGE)]!
+    }).join('');
 }

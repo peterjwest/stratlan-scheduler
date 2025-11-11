@@ -1,0 +1,33 @@
+extends ../../layout.pug
+
+block body
+    h2(class="text-2xl font-semibold mb-4") Manage hidden codes
+
+    div(data-print-select)
+        div(class="grid grid-cols-[repeat(3,max-content)]")
+            div(class="grid grid-cols-subgrid col-span-3 font-bold")
+                label(class="p-3 cursor-pointer")
+                    input(name="code" type="checkbox" value='all' class="block w-4 h-4" data-print-select-all-checkbox)
+                span(class="px-3 py-2 self-center") Number
+                span(class="px-3 py-2 self-center") Name
+
+            each code of hiddenCodes
+                label(class="p-3 cursor-pointer")
+                    input(name="code" type="checkbox" value=code.id class="block w-4 h-4" data-print-select-checkbox)
+                a(href=`/admin/codes/${code.id}` class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
+                    span(class="px-3 py-2 self-center")=code.number
+                    span(class="px-3 py-2 self-center")=code.name
+
+        div(class="flex gap-2")
+            a(href="/admin/codes/create", class="inline-block mt-3 py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight")
+                | Create hidden code
+            button(data-print-button disabled class="inline-block mt-3 py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight")
+                =`Print selected `
+                span(data-print-select-count) (0)
+
+block print
+    div(class="flex flex-wrap")
+        each code of hiddenCodes
+            div(class="px-14 pt-11" data-print-code=code.id)
+                div(class="h-70 w-70" data-hidden-code=code.url)
+                p(class="text-center my-2 text-black text-lg")=`#${code.number}`

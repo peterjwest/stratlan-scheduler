@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull } from 'drizzle-orm';
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, count, max } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import schema, {
@@ -25,8 +25,10 @@ import schema, {
     GameActivity,
     GameActivityWithTeam,
     IntroChallenge,
+    HiddenCode,
+    HiddenCodeExtended,
 } from './schema';
-import { LanData, EventData } from './validation';
+import { LanData, EventData, HiddenCodeData } from './validation';
 import {
     TeamName,
     ScoreType,
@@ -35,8 +37,19 @@ import {
     INTRO_CHALLENGE_TYPES,
     INTRO_CHALLENGE_POINTS,
     MODERATOR_ROLES,
+    HIDDEN_CODE_POINTS,
 } from './constants';
-import { getTimeslotEnd, addDays, cacheCall, getTeam, fromNulls, toNulls, formatName } from './util';
+import {
+    getTimeslotEnd,
+    addDays,
+    cacheCall,
+    getTeam,
+    fromNulls,
+    toNulls,
+    formatName,
+    absoluteUrl,
+    randomCode,
+} from './util';
 import { ApplicationActivity } from './discordApi';
 import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
 
@@ -286,6 +299,21 @@ export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: Sco
             user: item.user && item.user,
         }
     });
+}
+
+export async function getOrCreateHiddenCodeScore(db: DatabaseClient, user: User, code: HiddenCode): Promise<Score> {
+    const score = fromNulls(await db.query.Score.findFirst({
+        where: and(eq(Score.userId, user.id), eq(Score.hiddenCodeId, code.id)),
+    }));
+    if (score) return score;
+
+    return fromNulls((await db.insert(Score).values({
+        type: 'HiddenCode',
+        userId: user.id,
+        lanId: code.lanId,
+        hiddenCodeId: code.id,
+        points: HIDDEN_CODE_POINTS,
+    }).returning())[0]!);
 }
 
 export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
@@ -587,4 +615,38 @@ export async function updateTeams(db: DatabaseClient, lan: Lan, users: UserExten
         db.update(UserLan).set({ teamId: setTeamId })
         .where(and(inArray(UserLan.userId, userIds), eq(UserLan.lanId, lan.id)))
     );
+}
+
+export async function getHiddenCodes(db: DatabaseClient, lan: Lan) {
+    const data = fromNulls(await db.query.HiddenCode.findMany({
+        where: eq(HiddenCode.lanId, lan.id),
+        orderBy: [HiddenCode.number],
+    }));
+    return data.map((item) => ({ ...item, url: absoluteUrl(`/code/${item.code}`) }));
+}
+
+export async function getHiddenCode(db: DatabaseClient, lan: Lan, hiddenCodeId: number): Promise<HiddenCodeExtended | undefined> {
+    const data = fromNulls(await db.query.HiddenCode.findFirst({
+        where: and(eq(HiddenCode.id, hiddenCodeId), eq(HiddenCode.lanId, lan.id)),
+    }));
+    return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
+}
+
+export async function getHiddenCodeByCode(db: DatabaseClient, lan: Lan, hiddenCode: string): Promise<HiddenCodeExtended | undefined> {
+    const data = fromNulls(await db.query.HiddenCode.findFirst({
+        where: and(eq(HiddenCode.code, hiddenCode), eq(HiddenCode.lanId, lan.id)),
+    }));
+    return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
+}
+
+
+export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: HiddenCodeData) {
+    await db.transaction(async (tx) => {
+        const maxNumber = (await tx.select({ value: max(HiddenCode.number) }).from(HiddenCode).where(eq(HiddenCode.lanId, lan.id)))[0]?.value || 0;
+        await tx.insert(HiddenCode).values({ ...toNulls(data), lanId: lan.id, number: maxNumber + 1, code: randomCode() });
+    });
+}
+
+export async function updateHiddenCode(db: DatabaseClient, lan: Lan, code: HiddenCode, data: HiddenCodeData) {
+    await db.update(HiddenCode).set(toNulls(data)).where(eq(HiddenCode.id, code.id));
 }

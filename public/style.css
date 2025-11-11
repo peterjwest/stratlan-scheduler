@@ -17,11 +17,11 @@ input {
   color-scheme: dark;
 }
 
-input[type=submit], input[type=reset], button {
+input[type=submit], input[type=reset], input[type=checkbox], button {
     cursor: pointer;
 }
 
-input[disabled] {
+input[disabled], button[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
 }
@@ -99,4 +99,9 @@ input[disabled] {
     100% {
         background-position: 100% 100%;
     }
+}
+
+@page {
+   margin: 0;
+   size: A4;
 }
