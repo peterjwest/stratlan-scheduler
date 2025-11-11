@@ -11,7 +11,7 @@ block body
             div(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(team)}`)
                 =`${team.name}: ${team.count}`
 
-    div(class="grid grid-cols-[repeat(3,max)]")
+    div(class="grid grid-cols-[repeat(3,max-content)]")
         div(class="grid grid-cols-subgrid col-span-3 font-bold")
             span(class="px-3 py-2 self-center") Name
             span(class="px-3 py-2 self-center") Groups
