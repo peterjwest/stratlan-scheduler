@@ -41,12 +41,6 @@ import {
 export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
     const router = Router();
 
-    router.use((request: Request, response: Response, next: NextFunction) => {
-        const context = getContext(request, 'LOGGED_IN');
-        if (!context.isAdmin) return response.render('404', context);
-        next();
-    });
-
     router.get('/lans', async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/list', {
