@@ -145,21 +145,11 @@ app.get('/schedule', async (request, response) => {
     });
 });
 
-/** Require login for following routes */
-app.use(async (request, response, next) => {
-    const context = getContext(request, 'WITH_LAN');
-    if (!context.user) return response.render('404', context);
-    next();
-});
-
-app.get('/intro/claim/:challengeId', async (request, response) => {
-    const context = getContext(request, 'LOGGED_IN');
-    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
-    response.redirect('/');
-});
-
 app.get('/intro/code/:userCode', async (request, response) => {
-    const context = getContext(request, 'LOGGED_IN');
+    const context = getContext(request, 'WITH_LAN');
+    console.log("HELLO");
+    if (!context.user) return response.render('403', context);
+
     if (userIntroCode(context.user) === request.params.userCode) {
         await getOrCreateIntroChallenge(db, 'HiddenCode', context.currentLan, context.user);
     }
@@ -167,7 +157,9 @@ app.get('/intro/code/:userCode', async (request, response) => {
 });
 
 app.get('/code/:hiddenCode', async (request, response) => {
-    const context = getContext(request, 'LOGGED_IN');
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.render('403', context);
+
     const code = await getHiddenCodeByCode(db, context.currentLan, request.params.hiddenCode);
     if (!code) throw new UserError('Not a valid code, sorry!');
 
@@ -180,6 +172,20 @@ app.get('/code/:hiddenCode', async (request, response) => {
     });
 });
 
+app.get('/intro/claim/:challengeId', async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.render('403', context);
+
+    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
+    response.redirect('/');
+});
+
+/** Require login for following routes */
+app.use(async (request, response, next) => {
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.render('404', context);
+    next();
+});
 
 app.use('/steam', steamRouter(db));
 app.use('/admin', adminRouter(db, csrf, discordClient));
