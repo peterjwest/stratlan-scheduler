@@ -18,13 +18,11 @@ block body
                     span(class="inline-block px-1.5 py-1 rounded-lg bg-highlight/60 border border-highlight-accent")
                         =lan.role
                 span(class="px-3 py-2 self-center")
-                    if lan.eventStart
-                        time(datetime=helpers.formatTimestamp(lan.eventStart))
-                            =helpers.formatDateTime(lan.eventStart)
+                    time(datetime=helpers.formatTimestamp(lan.eventStart))
+                        =helpers.formatDateTime(lan.eventStart)
                 span(class="px-3 py-2 self-center")
-                    if lan.eventEnd
-                        time(datetime=helpers.formatTimestamp(lan.eventEnd))
-                            =helpers.formatDateTime(lan.eventEnd)
+                    time(datetime=helpers.formatTimestamp(lan.eventEnd))
+                        =helpers.formatDateTime(lan.eventEnd)
                 span(class="px-3 py-2 self-center")
                     =`${helpers.formatDate(lan.scheduleStart)} to ${helpers.formatDate(lan.scheduleEnd)}`
 

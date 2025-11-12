@@ -242,21 +242,16 @@ export function getUrl(path: string) {
     return { path: url.pathname, query: url.searchParams, hash: url.hash };
 }
 
-export function hasEventStarted(lan: Lan | undefined): boolean {
-    return Boolean(lan?.eventStart && new Date() > lan.eventStart);
-}
-
 export function isLanStarted(lan: Lan) {
-    return Boolean(lan.eventStart && new Date() > lan.eventStart);
+    return new Date() > lan.eventStart;
 }
 
 export function isLanEnded(lan: Lan) {
-    return Boolean(lan.eventEnd && new Date() > lan.eventEnd);
+    return new Date() > lan.eventEnd;
 }
 
 export function getLanProgress(lan: Lan) {
-    if (!lan.eventStart || !isLanStarted(lan)) return 0;
-    if (!lan.eventEnd) return 0.5;
+    if (!isLanStarted(lan)) return 0;
     if (isLanEnded(lan)) return 1;
     return (Date.now() - lan.eventStart.valueOf()) / (lan.eventEnd.valueOf() - lan.eventStart.valueOf());
 }

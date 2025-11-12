@@ -200,8 +200,8 @@ export const Lan = pgTable('Lan', {
     seatPickerCode: varchar(),
     scheduleStart: date({ mode: 'date' }).notNull(),
     scheduleEnd: date({ mode: 'date' }).notNull(),
-    eventStart: timestamp({ withTimezone: true }),
-    eventEnd: timestamp({ withTimezone: true }),
+    eventStart: timestamp({ withTimezone: true }).notNull(),
+    eventEnd: timestamp({ withTimezone: true }).notNull(),
 });
 export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
 export type LanWithTeams = Lan & { teams: Team[] };

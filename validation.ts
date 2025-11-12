@@ -9,14 +9,6 @@ const dateType = (
     .refine((value) => !isNaN(Number(value)), {
         error: 'Expected a valid datetime'
     })
-
-);
-const dateTypeOptional = (
-    zod.string()
-    .transform((date) => date ? new Date(date) : undefined)
-    .refine((value) => value === undefined || !isNaN(Number(value)), {
-        error: 'Expected a valid datetime'
-    })
 );
 
 const integerType = (
@@ -39,8 +31,8 @@ export const LanData = zod.object({
     name: zod.string(),
     role: zod.string(),
     seatPickerCode: zod.string(),
-    eventStart: dateTypeOptional,
-    eventEnd: dateTypeOptional,
+    eventStart: dateType,
+    eventEnd: dateType,
     scheduleStart: dateType,
     scheduleEnd: dateType,
 });
