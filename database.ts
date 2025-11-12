@@ -351,8 +351,8 @@ export async function getEvents(db: DatabaseClient, lan: Lan): Promise<Event[]> 
 
 export async function getCurrentLan(db: DatabaseClient): Promise<LanWithTeams | undefined> {
     return fromNulls(await db.query.Lan.findFirst({
-        where: gte(Lan.scheduleEnd, addDays(new Date(), -3)),
-        orderBy: [asc(Lan.scheduleEnd)],
+        where: gte(Lan.eventEnd, addDays(new Date(), -3)),
+        orderBy: [asc(Lan.eventEnd)],
         with: { teams: true },
     }));
 }
