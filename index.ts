@@ -35,11 +35,13 @@ import {
     getOrCreateUserLan,
     getHiddenCodeByCode,
     getOrCreateHiddenCodeScore,
+    findSecretScoreByLan,
+    createSecretScore,
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
 import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
-import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS, HIDDEN_CODE_POINTS } from './constants';
+import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS, HIDDEN_CODE_POINTS, SECRET_POINTS, SECRETS_BY_CODE } from './constants';
 import { getExpressSession, getConditionalSession } from './session';
 
 const csrf = getCsrf();
@@ -147,12 +149,19 @@ app.get('/schedule', async (request, response) => {
 
 app.get('/intro/code/:userCode', async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
-    console.log("HELLO");
     if (!context.user) return response.status(403).render('403', context);
 
     if (userIntroCode(context.user) === request.params.userCode) {
         await getOrCreateIntroChallenge(db, 'HiddenCode', context.currentLan, context.user);
     }
+    response.redirect('/');
+});
+
+app.get('/intro/claim/:challengeId', async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.status(403).render('403', context);
+
+    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
     response.redirect('/');
 });
 
@@ -172,12 +181,20 @@ app.get('/code/:hiddenCode', async (request, response) => {
     });
 });
 
-app.get('/intro/claim/:challengeId', async (request, response) => {
+app.get(`/secret/:secretCode`, async (request: Request, response: Response, next: NextFunction) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
-    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
-    response.redirect('/');
+    const secretNumber = SECRETS_BY_CODE[request.params.secretCode || ''];
+    if (!secretNumber) return response.render('secret', { ...context });
+
+    if (await findSecretScoreByLan(db, context.currentLan, secretNumber)) {
+        return response.render('secret', { ...context, valid: true, alreadyFound: true });
+    }
+
+    await createSecretScore(db, context.currentLan, context.user, secretNumber)
+
+    response.render('secret', { ...context, valid: true, points: SECRET_POINTS });
 });
 
 /** Require login for following routes */

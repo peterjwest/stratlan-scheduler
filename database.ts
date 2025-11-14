@@ -38,6 +38,7 @@ import {
     INTRO_CHALLENGE_POINTS,
     MODERATOR_ROLES,
     HIDDEN_CODE_POINTS,
+    SECRET_POINTS,
 } from './constants';
 import {
     getTimeslotEnd,
@@ -649,4 +650,20 @@ export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: Hidde
 
 export async function updateHiddenCode(db: DatabaseClient, lan: Lan, code: HiddenCode, data: HiddenCodeData) {
     await db.update(HiddenCode).set(toNulls(data)).where(eq(HiddenCode.id, code.id));
+}
+
+export async function findSecretScoreByLan(db: DatabaseClient, lan: Lan, secretNumber: number) {
+    return fromNulls(await db.query.Score.findFirst({
+        where: and(eq(Score.type, 'Secret'), eq(Score.lanId, lan.id), eq(Score.secretNumber, secretNumber))
+    }));
+}
+
+export async function createSecretScore(db: DatabaseClient, lan: Lan, user: User, secretNumber: number) {
+    await db.insert(Score).values({
+        type: 'Secret',
+        lanId: lan.id,
+        userId: user.id,
+        points: SECRET_POINTS,
+        secretNumber,
+    });
 }

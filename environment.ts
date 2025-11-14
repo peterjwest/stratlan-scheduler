@@ -14,6 +14,7 @@ export const Environment = zod.object({
     REMOTE_DATABASE_URL: zod.string().optional(),
     SEATPICKER_DISCORD_USERNAME: zod.string().optional(),
     SEATPICKER_DISCORD_PASSWORD: zod.string().optional(),
+    SECRET_ONE: zod.string(),
 });
 
 export const {
@@ -30,4 +31,5 @@ export const {
     REMOTE_DATABASE_URL,
     SEATPICKER_DISCORD_USERNAME,
     SEATPICKER_DISCORD_PASSWORD,
+    SECRET_ONE,
 } = Environment.parse(process.env);

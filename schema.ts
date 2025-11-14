@@ -118,6 +118,7 @@ export const Score = pgTable('Score', {
     eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),
     hiddenCodeId: integer().references(() => HiddenCode.id),
+    secretNumber: integer(),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 }, (table) => [
     // TODO: More constraints

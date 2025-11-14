@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { Request } from 'express';
 import lodash from 'lodash';
 import md5 from 'md5';
+import QRCode from 'qrcode';
 
 import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended, UserExtended } from './schema';
 import {
@@ -14,7 +15,7 @@ import {
     SCORE_TYPE_NAMES,
     ScoreType,
 } from './constants';
-import { HOST } from './environment';
+import { HOST, SECRET_ONE } from './environment';
 import { DiscordUser, DiscordGuildMember } from './discordApi';
 
 type DayEvents = {
@@ -372,4 +373,9 @@ export function randomCode() {
     return Array.from(crypto.getRandomValues(new Uint16Array(10))).map((value) => {
         return CODE_CHARACTER_SET[Math.floor(CODE_CHARACTER_SET.length * value / RANDOM_RANGE)]!
     }).join('');
+}
+
+export function createSecretCode() {
+    const data = QRCode.create(absoluteUrl(`/secret/${SECRET_ONE}`));
+    return Array.from(data.modules.data).map((value) => value === 1 ? '.' : '-').join('');
 }

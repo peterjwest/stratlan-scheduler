@@ -14,6 +14,7 @@ import {
     getEventScheduleStyles,
     isUserError,
     round,
+    createSecretCode,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 
@@ -34,6 +35,7 @@ const helpers = {
     getEventScheduleStyles,
     isUserError,
     round,
+    createSecretCode,
 }
 
 export type Helpers = typeof helpers;

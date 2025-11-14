@@ -1,8 +1,9 @@
 import querystring from 'node:querystring';
 
 import zod from 'zod';
+import lodash from 'lodash';
 
-import { HOST, DISCORD_CLIENT_ID } from './environment';
+import { HOST, DISCORD_CLIENT_ID, SECRET_ONE } from './environment';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 
@@ -16,7 +17,7 @@ export const TEAM_BACKGROUND_CLASSES = {
     'Blue': 'bg-team-blue',
 } as const satisfies { [Property in TeamName]: string };
 
-export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'HiddenCode', 'Achievement', 'IntroChallenge'] as const;
+export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'HiddenCode', 'Achievement', 'IntroChallenge', 'Secret'] as const;
 export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
 
@@ -26,6 +27,7 @@ export const SCORE_TYPE_NAMES = {
     'HiddenCode': 'Hidden code',
     'Achievement': 'Steam achievement',
     'IntroChallenge': 'Intro challenge',
+    'Secret': 'Secret',
 } as const satisfies { [Property in ScoreType]: string };
 
 export const INTRO_CHALLENGE_TYPES = ['Login', 'GameActivity', 'HiddenCode'] as const;
@@ -39,6 +41,13 @@ export const INTRO_CHALLENGE_POINTS = {
 } as const satisfies { [Property in IntroChallengeType]: number };
 
 export const HIDDEN_CODE_POINTS = 50;
+
+export const SECRET_POINTS = 100;
+
+export const SECRETS = {
+    1: SECRET_ONE,
+} as const;
+export const SECRETS_BY_CODE = lodash.mapValues(lodash.invert(SECRETS), (value) => Number(value));
 
 export const DISCORD_RETURN_URL = `${HOST}/auth/login`;
 export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
