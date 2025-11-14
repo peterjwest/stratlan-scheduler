@@ -28,10 +28,7 @@ html(lang="en" class="h-full")
                                 section
                                     +navigationLink('/', 'Introduction')
                                     +navigationLink('/dashboard', 'Dashboard')
-
-                                section
-                                    div(class="text-xl pb-1") Schedule
-                                    +navigationLink('/schedule', 'Official events')
+                                    +navigationLink('/schedule', 'Schedule')
 
                                 if isAdmin
                                     section
