@@ -26,6 +26,6 @@ block body
                 td(class="px-3 py-2")= helpers.formatScoreType(score.type)
                 td(class="px-3 py-2")= score.event ? score.event.name : ''
                 td(class="px-3 py-2")= score.assigner ? helpers.formatName(score.assigner) : ''
-                td(class="px-3 py-2")
+                td(class="px-3 py-2 whitespace-nowrap")
                     time(datetime=helpers.formatTimestamp(score.createdAt))
                         = helpers.formatDateTime(score.createdAt)

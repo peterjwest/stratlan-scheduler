@@ -13,6 +13,7 @@ Objectives:
   - Fancy scores
   - Show highest recent scores
 - Schedule
+  - Click to see more
   - Warn about changing event after start???
     - Improve handling of existing timeslots
   - Colour code by location
@@ -24,8 +25,6 @@ Objectives:
     - Users page ordered by score
     - User page with score listing
     - Pagination?
-- Mobile
-  - Fix tables on mobile view
 - Privacy policy
 - Cookie policy
 

@@ -43,7 +43,7 @@ html(lang="en" class="h-full")
                                         +navigationLink('/admin/codes', 'Hidden codes')
 
                                     div(class="block md:hidden" data-lan-select)
-                                        +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name)
+                                        +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name, true)
 
             main(class="flex-grow")
                 div(class="max-w-7xl mx-auto relative")

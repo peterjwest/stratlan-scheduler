@@ -13,7 +13,7 @@ mixin navigationLink(path, text)
     a(href=path class=`block px-3 py-2 mb-0.5 text-md rounded-md pb ${currentPath === path ? 'bg-highlight/60' : ''} hover:bg-highlight text-gray-100`)
         =text
 
-mixin dropdown(name, options, selectedId, required, placeholder, formatLabel)
+mixin dropdown(name, options, selectedId, required, placeholder, formatLabel, reverse)
     - const selected = options.find((option) => option.id === selectedId);
     div(data-dropdown class="relative")
         select(data-dropdown-input data-player-input name=name class="hidden")
@@ -24,7 +24,7 @@ mixin dropdown(name, options, selectedId, required, placeholder, formatLabel)
         button(data-dropdown-button type="button" class="w-full py-2 px-3.5 border border-border/80 rounded-sm text-left flex items-center")
             span(class="flex-grow" data-dropdown-selected data-placeholder=placeholder)= selected ? formatLabel(selected) : placeholder
             img(src="/select-arrow.svg" class="w-5 ml-2 -mr-1")
-        div(data-dropdown-menu class="absolute z-1 hidden top-full left-0 w-full bg-highlight rounded-b")
+        div(data-dropdown-menu class=`absolute z-1 hidden ${reverse ? 'bottom-full' : 'top-full'} left-0 w-full bg-highlight rounded-b`)
             div(class="py-2 px-2")
                 input(data-dropdown-filter class="py-2 px-3.5 border border-border/80 rounded-sm w-full" type="text")
             div(class="max-h-60 overflow-y-auto")
