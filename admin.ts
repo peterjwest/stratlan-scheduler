@@ -17,6 +17,7 @@ import {
     createEvent,
     updateTeams,
     getGameWithDuplicates,
+    getGamesWithDuplicates,
     getGames,
     updateGame,
     getScores,
@@ -268,7 +269,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/games/list', {
             ...context,
-            games: await getGames(db),
+            games: await getGamesWithDuplicates(db),
         });
     });
 

@@ -484,6 +484,14 @@ export async function getGameWithDuplicates(db: DatabaseClient, gameId: number):
     }));
 }
 
+export async function getGamesWithDuplicates(db: DatabaseClient): Promise<GameWithDuplicates[]> {
+    return fromNulls(await db.query.Game.findMany({
+        where: isNull(Game.parentId),
+        with: { duplicates: true },
+        orderBy: [Game.name],
+    }));
+}
+
 export async function getGames(db: DatabaseClient): Promise<Game[]> {
     return fromNulls(await db.query.Game.findMany({ where: isNull(Game.parentId), orderBy: [Game.name] }));
 }

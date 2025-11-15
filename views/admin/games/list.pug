@@ -3,10 +3,12 @@ extends ../../layout.pug
 block body
     h2(class="text-2xl font-semibold mb-4") Games
 
-    div(class="grid grid-cols-[repeat(1,max-content)]")
-        div(class="grid grid-cols-subgrid col-span-1 font-bold")
+    div(class="grid grid-cols-[repeat(2,max-content)]")
+        div(class="grid grid-cols-subgrid col-span-2 font-bold")
             span(class="px-3 py-2 self-center") Name
+            span(class="px-3 py-2 self-center") Also known as
 
         each game of games
-            a(href=`/admin/games/${game.id}` class="grid grid-cols-subgrid col-span-1 hover:bg-highlight border-t border-border/50")
+            a(href=`/admin/games/${game.id}` class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
                 span(class="px-3 py-2 self-center")=game.name
+                span(class="px-3 py-2 self-center")=game.duplicates.map((duplicate) => duplicate.name).join(', ')
