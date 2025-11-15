@@ -1,3 +1,5 @@
+import { promisify } from 'node:util';
+
 import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import lodash from 'lodash';
@@ -227,12 +229,20 @@ const server = app.listen(PORT, () => {
     });
 });
 
-const shutDown = lodash.once(() => {
+const shutDown = lodash.once(async () => {
     console.log('Shutting down');
     stopScoring();
-    server.close(() => console.log('Server closed'));
-    discordClient.destroy().then(() => console.log('Disconnected from Discord'));
-    db.disconnect().then(() => console.log('Database disconnected'));
+
+    await promisify(server.close);
+    console.log('Server closed');
+
+    await discordClient.destroy();
+    console.log('Disconnected from Discord');
+
+    await db.disconnect();
+    console.log('Database disconnected');
+
+    process.exit();
 });
 
 process.on('SIGINT', shutDown);
