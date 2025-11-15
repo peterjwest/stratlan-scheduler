@@ -35,9 +35,10 @@ html(lang="en" class="h-full")
                                         div(class="text-xl pb-1") Admin
                                         +navigationLink('/admin/points', 'Points log')
                                         +navigationLink('/admin/points/assign', 'Assign points')
-                                        +navigationLink('/admin/teams', 'Manage teams')
-                                        +navigationLink('/admin/lans', 'Manage LANs')
                                         +navigationLink('/admin/codes', 'Hidden codes')
+                                         +navigationLink('/admin/teams', 'Manage teams')
+                                        +navigationLink('/admin/lans', 'Manage LANs')
+                                        +navigationLink('/admin/games', 'Manage games')
 
                                     div(class="block md:hidden" data-lan-select)
                                         +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name, true)

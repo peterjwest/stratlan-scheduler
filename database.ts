@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, count, max } from 'drizzle-orm';
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import schema, {
@@ -21,6 +21,7 @@ import schema, {
     Lan,
     LanWithTeams,
     Game,
+    GameWithDuplicates,
     GameIdentifier,
     GameActivity,
     GameActivityWithTeam,
@@ -401,9 +402,9 @@ export async function getOrCreateGames(db: DatabaseClient, activities: Applicati
         ({ applicationId }) => !existingApplicationIds.has(applicationId),
     );
 
-    const identifiedGames = await db.query.Game.findMany({
+    const identifiedGames = fromNulls(await db.query.Game.findMany({
         where: inArray(Game.id, existingIdentifiers.map((item) => item.gameId))
-    });
+    }));
 
     const activitiesById = lodash.keyBy(activities, 'applicationId');
     const activitiesByGameId = Object.fromEntries(
@@ -422,14 +423,14 @@ export async function getOrCreateGames(db: DatabaseClient, activities: Applicati
         return identifiedGames;
     }
 
-    const existingGames = await db.query.Game.findMany({
+    const existingGames = fromNulls(await db.query.Game.findMany({
         where: inArray(Game.name, missingActivities.map((item) => item.name))
-    });
+    }));
     const existingGameNames = new Set(existingGames.map((item) => item.name));
 
     const missingGameActivities = missingActivities.filter(({ name }) => !existingGameNames.has(name));
 
-    const createdGames = missingGameActivities.length > 0 ? (
+    const createdGames = missingGameActivities.length > 0 ? fromNulls(
         await db.insert(Game)
         .values(missingGameActivities.map(({ name }) => ({ name })))
         .returning()
@@ -447,8 +448,23 @@ export async function getOrCreateGames(db: DatabaseClient, activities: Applicati
     return identifiedGames.concat(nonIdentifiedGames);
 }
 
+export async function getGame(db: DatabaseClient, gameId: number): Promise<Game | undefined> {
+    return fromNulls(await db.query.Game.findFirst({ where: eq(Game.id, gameId) }));
+}
+
+export async function getGameWithDuplicates(db: DatabaseClient, gameId: number): Promise<GameWithDuplicates | undefined> {
+    return fromNulls(await db.query.Game.findFirst({
+        where: eq(Game.id, gameId),
+        with: { duplicates: true },
+    }));
+}
+
 export async function getGames(db: DatabaseClient): Promise<Game[]> {
-    return db.query.Game.findMany();
+    return fromNulls(await db.query.Game.findMany({ where: isNull(Game.parentId), orderBy: [Game.name] }));
+}
+
+export async function updateGame(db: DatabaseClient, gameId: number, data: Partial<Game>): Promise<void> {
+    await db.update(Game).set(toNulls(data)).where(eq(Game.id, gameId));
 }
 
 export async function getGameActivity(
@@ -499,8 +515,9 @@ export async function getTimeslotActivities(
         .from(GameActivity)
         .leftJoin(User, eq(User.id, GameActivity.userId))
         .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
+        .leftJoin(Game, eq(Game.id, GameActivity.gameId))
         .where(and(
-            eq(GameActivity.gameId, event.gameId),
+            or(eq(GameActivity.gameId, event.gameId), eq(Game.parentId, event.gameId)),
             lt(GameActivity.startTime, getTimeslotEnd(eventTimeslot)),
             or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
         ))

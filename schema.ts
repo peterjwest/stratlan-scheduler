@@ -1,5 +1,5 @@
 import {
-    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey
+    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, AnyPgColumn
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
@@ -243,8 +243,19 @@ export const gameActivityRelations = relations(GameActivity, ({ one }) => ({
 export const Game = pgTable('Game', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar().notNull().unique(),
+    parentId: integer().references((): AnyPgColumn => Game.id),
 });
 export type Game = NullToUndefined<typeof Game.$inferSelect>;
+export type GameWithDuplicates = Game & { duplicates: Game[] };
+
+export const gameRelations = relations(Game, ({ one, many }) => ({
+    parent: one(Game, {
+        fields: [Game.parentId],
+        references: [Game.id],
+        relationName: 'parent',
+    }),
+    duplicates: many(Game, { relationName: 'parent' }),
+}));
 
 export const GameIdentifier = pgTable('GameIdentifier', {
     id: varchar().primaryKey().notNull(),
@@ -306,6 +317,7 @@ export default {
     GameActivity,
     gameActivityRelations,
     Game,
+    gameRelations,
     GameIdentifier,
     IntroChallenge,
     Cache,

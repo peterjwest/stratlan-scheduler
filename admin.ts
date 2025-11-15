@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { Client } from 'discord.js';
 
 import { Csrf } from './csrf';
@@ -16,7 +16,9 @@ import {
     updateEvent,
     createEvent,
     updateTeams,
+    getGameWithDuplicates,
     getGames,
+    updateGame,
     getScores,
     awardScore,
     getLans,
@@ -36,6 +38,7 @@ import {
     PointsQuery,
     AssignPointsData,
     HiddenCodeData,
+    DuplicateGameData,
 } from './validation';
 
 export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
@@ -87,6 +90,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
     router.post('/events/create', csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
+        console.log(request.body);
         const data = EventData.parse(request.body);
 
         await createEvent(db, context.currentLan, data);
@@ -258,6 +262,49 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         await updateHiddenCode(db, context.currentLan, code, data);
         response.redirect('/admin/codes');
+    });
+
+    router.get('/games', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        response.render('admin/games/list', {
+            ...context,
+            games: await getGames(db),
+        });
+    });
+
+    router.get('/games/:gameId', async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const game = await getGameWithDuplicates(db, Number(request.params.gameId));
+        if (!game) throw new UserError('Game not found.');
+
+        const games = (await getGames(db)).filter((otherGame) => otherGame.id !== game.id );
+        response.render('admin/games/edit', { ...context, game, games });
+    });
+
+    router.post('/games/:gameId/duplicates', csrf.protect, async (request: Request, response: Response) => {
+        const game = await getGameWithDuplicates(db, Number(request.params.gameId));
+        if (!game) throw new UserError('Game not found.');
+
+        const data = DuplicateGameData.parse(request.body);
+        if (game.duplicates.find((duplicate) => duplicate.id === data.gameId)) {
+            throw new UserError('Game already has duplicate');
+        }
+        await updateGame(db, data.gameId, { parentId: game.id });
+
+        response.redirect(`/admin/games/${request.params.gameId}`);
+    });
+
+    router.post('/games/:gameId/duplicates/:duplicateId/delete', csrf.protect, async (request: Request, response: Response) => {
+        const game = await getGameWithDuplicates(db, Number(request.params.gameId));
+        if (!game) throw new UserError('Game not found.');
+
+        const duplicateId = Number(request.params.duplicateId);
+        if (!game.duplicates.find((duplicate) => duplicate.id === duplicateId)) {
+            throw new UserError('Game has no duplicate');
+        }
+        await updateGame(db, duplicateId, { parentId: undefined });
+
+        response.redirect(`/admin/games/${request.params.gameId}`);
     });
 
     return router;

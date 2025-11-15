@@ -72,3 +72,6 @@ export type AssignPointsData = zod.infer<typeof AssignPointsData>;
 
 export const PointsQuery = zod.object({ type: zod.union([ScoreType, zod.undefined()]) });
 export type PointsQuery = zod.infer<typeof PointsQuery>;
+
+export const DuplicateGameData = zod.object({ gameId: integerType });
+export type DuplicateGameData = zod.infer<typeof DuplicateGameData>;

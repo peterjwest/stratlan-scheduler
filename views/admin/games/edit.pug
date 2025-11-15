@@ -1,0 +1,27 @@
+extends ../../layout.pug
+
+block body
+    h2(class="text-2xl font-semibold mb-4")=game.name
+
+    div(class="grid grid-cols-[repeat(2,max-content)] mb-3")
+        div(class="grid grid-cols-subgrid col-span-2 font-bold")
+            span(class="px-3 py-2 self-center") Duplicates
+            span
+
+        each duplicate in game.duplicates
+            div(class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
+                span(class="px-3 py-2 self-center min-w-50")=duplicate.name
+                form(action=`/admin/games/${game.id}/duplicates/${duplicate.id}/delete` method="post")
+                    input(type="hidden" name="csrf" value=csrfToken)
+                    button(type="submit" class="m-2 py-1 px-3 rounded-md border border-border/80 bg-highlight")
+                        | Remove
+
+    form(action=`/admin/games/${game.id}/duplicates` method="post" class="mb-3")
+        input(type="hidden" name="csrf" value=csrfToken)
+
+        label(data-player-field class="block sm:flex items-start py-2 px-3" data-event-game)
+            div(class="py-2 pr-3") Add duplicate
+            div(class="flex block mb-3")
+                div(class="min-w-50")
+                    +dropdown("gameId", games, undefined, true, 'Select game', (game) => game.name)
+            input(type="submit" name="submit" value="Add" class="sm:ml-3 py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

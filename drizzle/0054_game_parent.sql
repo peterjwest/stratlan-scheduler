@@ -1,0 +1,2 @@
+ALTER TABLE "Game" ADD COLUMN "parentId" integer;--> statement-breakpoint
+ALTER TABLE "Game" ADD CONSTRAINT "Game_parentId_Game_id_fk" FOREIGN KEY ("parentId") REFERENCES "public"."Game"("id") ON DELETE no action ON UPDATE no action;
