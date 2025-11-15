@@ -5,7 +5,7 @@ import lodash from 'lodash';
 import md5 from 'md5';
 import QRCode from 'qrcode';
 
-import { User, Team, Event, Lan, EventTimeslot, LanWithTeams, LanExtended, UserExtended } from './schema';
+import { User, UserTeams, Team, Event, EventTimeslot, Lan, LanTeams, LanProgress } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -118,7 +118,7 @@ export function formatScoreType(type: ScoreType) {
     return SCORE_TYPE_NAMES[type];
 }
 
-export function getTeam(lan: LanWithTeams, teamId: number | undefined): Team | undefined {
+export function getTeam(lan: Lan & LanTeams, teamId: number | undefined): Team | undefined {
     return lan.teams.find((team) => team.id === teamId);
 }
 
@@ -257,7 +257,7 @@ export function getLanProgress(lan: Lan) {
     return (Date.now() - lan.eventStart.valueOf()) / (lan.eventEnd.valueOf() - lan.eventStart.valueOf());
 }
 
-export function withLanStatus(lan?: LanWithTeams): LanExtended | undefined {
+export function withLanStatus(lan: Lan & LanTeams | undefined): Lan & LanTeams & LanProgress | undefined {
     if (!lan) return undefined;
     const isStarted = Boolean(lan && isLanStarted(lan));
     const isEnded = Boolean(!lan || isLanEnded(lan));
@@ -345,7 +345,7 @@ export function discordDataToUser(user: DiscordUser, member: DiscordGuildMember)
     };
 }
 
-export function teamsWithCounts(teams: Team[], users: UserExtended[]) {
+export function teamsWithCounts(teams: Team[], users: Array<User & UserTeams>) {
     return teams.map((team) => ({
         ...team,
         count: lodash.sumBy(users, (user) => user.team?.id === team.id ? 1 : 0),

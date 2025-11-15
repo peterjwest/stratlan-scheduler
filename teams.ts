@@ -5,7 +5,7 @@ import { discordDataToUser, Required } from './util';
 import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker';
 import { getDiscordGuildMembers } from './discordApi';
 import { DISCORD_GUILD_ID } from './environment';
-import { Group, UserExtendedWithGroups, Lan, Team } from './schema';
+import { Group, User, UserTeams, UserGroups, Lan, Team } from './schema';
 import { createOrUpdateSeatPickerUsers, createGroups, replaceUserGroups, DatabaseClient } from './database';
 
 interface SubGroup {
@@ -48,7 +48,7 @@ export async function updateGroups(db: DatabaseClient, discordClient: Client, la
     await replaceUserGroups(db, userGroups);
 }
 
-function getSubGroups(users: UserExtendedWithGroups[]): SubGroup[] {
+function getSubGroups(users: Array<User & UserGroups>): SubGroup[] {
     const subGroups: Map<string, SubGroup> = new Map();
 
     for (const user of users) {
@@ -91,14 +91,15 @@ function getGroupIds(groups: Group[]) {
     return [GLOBAL_GROUP_ID, ...groups.map((group) => group.id)];
 }
 
-export function randomiseTeams(teams: Team[], groups: Group[], users: UserExtendedWithGroups[]) {
-    const userTeams: Array<[UserExtendedWithGroups, Team]> = [];
+export function randomiseTeams(teams: Team[], groups: Group[], users: Array<User & UserTeams & UserGroups>) {
+    const userTeams: Array<[User & UserTeams & UserGroups, Team]> = [];
 
     let subGroups = getSubGroups(lodash.shuffle(users));
     const groupDistributions = getInitialGroupDistributions(groups, teams);
     const usersById = lodash.keyBy(users, 'id');
 
     while (subGroups.length > 0) {
+        // TODO: Replace with single sort
         subGroups = lodash.sortBy(subGroups, (subGroup) => -subGroup.userIds.length);
         subGroups = lodash.sortBy(subGroups, (subGroup) => -subGroup.groupIds.size);
         const subGroup = subGroups[0]!;

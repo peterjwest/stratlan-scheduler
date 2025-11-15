@@ -5,7 +5,7 @@ import zod from 'zod';
 import { Client } from 'discord.js';
 import lodash from 'lodash';
 
-import { LanExtended, LanWithTeams } from './schema';
+import { Lan, LanTeams } from './schema';
 import { regenerateSession, saveSession, destroySession, withLanStatus, discordDataToUser, UserError } from './util';
 import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } from './database';
 import { getGuild, getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember, DiscordGuildMember } from './discordApi';
@@ -62,8 +62,8 @@ export default function (db: DatabaseClient, discordClient: Client, expressSessi
 }
 
 export async function getCurrentUserLan(
-    db: DatabaseClient, request: Request, response: Response, isAdmin: boolean, lans: LanWithTeams[],
-): Promise<LanExtended | undefined> {
+    db: DatabaseClient, request: Request, response: Response, isAdmin: boolean, lans: Array<Lan & LanTeams>,
+): Promise<Lan & LanTeams | undefined> {
     const currentLan = await getCurrentLanCached(db);
     if (isAdmin) {
         // If there's no current LAN, admins get the last one as default

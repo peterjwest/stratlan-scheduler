@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { UserExtended, LanWithTeams, LanExtended } from './schema';
+import { User, UserTeams, Lan, LanTeams, LanProgress } from './schema';
 import { Helpers } from './helpers';
 
 export type Context = {
@@ -8,19 +8,19 @@ export type Context = {
     currentUrl: string;
     csrfToken: string;
     discordAuthUrl: string;
-    user: UserExtended | undefined;
+    user: User & UserTeams | undefined;
     isAdmin: boolean;
-    currentLan: LanExtended | undefined;
-    lans: LanWithTeams[];
+    currentLan: Lan & LanTeams & LanProgress | undefined;
+    lans: Array<Lan & LanTeams>;
     helpers: Helpers;
 }
 
 type ContextWithLan = Context & {
-    currentLan: LanWithTeams;
+    currentLan: Lan & LanTeams;
 }
 
 type ContextLoggedIn = ContextWithLan & {
-    user: UserExtended;
+    user: User & UserTeams;
 }
 
 export function getContext(request: Request): Context;

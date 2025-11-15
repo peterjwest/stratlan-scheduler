@@ -6,20 +6,20 @@ import lodash from 'lodash';
 
 import schema, {
     User,
-    UserExtended,
-    UserExtendedWithGroups,
+    UserTeams,
+    UserGroups,
     UserRole,
     UserGroup,
     Group,
     UserLan,
     Team,
     Score,
-    ScoreExtended,
+    ScoreReferences,
     Event,
     EventTimeslot,
     EventWithTimeslots,
     Lan,
-    LanWithTeams,
+    LanTeams,
     Game,
     GameWithDuplicates,
     GameIdentifier,
@@ -27,7 +27,7 @@ import schema, {
     GameActivityWithTeam,
     IntroChallenge,
     HiddenCode,
-    HiddenCodeExtended,
+    HiddenCodeUrl,
 } from './schema';
 import { LanData, EventData, HiddenCodeData } from './validation';
 import {
@@ -73,12 +73,17 @@ export function getDatabaseClient(isRemote = false): DatabaseClient {
         postgresUrl = REMOTE_DATABASE_URL;
     }
 
-    const client = new Pool({ connectionString: postgresUrl, ssl: isRemote ? { rejectUnauthorized: false }: undefined });
+    const client = new Pool({
+        connectionString: postgresUrl,
+        ssl: isRemote ? { rejectUnauthorized: false }: undefined,
+    });
     const db = drizzle(client, { schema });
     return Object.assign(db, { disconnect: () => client.end() });
 }
 
-export async function getLanUsers(db: DatabaseClient, lan: LanWithTeams, groups: Group[]): Promise<UserExtendedWithGroups[]> {
+export async function getLanUsers(
+    db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
+): Promise<Array<User & UserTeams & UserGroups>> {
     const data = fromNulls(
         await db.select({ user: User, userLan: UserLan, groupIds: sql<string[]>`array_agg("UserGroup"."groupId")` })
         .from(User)
@@ -100,8 +105,8 @@ export async function getLanUsers(db: DatabaseClient, lan: LanWithTeams, groups:
 }
 
 export async function getUserWithLan(
-    db: DatabaseClient, lan: LanWithTeams, id: number,
-): Promise<UserExtended | undefined> {
+    db: DatabaseClient, lan: Lan & LanTeams, id: number,
+): Promise<User & UserTeams | undefined> {
     const data = fromNulls((
         await db.select({ user: User, userLan: UserLan })
         .from(User)
@@ -118,8 +123,8 @@ export async function getUserWithLan(
 }
 
 export async function getUser(
-    db: DatabaseClient, lan: LanWithTeams | undefined, userId: number,
-): Promise<UserExtended | undefined> {
+    db: DatabaseClient, lan: Lan & LanTeams | undefined, userId: number,
+): Promise<User & UserTeams | undefined> {
     if (lan) return getUserWithLan(db, lan, userId);
 
     const data = fromNulls((
@@ -129,7 +134,12 @@ export async function getUser(
     )[0]);
 
     if (!data) return;
+
     return { ...data.user, team: undefined, isEnrolled: false };
+}
+
+export async function getUsersWithScores(db: DatabaseClient, lan: Lan): Promise<User & UserTeams | undefined> {
+    return undefined;
 }
 
 export async function checkIsAdmin(db: DatabaseClient, userId: number | undefined): Promise<boolean> {
@@ -153,7 +163,9 @@ export async function checkIsEligible(db: DatabaseClient, user: User, lan: Lan):
 }
 
 export async function getEvent(db: DatabaseClient, lan: Lan, eventId: number): Promise<Event | undefined> {
-    return fromNulls(await db.query.Event.findFirst({ where: and(eq(Event.id, eventId), eq(Event.lanId, lan.id)) }));
+    return fromNulls(await db.query.Event.findFirst({
+        where: and(eq(Event.id, eventId), eq(Event.lanId, lan.id)),
+    }));
 }
 
 export async function updateEvent(db: DatabaseClient, event: Event, data: EventData) {
@@ -200,7 +212,12 @@ export async function getMinimalUsers(db: DatabaseClient, lan: Lan): Promise<Min
 export async function createOrUpdateUser(db: DatabaseClient, data: UserData): Promise<User> {
     const existingUser = await getUserByDiscordId(db, data.discordId);
     if (existingUser) {
-        return fromNulls((await db.update(User).set(toNulls(data)).where(eq(User.id, existingUser.id)).returning())[0]!);
+        return fromNulls((
+            await db.update(User)
+            .set(toNulls(data))
+            .where(eq(User.id, existingUser.id))
+            .returning()
+        )[0]!);
     }
     return fromNulls((await db.insert(User).values(toNulls(data)).returning())[0]!);
 }
@@ -232,7 +249,9 @@ export async function createGroups(db: DatabaseClient, groups: string[]) {
     }).returning());
 }
 
-export async function createTeams(db: DatabaseClient, lan: Lan, teamNames: readonly TeamName[]): Promise<Team[]> {
+export async function createTeams(
+    db: DatabaseClient, lan: Lan, teamNames: readonly TeamName[],
+): Promise<Team[]> {
     const existingTeams = await db.query.Team.findMany();
 
     if (existingTeams.length === 0) {
@@ -274,7 +293,9 @@ export async function awardScore(
     }).returning())[0]!);
 }
 
-export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: ScoreType | undefined): Promise<ScoreExtended[]> {
+export async function getScores(
+    db: DatabaseClient, lan: Lan & LanTeams, type: ScoreType | undefined,
+): Promise<Array<Score & ScoreReferences>> {
     if (!lan) return [];
 
     const conditions = [eq(Score.lanId, lan.id), or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
@@ -303,7 +324,9 @@ export async function getScores(db: DatabaseClient, lan: LanWithTeams, type: Sco
     });
 }
 
-export async function getOrCreateHiddenCodeScore(db: DatabaseClient, user: User, code: HiddenCode): Promise<Score> {
+export async function getOrCreateHiddenCodeScore(
+    db: DatabaseClient, user: User, code: HiddenCode,
+): Promise<Score> {
     const score = fromNulls(await db.query.Score.findFirst({
         where: and(eq(Score.userId, user.id), eq(Score.hiddenCodeId, code.id)),
     }));
@@ -351,7 +374,7 @@ export async function getEvents(db: DatabaseClient, lan: Lan): Promise<Event[]> 
     }));
 };
 
-export async function getCurrentLan(db: DatabaseClient): Promise<LanWithTeams | undefined> {
+export async function getCurrentLan(db: DatabaseClient): Promise<Lan & LanTeams | undefined> {
     return fromNulls(await db.query.Lan.findFirst({
         where: gte(Lan.eventEnd, addDays(new Date(), -3)),
         orderBy: [asc(Lan.eventEnd)],
@@ -361,13 +384,13 @@ export async function getCurrentLan(db: DatabaseClient): Promise<LanWithTeams | 
 
 export const [getCurrentLanCached, clearCurrentLanCache] = cacheCall(getCurrentLan);
 
-export async function getLans(db: DatabaseClient): Promise<LanWithTeams[]> {
+export async function getLans(db: DatabaseClient): Promise<Array<Lan & LanTeams>> {
     return fromNulls(await db.query.Lan.findMany({ orderBy: [asc(Lan.scheduleEnd)], with: { teams: true } }));
 }
 
 export const [getLansCached, clearLansCache] = cacheCall(getLans);
 
-export async function getLan(db: DatabaseClient, lanId: number): Promise<LanWithTeams | undefined> {
+export async function getLan(db: DatabaseClient, lanId: number): Promise<Lan & LanTeams | undefined> {
     return fromNulls(await db.query.Lan.findFirst({ where: eq(Lan.id, lanId), with: { teams: true } }));
 }
 
@@ -393,7 +416,9 @@ export async function endFinishedActivities(db: DatabaseClient, user: User, game
     ));
 }
 
-export async function getOrCreateGames(db: DatabaseClient, activities: ApplicationActivity[]): Promise<Game[]> {
+export async function getOrCreateGames(
+    db: DatabaseClient, activities: ApplicationActivity[],
+): Promise<Game[]> {
     const existingIdentifiers = await db.query.GameIdentifier.findMany({
         where: inArray(GameIdentifier.id, activities.map((activity) => activity.applicationId)),
     });
@@ -549,14 +574,18 @@ export async function getOrCreateIntroChallenge(
         where: and(eq(IntroChallenge.type, type), eq(IntroChallenge.userId, user.id)),
     }));
     if (challenge) return challenge;
-    return fromNulls((await db.insert(IntroChallenge).values({ lanId: lan.id, userId: user.id, type: type }).returning())[0]!);
+    return fromNulls((await db.insert(IntroChallenge).values({
+        lanId: lan.id, userId: user.id, type: type,
+    }).returning())[0]!);
 }
 
 type IntroChallengeMap = {
     [Key in IntroChallengeType]?: IntroChallenge
 };
 
-export async function getIntroChallenges(db: DatabaseClient, lan: Lan, user: User | undefined): Promise<IntroChallengeMap> {
+export async function getIntroChallenges(
+    db: DatabaseClient, lan: Lan, user: User | undefined,
+): Promise<IntroChallengeMap> {
     const challenges: IntroChallengeMap = Object.fromEntries(INTRO_CHALLENGE_TYPES.map((type) => [type, undefined]));
     if (user && lan) {
         const introChallenges = fromNulls(await db.query.IntroChallenge.findMany({
@@ -625,7 +654,7 @@ export async function updateTeam(db: DatabaseClient, lan: Lan, user: User, team:
     );
 }
 
-export async function updateTeams(db: DatabaseClient, lan: Lan, users: UserExtended[]): Promise<void> {
+export async function updateTeams(db: DatabaseClient, lan: Lan, users: Array<User & UserTeams>): Promise<void> {
     const userIds = users.map((user) => user.id);
     const cases = users.map((user) => sql<number>`when ${UserLan.userId} = ${user.id} then ${user.team!.id}`);
     const setTeamId = sql.join([sql`cast((case`, ...cases, sql`end) as integer)`], sql.raw(' '));
@@ -643,14 +672,18 @@ export async function getHiddenCodes(db: DatabaseClient, lan: Lan) {
     return data.map((item) => ({ ...item, url: absoluteUrl(`/code/${item.code}`) }));
 }
 
-export async function getHiddenCode(db: DatabaseClient, lan: Lan, hiddenCodeId: number): Promise<HiddenCodeExtended | undefined> {
+export async function getHiddenCode(
+    db: DatabaseClient, lan: Lan, hiddenCodeId: number,
+): Promise<HiddenCode & HiddenCodeUrl | undefined> {
     const data = fromNulls(await db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.id, hiddenCodeId), eq(HiddenCode.lanId, lan.id)),
     }));
     return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
 }
 
-export async function getHiddenCodeByCode(db: DatabaseClient, lan: Lan, hiddenCode: string): Promise<HiddenCodeExtended | undefined> {
+export async function getHiddenCodeByCode(
+    db: DatabaseClient, lan: Lan, hiddenCode: string,
+): Promise<HiddenCode & HiddenCodeUrl | undefined> {
     const data = fromNulls(await db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.code, hiddenCode), eq(HiddenCode.lanId, lan.id)),
     }));
@@ -660,8 +693,15 @@ export async function getHiddenCodeByCode(db: DatabaseClient, lan: Lan, hiddenCo
 
 export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: HiddenCodeData) {
     await db.transaction(async (tx) => {
-        const maxNumber = (await tx.select({ value: max(HiddenCode.number) }).from(HiddenCode).where(eq(HiddenCode.lanId, lan.id)))[0]?.value || 0;
-        await tx.insert(HiddenCode).values({ ...toNulls(data), lanId: lan.id, number: maxNumber + 1, code: randomCode() });
+        const maxNumber = (
+            await tx.select({ value: max(HiddenCode.number) })
+            .from(HiddenCode)
+            .where(eq(HiddenCode.lanId, lan.id))
+        )[0]?.value || 0;
+
+        await tx.insert(HiddenCode).values({
+            ...toNulls(data), lanId: lan.id, number: maxNumber + 1, code: randomCode(),
+        });
     });
 }
 

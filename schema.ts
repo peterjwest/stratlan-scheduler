@@ -19,8 +19,9 @@ export const User = pgTable('User', {
     seatPickerName: varchar(),
 });
 export type User = NullToUndefined<typeof User.$inferSelect>;
-export type UserExtended = User & { team: Team | undefined, isEnrolled: boolean };
-export type UserExtendedWithGroups = UserExtended & { groups: Group[] };
+export type UserTeams = { team: Team | undefined, isEnrolled: boolean };
+export type UserGroups = { groups: Group[] };
+export type UserScore = { score: number };
 
 export const userRelations = relations(User, ({ many }) => ({
     userLans: many(UserLan),
@@ -47,7 +48,6 @@ export const Group = pgTable('Group', {
     name: varchar().notNull().unique(),
 });
 export type Group = NullToUndefined<typeof Group.$inferSelect>;
-export type GroupWithMembers = Group & { members: UserExtended[] };
 
 export const UserGroup = pgTable('UserGroup', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -73,7 +73,6 @@ export const Team = pgTable('Team', {
     unique('Team_name_and_lan_unique').on(table.name, table.lanId),
 ]);
 export type Team = NullToUndefined<typeof Team.$inferSelect>;
-export type TeamWithMembers = Team & { members: UserExtended[] };
 
 export const teamRelations = relations(Team, ({ one }) => ({
     lan: one(Lan, {
@@ -128,7 +127,7 @@ export const Score = pgTable('Score', {
     ),
 ]);
 export type Score = NullToUndefined<typeof Score.$inferSelect>;
-export type ScoreExtended = Score & {
+export type ScoreReferences = {
     team: Team | undefined,
     event: Event | undefined,
     assigner: User | undefined,
@@ -205,8 +204,8 @@ export const Lan = pgTable('Lan', {
     eventEnd: timestamp({ withTimezone: true }).notNull(),
 });
 export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
-export type LanWithTeams = Lan & { teams: Team[] };
-export type LanExtended = Lan & {
+export type LanTeams = { teams: Team[] };
+export type LanProgress = {
     teams: Team[],
     isStarted: boolean,
     isEnded: boolean,
@@ -292,7 +291,7 @@ export const HiddenCode = pgTable('HiddenCode', {
     unique('HiddenCode_code_and_lan_unique').on(table.code, table.lanId),
 ]);
 export type HiddenCode = NullToUndefined<typeof HiddenCode.$inferSelect>;
-export type HiddenCodeExtended = HiddenCode & { url: string };
+export type HiddenCodeUrl = { url: string };
 
 export default {
     User,
