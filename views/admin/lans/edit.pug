@@ -13,14 +13,14 @@ block body
 
             label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
                 span(class="py-2 pr-3") Discord role
-                input(name="role" type="text" required value=lan.role maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
+                input(name="role" type="text" value=lan.role maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
 
             label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
                 span(class="py-2 pr-3") Seatpicker code
-                input(name="seatPickerCode" type="text" required value=lan.seatPickerCode maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
+                input(name="seatPickerCode" type="text" value=lan.seatPickerCode maxlength="256" class="py-2 px-3.5 border border-border/80 rounded-sm")
 
-            +datetime("eventStart", "Starts at", lan.eventStart)
-            +datetime("eventEnd", "Ends at", lan.eventEnd)
+            +datetime("eventStart", "Starts at", lan.eventStart, true)
+            +datetime("eventEnd", "Ends at", lan.eventEnd, true)
 
             h3(class="text-lg font-semibold mt-4 mb-2 grid-cols-subgrid col-span-3") Dates to show on schedule
 

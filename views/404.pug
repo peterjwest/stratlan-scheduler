@@ -2,4 +2,7 @@ extends layout.pug
 
 block body
     h1(class="text-2xl font-semibold mb-4") Page not found :(
-    p Please login to access authorised pages.
+    if user
+        p Sorry about that.
+    else
+        p Please login to access authorised pages.
