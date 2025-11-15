@@ -276,6 +276,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const context = getContext(request, 'LOGGED_IN');
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
+        if (game.parentId) throw new UserError('Game is a duplicate.');
 
         const games = (await getGames(db)).filter((otherGame) => otherGame.id !== game.id );
         response.render('admin/games/edit', { ...context, game, games });
@@ -284,8 +285,13 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
     router.post('/games/:gameId/duplicates', csrf.protect, async (request: Request, response: Response) => {
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
+        if (game.parentId) throw new UserError('Game is a duplicate.');
 
         const data = DuplicateGameData.parse(request.body);
+        const duplicate = await getGameWithDuplicates(db, data.gameId);
+        if (!duplicate) throw new UserError('Duplicate not found.');
+        if (duplicate.duplicates.length > 0) throw new UserError('Duplicate cannot have duplicates.');
+
         if (game.duplicates.find((duplicate) => duplicate.id === data.gameId)) {
             throw new UserError('Game already has duplicate');
         }
