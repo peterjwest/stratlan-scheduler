@@ -20,10 +20,8 @@ Objectives:
 - Show player scores
   - Show recent score animation
 - Admin
-  - Scores page
-    - Users page ordered by score
-    - User page with score listing
-    - Pagination?
+  - Events
+  - Score page pagination?
 - Privacy policy
 - Cookie policy
 

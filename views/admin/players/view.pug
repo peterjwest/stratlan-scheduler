@@ -1,21 +1,18 @@
 extends ../../layout.pug
 
 block body
-    h2(class="text-2xl font-semibold mb-4") Points
+    h2(class="text-2xl font-semibold mb-4")
+        =`${helpers.formatName(player)} `
+        span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(player.team)}`)
+            =player.team.name
 
     div(class="flex mb-4 space-x-2")
         div(class="flex-grow")
-            a(href="/admin/points/create" class="inline-block py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight")
-                | Award points
-
         each filter of filters
             a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.url === currentUrl ? 'bg-highlight' : ''}`)= filter.name
 
-
     table(class="w-full text-left")
         tr
-            th(class="px-3 py-2") Team
-            th(class="px-3 py-2") Player
             th(class="px-3 py-2") Points
             th(class="px-3 py-2") Reason
             th(class="px-3 py-2") Type
@@ -24,10 +21,6 @@ block body
             th(class="px-3 py-2") Date
         each score of scores
             tr(class="hover:bg-highlight border-t border-border/50")
-                td(class="px-3 py-2")
-                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(score.team)}`)
-                        =score.team.name
-                td(class="px-3 py-2")= score.user ? helpers.formatName(score.user) : ''
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.secretNumber ? `Found secret #${score.secretNumber}` : score.reason
                 td(class="px-3 py-2")= helpers.formatScoreType(score.type)

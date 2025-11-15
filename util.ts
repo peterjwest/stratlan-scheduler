@@ -5,7 +5,7 @@ import lodash from 'lodash';
 import md5 from 'md5';
 import QRCode from 'qrcode';
 
-import { User, UserTeams, Team, Event, EventTimeslot, Lan, LanTeams, LanProgress } from './schema';
+import { User, UserTeams, Team, Event, EventTimeslot, Lan, LanTeams, LanProgress, Group } from './schema';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -378,4 +378,15 @@ export function randomCode() {
 export function createSecretCode() {
     const data = QRCode.create(absoluteUrl(`/secret/${SECRET_ONE}`));
     return Array.from(data.modules.data).map((value) => value === 1 ? '.' : '-').join('');
+}
+
+export function addGroups<UserType extends User & { groupIds: string[] }>(users: UserType[], groups: Group[]) {
+    const groupsById = lodash.keyBy(groups, 'id');
+    return users.map((user) => ({
+        ...user,
+        groups: lodash.orderBy(
+            user.groupIds.filter((groupId) => groupId).map((groupId) => groupsById[groupId]!),
+            (group) => group.name.toLowerCase(),
+        ),
+    }));
 }

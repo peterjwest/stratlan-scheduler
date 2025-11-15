@@ -21,7 +21,7 @@ export const User = pgTable('User', {
 export type User = NullToUndefined<typeof User.$inferSelect>;
 export type UserTeams = { team: Team | undefined, isEnrolled: boolean };
 export type UserGroups = { groups: Group[] };
-export type UserScore = { score: number };
+export type UserPoints = { points: number };
 
 export const userRelations = relations(User, ({ many }) => ({
     userLans: many(UserLan),

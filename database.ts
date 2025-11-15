@@ -8,6 +8,7 @@ import schema, {
     User,
     UserTeams,
     UserGroups,
+    UserPoints,
     UserRole,
     UserGroup,
     Group,
@@ -51,6 +52,7 @@ import {
     formatName,
     absoluteUrl,
     randomCode,
+    addGroups,
 } from './util';
 import { ApplicationActivity } from './discordApi';
 import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
@@ -85,26 +87,28 @@ export async function getLanUsers(
     db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
 ): Promise<Array<User & UserTeams & UserGroups>> {
     const data = fromNulls(
-        await db.select({ user: User, userLan: UserLan, groupIds: sql<string[]>`array_agg("UserGroup"."groupId")` })
+        await db.select({
+            user: User,
+            userLan: UserLan,
+            groupIds: sql<string[]>`array_agg("UserGroup"."groupId")`,
+        })
         .from(User)
         .innerJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .leftJoin(UserGroup, eq(UserGroup.userId, User.id))
         .groupBy(User.id, UserLan.userId, UserLan.lanId)
     );
 
-    const groupsById = lodash.keyBy(groups, 'id');
-    return lodash.orderBy(data.map((item) => ({
+    const users = data.map((item) => ({
         ...item.user,
         team: getTeam(lan, item.userLan!.teamId),
         isEnrolled: true,
-        groups: lodash.orderBy(
-            item.groupIds.filter((groupId) => groupId).map((groupId) => groupsById[groupId]!),
-            (group) => group.name.toLowerCase(),
-        ),
-    })), (user) => formatName(user).toLowerCase());
+        groupIds: item.groupIds,
+    }));
+
+    return lodash.orderBy(addGroups(users, groups), (user) => formatName(user).toLowerCase());
 }
 
-export async function getUserWithLan(
+export async function getUserWithTeam(
     db: DatabaseClient, lan: Lan & LanTeams, id: number,
 ): Promise<User & UserTeams | undefined> {
     const data = fromNulls((
@@ -125,7 +129,7 @@ export async function getUserWithLan(
 export async function getUser(
     db: DatabaseClient, lan: Lan & LanTeams | undefined, userId: number,
 ): Promise<User & UserTeams | undefined> {
-    if (lan) return getUserWithLan(db, lan, userId);
+    if (lan) return getUserWithTeam(db, lan, userId);
 
     const data = fromNulls((
         await db.select({ user: User })
@@ -138,8 +142,30 @@ export async function getUser(
     return { ...data.user, team: undefined, isEnrolled: false };
 }
 
-export async function getUsersWithScores(db: DatabaseClient, lan: Lan): Promise<User & UserTeams | undefined> {
-    return undefined;
+export async function getPointsByUser(db: DatabaseClient, lan: Lan, users: User[]) {
+    const data = (
+        await db.select({ id: User.id, total: sql`sum(${Score.points})`.mapWith(Number) })
+        .from(Score)
+        .leftJoin(User, eq(User.id, Score.userId))
+        .where(and(
+            eq(Score.lanId, lan.id),
+            inArray(User.id, users.map((user) => user.id)),
+        ))
+        .groupBy(User.id)
+    );
+
+    return lodash.mapValues(lodash.keyBy(data, 'id'), 'total');
+}
+
+export async function getLanUsersWithPoints(
+    db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
+): Promise<Array<User & UserTeams & UserPoints>> {
+    const users = await getLanUsers(db, lan, groups);
+    const pointsByUser = await getPointsByUser(db, lan, users);
+    return lodash.orderBy(users.map((user) => ({
+        ...user,
+        points: pointsByUser[user.id] || 0,
+    })), 'points', 'desc');
 }
 
 export async function checkIsAdmin(db: DatabaseClient, userId: number | undefined): Promise<boolean> {
@@ -299,6 +325,40 @@ export async function getScores(
     if (!lan) return [];
 
     const conditions = [eq(Score.lanId, lan.id), or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
+    if (type) conditions.push(eq(Score.type, type));
+
+    const Assigner = alias(User, 'Assigner');
+    const data = fromNulls(
+        await db.select({ score: Score, event: Event, assigner: Assigner, user: User, userLan: UserLan })
+        .from(Score)
+        .leftJoin(Event, eq(Score.eventId, Event.id))
+        .leftJoin(Assigner, eq(Score.assignerId, Assigner.id))
+        .leftJoin(User, eq(Score.userId, User.id))
+        .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
+        .orderBy(desc(Score.createdAt))
+        .where(and(...conditions))
+    );
+
+    return data.map((item) => {
+        return {
+            ...item.score,
+            team: getTeam(lan, item.userLan?.teamId || item.score.teamId),
+            event: item.event,
+            assigner: item.assigner,
+            user: item.user && item.user,
+        }
+    });
+}
+
+export async function getUserScores(
+    db: DatabaseClient, lan: Lan & LanTeams, user: User, type?: ScoreType,
+): Promise<Array<Score & ScoreReferences>> {
+    if (!lan) return [];
+
+    const conditions = [
+        eq(Score.userId, user.id),
+        eq(Score.lanId, lan.id),
+        or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
     if (type) conditions.push(eq(Score.type, type));
 
     const Assigner = alias(User, 'Assigner');
