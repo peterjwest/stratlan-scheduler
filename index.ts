@@ -48,7 +48,7 @@ const csrf = getCsrf();
 
 const db = await getDatabaseClient();
 
-await startScoringCommunityGames(db);
+const stopScoring = await startScoringCommunityGames(db);
 
 const discordClient = loginClient(DISCORD_TOKEN);
 watchPresenceUpdates(db, discordClient);
@@ -219,10 +219,21 @@ app.use((error: any, request: Request, response: Response, next: NextFunction) =
 });
 
 /** Start server */
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server listening at ${HOST}`);
 
     process.on('unhandledRejection', (reason, promise) => {
         console.error('Unhandled rejection:', reason, promise);
     });
 });
+
+const shutDown = lodash.once(() => {
+    console.log('Shutting down');
+    stopScoring();
+    server.close(() => console.log('Server closed'));
+    discordClient.destroy().then(() => console.log('Disconnected from Discord'));
+    db.disconnect().then(() => console.log('Database disconnected'));
+});
+
+process.on('SIGINT', shutDown);
+process.on('SIGTERM', shutDown);
