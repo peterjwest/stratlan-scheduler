@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "tsx index.ts",
-    "start:dev": "tsx --env-file=.env index.ts",
+    "start:dev": "tsx watch --env-file=.env index.ts",
     "build": "pnpm static:build && pnpm css:build",
     "static:build": "rsync -a --exclude='style.css' public build/",
     "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
@@ -34,7 +34,8 @@
     "@types/node-steam-openid": "^1.0.3",
     "drizzle-kit": "^0.31.6",
     "tsup": "^8.5.0",
-    "tsx": "^4.20.3"
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.11",
