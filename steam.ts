@@ -4,21 +4,23 @@ import { Router } from 'express';
 import { updateUser, DatabaseClient } from './database';
 import { HOST, STEAM_API_KEY } from './environment';
 import { getContext } from './context';
+import { absoluteUrl } from './util';
+import routes from './routes';
 
 const steamAuth = new SteamAuth({
     realm: HOST,
-    returnUrl: `${HOST}/steam/authenticate`,
+    returnUrl: absoluteUrl(routes.steam.authenticate),
     apiKey: STEAM_API_KEY,
 });
 
 export default function (db: DatabaseClient) {
     const router = Router();
 
-    router.get('', async (request, response) => {
+    router.get(routes.steam.login, async (request, response) => {
         response.redirect(await steamAuth.getRedirectUrl());
     });
 
-    router.get('/authenticate', async (request, response) => {
+    router.get(routes.steam.authenticate, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const steamUser = await steamAuth.authenticate(request);
         await updateUser(db, context.user.id, {
@@ -27,7 +29,7 @@ export default function (db: DatabaseClient) {
             steamAvatar: steamUser.avatar.large,
         });
 
-        response.redirect('/');
+        response.redirect(routes.home);
     });
 
     return router;

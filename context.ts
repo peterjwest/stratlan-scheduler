@@ -2,10 +2,12 @@ import { Request } from 'express';
 
 import { User, UserTeams, Lan, LanTeams, LanProgress } from './schema';
 import { Helpers } from './helpers';
+import routes from './routes';
 
 export type Context = {
     currentPath: string;
     currentUrl: string;
+    routes: typeof routes;
     csrfToken: string;
     discordAuthUrl: string;
     user: User & UserTeams | undefined;

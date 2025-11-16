@@ -26,6 +26,10 @@ input[disabled], button[disabled] {
     cursor: not-allowed;
 }
 
+label {
+    cursor: pointer;
+}
+
 @theme {
     --default-font-family: InterVariable;
     --color-bg-red: #3a1934;

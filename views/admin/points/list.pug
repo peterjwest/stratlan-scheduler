@@ -5,12 +5,11 @@ block body
 
     div(class="flex mb-4 space-x-2")
         div(class="flex-grow")
-            a(href="/admin/points/create" class="inline-block py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight")
+            a(href=routes.admin.points.create class="inline-block py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight")
                 | Award points
 
         each filter of filters
-            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.url === currentUrl ? 'bg-highlight' : ''}`)= filter.name
-
+            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.type === query.type ? 'bg-highlight' : ''}`)= filter.name
 
     table(class="w-full text-left")
         tr
@@ -27,15 +26,25 @@ block body
                 td(class="px-3 py-2")
                     span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(score.team)}`)
                         =score.team.name
-                td(class="px-3 py-2")= score.user ? helpers.formatName(score.user) : ''
+                td(class="px-3 py-2")
+                    if score.user
+                        a(href=helpers.routeUrl(routes.admin.players.get, score.user.id) class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
+                            =helpers.formatName(score.user)
                 td(class="px-3 py-2")= score.points
                 td(class="px-3 py-2")= score.secretNumber ? `Found secret #${score.secretNumber}` : score.reason
                 td(class="px-3 py-2")= helpers.formatScoreType(score.type)
                 td(class="px-3 py-2")
                     if score.event
-                        a(href=`/admin/events/${score.event.id}` class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
+                        a(href=helpers.routeUrl(routes.admin.events.get, score.event.id) class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
                             =score.event.name
                 td(class="px-3 py-2")= score.assigner ? helpers.formatName(score.assigner) : ''
                 td(class="px-3 py-2 whitespace-nowrap")
                     time(datetime=helpers.formatTimestamp(score.createdAt))
                         = helpers.formatDateTime(score.createdAt)
+
+    if pages.length > 1
+        div(class="flex mt-4 space-x-2")
+            span(class="py-1.5 pl-3") Page
+            each page in pages
+                a(href=helpers.routeUrl(routes.admin.points.list, { ...query, page }) class=`py-1.5 px-3.5 rounded-md border border-border/50 ${page === (query.page || 1) ? 'bg-highlight' : ''}`)
+                    =page

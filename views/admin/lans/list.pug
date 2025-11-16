@@ -3,6 +3,9 @@ extends ../../layout.pug
 block body
     h2(class="text-2xl font-semibold mb-4") LANs
 
+    div(class="flex mb-3 gap-2 items-center")
+        a(href=routes.admin.lans.create, class="inline-block mt-3 py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight") Create LAN
+
     div(class="grid grid-cols-[repeat(5,max-content)]")
         div(class="grid grid-cols-subgrid col-span-5 font-bold")
             span(class="px-3 py-2 self-center") Name
@@ -12,7 +15,7 @@ block body
             span(class="px-3 py-2 self-center") Schedule dates
 
         each lan of lans
-            a(href=`/admin/lans/${lan.id}` class="grid grid-cols-subgrid col-span-5 hover:bg-highlight border-t border-border/50")
+            a(href=helpers.routeUrl(routes.admin.lans.get, lan.id) class="grid grid-cols-subgrid col-span-5 hover:bg-highlight border-t border-border/50")
                 span(class="px-3 py-2 self-center")=lan.name
                 span(class="px-3 py-2 self-center")
                     if lan.role
@@ -26,6 +29,3 @@ block body
                         =helpers.formatDateTime(lan.eventEnd)
                 span(class="px-3 py-2 self-center")
                     =`${helpers.formatDate(lan.scheduleStart)} to ${helpers.formatDate(lan.scheduleEnd)}`
-
-
-    a(href="/admin/lans/create", class="inline-block mt-3 py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight") Create LAN

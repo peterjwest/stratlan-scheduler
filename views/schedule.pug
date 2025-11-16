@@ -27,9 +27,9 @@ block body
                                                 div(class="text-sm")= event.name
                                                 div(class="text-xs")= helpers.formatTime(event.startTime)
                                                 if isAdmin
-                                                    a(href=`/admin/events/${event.id}` class="w-8 absolute p-2 right-0 top-0 bg-highlight rounded-md")
+                                                    a(href=helpers.routeUrl(routes.admin.events.get, event.id, { returnTo: 'schedule' }) class="w-8 absolute p-2 right-0 top-0 bg-highlight rounded-md")
                                                         img(src="/edit.svg")
 
         if isAdmin
-            a(href="/admin/events/create" class="absolute px-4 py-2 bottom-3 right-4 bg-highlight text-2xl border border-highlight-accent rounded-full")
+            a(href=helpers.routeUrl(routes.admin.events.create, { returnTo: 'schedule' }) class="absolute px-4 py-2 bottom-3 right-4 bg-highlight text-2xl border border-highlight-accent rounded-full")
                 | +

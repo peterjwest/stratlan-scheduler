@@ -3,8 +3,9 @@ import { Client } from 'discord.js';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { formatScoreType, getTeam, UserError, teamsWithCounts} from './util';
+import { getTeam, UserError, teamsWithCounts, getScoreFilters, getPages } from './util';
 import { randomiseTeams } from './teams';
+import { PAGE_SIZE } from './constants';
 import {
     getLanUsers,
     getUser,
@@ -13,6 +14,7 @@ import {
     getLanUsersWithPoints,
     getGroups,
     getEvent,
+    getEvents,
     getMinimalEvents,
     updateEvent,
     createEvent,
@@ -21,6 +23,8 @@ import {
     getGamesWithDuplicates,
     getGames,
     updateGame,
+    countScores,
+    countUserScores,
     getScores,
     getUserScores,
     awardScore,
@@ -42,12 +46,15 @@ import {
     AssignPointsData,
     HiddenCodeData,
     DuplicateGameData,
+    EventQuery,
 } from './validation';
+
+import routes, { routeUrl } from './routes';
 
 export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
     const router = Router();
 
-    router.get('/lans', async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/list', {
             ...context,
@@ -55,19 +62,19 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         });
     });
 
-    router.get('/lans/create', async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.create, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/create', context);
     });
 
-    router.post('/lans/create', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.lans.create, csrf.protect, async (request: Request, response: Response) => {
         const data = LanData.parse(request.body);
 
         await createLan(db, data);
-        response.redirect('/admin/lans');
+        response.redirect(routeUrl(routes.admin.lans.list));
     });
 
-    router.get('/lans/:lanId', async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.get, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const lan = await getLan(db, Number(request.params.lanId));
         if (!lan) throw new UserError('Lan not found.');
@@ -75,55 +82,64 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.render('admin/lans/edit', { ...context, lan });
     });
 
-    router.post('/lans/:lanId', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.lans.get, csrf.protect, async (request: Request, response: Response) => {
         const data = LanData.parse(request.body);
         const lan = await getLan(db, Number(request.params.lanId));
         if (!lan) throw new UserError('Lan not found.');
 
         await updateLan(db, lan, data);
-        response.redirect('/admin/lans');
+        response.redirect(routeUrl(routes.admin.lans.list));
     });
 
-    router.get('/events/create', async (request: Request, response: Response) => {
+    router.get(routes.admin.events.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
+        const events = await getEvents(db, context.currentLan);
+
+        response.render('admin/events/list', { ...context, events });
+    });
+
+    router.get(routes.admin.events.create, async (request: Request, response: Response) => {
+        const context = getContext(request, 'LOGGED_IN');
+        const query = EventQuery.parse(request.query);
+
         const games = await getGames(db);
-
-        response.render('admin/events/create', { ...context, games });
+        response.render('admin/events/create', { ...context, games, query });
     });
 
-    router.post('/events/create', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.events.create, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
-        console.log(request.body);
         const data = EventData.parse(request.body);
+        const query = EventQuery.parse(request.query);
 
         await createEvent(db, context.currentLan, data);
-        response.redirect('/schedule');
+        response.redirect(query.returnTo === 'schedule' ? routes.schedule : routes.admin.events.list);
     });
 
-    router.get('/events/:eventId', async (request: Request, response: Response) => {
+    router.get(routes.admin.events.get, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
+        const query = EventQuery.parse(request.query);
 
         const event = await getEvent(db, context.currentLan, Number(request.params.eventId));
-
         if (!event) throw new UserError('Event not found.');
 
         const games = await getGames(db);
 
-        response.render('admin/events/edit', { ...context, event, games });
+        response.render('admin/events/edit', { ...context, event, games, query });
     });
 
-    router.post('/events/:eventId', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.events.get, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = EventData.parse(request.body);
-        const event = await getEvent(db, context.currentLan, Number(request.params.eventId));
+        const query = EventQuery.parse(request.query);
 
+        const event = await getEvent(db, context.currentLan, Number(request.params.eventId));
         if (!event) throw new UserError('Event not found.');
 
         await updateEvent(db, event, data);
-        response.redirect('/schedule');
+        response.redirect(query.returnTo === 'schedule' ? '/schedule' : routeUrl(routes.admin.events.list));
     });
 
-    router.get('/players', async (request: Request, response: Response) => {
+    router.get(routes.admin.players.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const groups = await getGroups(db);
         const players =  await getLanUsersWithPoints(db, context.currentLan, groups);
@@ -132,58 +148,44 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.render('admin/players/list', { ...context, teams, players });
     });
 
-    router.get('/players/:playerId', async (request: Request, response: Response) => {
+    router.get(routes.admin.players.get, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
+        const query = PointsQuery.parse(request.query);
 
         const player = await getUser(db, context.currentLan, Number(request.params.playerId));
         if (!player) throw new UserError('User not found.');
 
-        const query = PointsQuery.parse(request.query);
-        const pageUrl = `/admin/players/${request.params.playerId}`;
-        const filters = [
-            { name: 'All', url: pageUrl },
-            { name: formatScoreType('Awarded'), url: `${pageUrl}?type=Awarded` },
-            { name: formatScoreType('CommunityGame'), url: `${pageUrl}?type=CommunityGame` },
-            { name: formatScoreType('IntroChallenge'), url: `${pageUrl}?type=IntroChallenge` },
-            { name: formatScoreType('HiddenCode'), url: `${pageUrl}?type=HiddenCode` },
-        ];
-
-        response.render('admin/players/view', {
-            ...context,
-            filters,
-            player,
-            scores: await getUserScores(db, context.currentLan, player, query.type),
-        });
+        const filters = getScoreFilters(
+            routeUrl(routes.admin.players.get, request.params.playerId!),
+            ['Awarded', 'CommunityGame', 'IntroChallenge', 'HiddenCode'],
+        );
+        const pages = getPages(await countUserScores(db, context.currentLan, player, query.type), PAGE_SIZE);
+        const scores = await getUserScores(db, context.currentLan, player, query.type, query.page);
+        response.render('admin/players/view', { ...context, filters, query, pages, player, scores });
     });
 
-    router.get('/points', async (request: Request, response: Response) => {
+    router.get(routes.admin.points.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const query = PointsQuery.parse(request.query);
-        const pageUrl = '/admin/points';
-        const filters = [
-            { name: 'All', url: pageUrl },
-            { name: formatScoreType('Awarded'), url: `${pageUrl}?type=Awarded` },
-            { name: formatScoreType('CommunityGame'), url: `${pageUrl}?type=CommunityGame` },
-            { name: formatScoreType('IntroChallenge'), url: `${pageUrl}?type=IntroChallenge` },
-            { name: formatScoreType('HiddenCode'), url: `${pageUrl}?type=HiddenCode` },
-        ];
-        response.render('admin/points/list', {
-            ...context,
-            filters,
-            scores: await getScores(db, context.currentLan, query.type),
-        });
+
+        const filters = getScoreFilters(
+            routes.admin.points.list,
+            ['Awarded', 'CommunityGame', 'IntroChallenge', 'HiddenCode'],
+        );
+        const pages = getPages(await countScores(db, context.currentLan, query.type), PAGE_SIZE);
+        const scores = await getScores(db, context.currentLan, query.type, query.page);
+        response.render('admin/points/list', { ...context, filters, query, pages, scores });
     });
 
-    router.get('/points/create', async (request: Request, response: Response) => {
+    router.get(routes.admin.points.create, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
-        response.render('admin/points/create', {
-            ...context,
-            events: await getMinimalEvents(db, context.currentLan),
-            users: await getMinimalUsers(db, context.currentLan),
-        });
+
+        const events = await getMinimalEvents(db, context.currentLan);
+        const users = await getMinimalUsers(db, context.currentLan);
+        response.render('admin/points/create', { ...context, events, users });
     });
 
-    router.post('/points/create', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.points.create, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (context.currentLan?.isEnded) {
@@ -217,10 +219,10 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
             );
         }
 
-        response.redirect('/admin/points');
+        response.redirect(routes.admin.points.list);
     });
 
-    router.post('/players/randomise', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.players.randomise, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (context.currentLan.isStarted) {
@@ -236,13 +238,13 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         }
         await updateTeams(db, context.currentLan, users);
 
-        response.redirect('/admin/players');
+        response.redirect(routes.admin.players.list);
     });
 
-    router.post('/players/:playerId/switch', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.players.switch, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
-        const user = await getUserWithTeam(db, context.currentLan,  Number(request.params.playerId));
+        const user = await getUserWithTeam(db, context.currentLan, Number(request.params.playerId));
         if (!user) throw new UserError('User not found');
 
         const teams = context.currentLan.teams;
@@ -250,31 +252,31 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const newTeam = teams[(teamIndex + teams.length + 1) % teams.length]!;
         await updateTeam(db, context.currentLan, user, newTeam);
 
-        response.redirect('/admin/players');
+        response.redirect(routes.admin.players.list);
     });
 
-    router.get('/codes', async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const hiddenCodes = await getHiddenCodes(db, context.currentLan);
 
         response.render('admin/codes/list', { ...context, hiddenCodes });
     });
 
-    router.get('/codes/create', async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.create, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         response.render('admin/codes/create', context);
     });
 
-    router.post('/codes/create', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.codes.create, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = HiddenCodeData.parse(request.body);
 
         await createHiddenCode(db, context.currentLan, data);
-        response.redirect('/admin/codes');
+        response.redirect(routes.admin.codes.list);
     });
 
-    router.get('/codes/:codeId', async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.get, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
         if (!code) throw new UserError('Hidden code not found.');
@@ -282,17 +284,17 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.render('admin/codes/edit', { ...context, code });
     });
 
-    router.post('/codes/:codeId', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.codes.get, csrf.protect, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = HiddenCodeData.parse(request.body);
         const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
         if (!code) throw new UserError('Hidden code not found.');
 
         await updateHiddenCode(db, context.currentLan, code, data);
-        response.redirect('/admin/codes');
+        response.redirect(routes.admin.codes.list);
     });
 
-    router.get('/games', async (request: Request, response: Response) => {
+    router.get(routes.admin.games.list, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/games/list', {
             ...context,
@@ -300,7 +302,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         });
     });
 
-    router.get('/games/:gameId', async (request: Request, response: Response) => {
+    router.get(routes.admin.games.get, async (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
@@ -310,7 +312,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         response.render('admin/games/edit', { ...context, game, games });
     });
 
-    router.post('/games/:gameId/duplicates', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.games.duplicates.create, csrf.protect, async (request: Request, response: Response) => {
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
         if (game.parentId) throw new UserError('Game is a duplicate.');
@@ -325,10 +327,10 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         }
         await updateGame(db, data.gameId, { parentId: game.id });
 
-        response.redirect(`/admin/games/${request.params.gameId}`);
+        response.redirect(routeUrl(routes.admin.games.get, request.params.gameId!));
     });
 
-    router.post('/games/:gameId/duplicates/:duplicateId/delete', csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.games.duplicates.delete, csrf.protect, async (request: Request, response: Response) => {
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
 
@@ -338,7 +340,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         }
         await updateGame(db, duplicateId, { parentId: undefined });
 
-        response.redirect(`/admin/games/${request.params.gameId}`);
+        response.redirect(routeUrl(routes.admin.games.get, request.params.gameId!));
     });
 
     return router;

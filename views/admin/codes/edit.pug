@@ -1,7 +1,7 @@
 extends ../../layout.pug
 
 block body
-    form(action=`/admin/codes/${code.id}` method="post" class="mb-3")
+    form(action=helpers.routeUrl(routes.admin.codes.get, code.id) method="post" class="mb-3")
         input(type="hidden" name="csrf" value=csrfToken)
 
         div(class="sm:flex items-start")

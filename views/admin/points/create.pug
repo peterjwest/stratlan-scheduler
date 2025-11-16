@@ -1,7 +1,7 @@
 extends ../../layout.pug
 
 block body
-    form(action="/admin/points/create" method="post")
+    form(action=routes.admin.points.create method="post" data-points-form)
         h2(class="text-2xl font-semibold mb-4") Assign points
 
         input(type="hidden" name="csrf" value=csrfToken)

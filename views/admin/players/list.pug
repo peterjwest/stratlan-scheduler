@@ -4,7 +4,7 @@ block body
     h2(class="text-2xl font-semibold mb-4") Players
 
     div(class="flex mb-3 gap-2 items-center")
-        form(action="/admin/players/randomise" method="post")
+        form(action=routes.admin.players.randomise method="post")
             input(type="hidden" name="csrf" value=csrfToken)
             input(type="submit" name="submit" disabled=currentLan.isStarted value="Randomise" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
         each team of teams
@@ -19,7 +19,7 @@ block body
         span(class="px-3 py-2 self-center font-bold") Actions
 
         each player of players
-            a(href=`/admin/players/${player.id}` class="grid grid-cols-subgrid col-span-4 hover:bg-highlight border-t border-border/50")
+            a(href=helpers.routeUrl(routes.admin.players.get, player.id) class="grid grid-cols-subgrid col-span-4 hover:bg-highlight border-t border-border/50")
                 span(class="px-3 py-2 self-center")=helpers.formatName(player)
                 span(class="px-3 py-2 self-center")=player.points
                 span(class="px-3 py-2 self-center")
@@ -31,6 +31,6 @@ block body
                         span(class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
                             =group.name
 
-            form(action=`/admin/players/${player.id}/switch` method="post" class="px-3 py-2 border-t border-border/50")
+            form(action=helpers.routeUrl(routes.admin.players.switch, player.id) method="post" class="px-3 py-2 border-t border-border/50")
                 input(type="hidden" name="csrf" value=csrfToken)
                 input(type="submit" name="submit" value="Switch team" class="py-1 px-2 rounded-md border border-border/80 bg-highlight")

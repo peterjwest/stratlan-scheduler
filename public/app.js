@@ -1,19 +1,22 @@
-const pointsTeamRadios = Array.from(document.querySelectorAll('[data-points-team]'));
-const pointsTypeInput = document.querySelector('[data-points-type]');
-const pointsPlayerField = document.querySelector('[data-player-field]');
-const pointsPlayerInput = document.querySelector('[data-player-input]');
+const pointsForm = document.querySelector('[data-points-form]');
+if (pointsForm) {
+    const pointsTeamRadios = Array.from(pointsForm.querySelectorAll('[data-points-team]'));
+    const pointsTypeInput = pointsForm.querySelector('[data-points-type]');
+    const pointsPlayerField = pointsForm.querySelector('[data-player-field]');
+    const pointsPlayerInput = pointsForm.querySelector('[data-player-input]');
 
-if (pointsTeamRadios.length && pointsPlayerField && pointsTypeInput) {
-    for (const pointsTypeRadio of pointsTeamRadios) {
-        pointsTypeRadio.addEventListener('change', (event) => {
-            const isPlayer = event.target.value === '';
-            pointsPlayerField.classList[isPlayer ? 'remove' : 'add']('hidden');
-            pointsPlayerInput.required = isPlayer ? 'required' : undefined;
-            pointsTypeInput.value = isPlayer ? 'player' : 'team';
-            if (!isPlayer) {
-                pointsPlayerInput.value = '';
-            }
-        });
+    if (pointsTeamRadios.length && pointsPlayerField && pointsTypeInput) {
+        for (const pointsTypeRadio of pointsTeamRadios) {
+            pointsTypeRadio.addEventListener('change', (event) => {
+                const isPlayer = event.target.value === '';
+                pointsPlayerField.classList[isPlayer ? 'remove' : 'add']('hidden');
+                pointsPlayerInput.required = isPlayer ? 'required' : undefined;
+                pointsTypeInput.value = isPlayer ? 'player' : 'team';
+                if (!isPlayer) {
+                    pointsPlayerInput.value = '';
+                }
+            });
+        }
     }
 }
 

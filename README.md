@@ -3,6 +3,8 @@
 Objectives:
 - Event start
   - Assign Discord roles
+  - Assign team after start
+- Codes for events
 - Stress testing
   - Indexes
   - Cache assets
@@ -19,9 +21,6 @@ Objectives:
   - Clip events and minimum visual length
 - Show player scores
   - Show recent score animation
-- Admin
-  - Events
-  - Score page pagination?
 - Privacy policy
 - Cookie policy
 

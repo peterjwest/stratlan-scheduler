@@ -8,7 +8,7 @@ import { getContext } from './context';
 import {
     splitByDay,
     getLanDays,
-    getUrl,
+    parseUrl,
     isUserError,
     withLanStatus,
     absoluteUrl,
@@ -45,6 +45,7 @@ import { startScoringCommunityGames } from './communityGame';
 import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
 import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS, HIDDEN_CODE_POINTS, SECRET_POINTS, SECRETS_BY_CODE } from './constants';
 import { getExpressSession, getConditionalSession } from './session';
+import routes from './routes';
 
 const csrf = getCsrf();
 
@@ -70,7 +71,7 @@ app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
     const userId = request.session?.userId;
-    const currentPath = getUrl(request.originalUrl).path;
+    const currentPath = parseUrl(request.originalUrl).path;
     const currentUrl = request.originalUrl;
     const csrfToken = csrf.generateToken(request);
     const discordAuthUrl = DISCORD_AUTH_URL;
@@ -97,13 +98,13 @@ app.use(async (request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
+        currentPath, currentUrl, routes, csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
     };
 
     next();
 });
 
-app.use('/auth', authRouter(db, discordClient, expressSession));
+app.use(authRouter(db, discordClient, expressSession));
 
 /** Require current LAN for following routes */
 app.use(async (request, response, next) => {
@@ -114,7 +115,7 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.get('/', async (request, response) => {
+app.get(routes.home, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     response.render('guide', {
         ...context,
@@ -125,7 +126,7 @@ app.get('/', async (request, response) => {
     });
 });
 
-app.use('/dashboard', async (request, response) => {
+app.use(routes.dashboard, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
 
     const teamPoints: Array<{ team: Team, points: number }> = [];
@@ -139,7 +140,7 @@ app.use('/dashboard', async (request, response) => {
     response.render('dashboard', { ...context, teamPoints, maxPoints });
 });
 
-app.get('/schedule', async (request, response) => {
+app.get(routes.schedule, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     const events = await getEvents(db, context.currentLan);
 
@@ -149,25 +150,25 @@ app.get('/schedule', async (request, response) => {
     });
 });
 
-app.get('/intro/code/:userCode', async (request, response) => {
+app.get(routes.intro.code, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
     if (userIntroCode(context.user) === request.params.userCode) {
         await getOrCreateIntroChallenge(db, 'HiddenCode', context.currentLan, context.user);
     }
-    response.redirect('/');
+    response.redirect(routes.home);
 });
 
-app.get('/intro/claim/:challengeId', async (request, response) => {
+app.get(routes.intro.claim, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
     await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
-    response.redirect('/');
+    response.redirect(routes.home);
 });
 
-app.get('/code/:hiddenCode', async (request, response) => {
+app.get(routes.code, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
@@ -183,7 +184,7 @@ app.get('/code/:hiddenCode', async (request, response) => {
     });
 });
 
-app.get(`/secret/:secretCode`, async (request: Request, response: Response, next: NextFunction) => {
+app.get(routes.secret, async (request: Request, response: Response, next: NextFunction) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
@@ -206,8 +207,8 @@ app.use(async (request, response, next) => {
     next();
 });
 
-app.use('/steam', steamRouter(db));
-app.use('/admin', adminRouter(db, csrf, discordClient));
+app.use(steamRouter(db));
+app.use(adminRouter(db, csrf, discordClient));
 
 /** 404 handler */
 app.use((request: Request, response: Response) => {

@@ -11,11 +11,12 @@ import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } 
 import { getGuild, getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember, DiscordGuildMember } from './discordApi';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
 import { DISCORD_RETURN_URL } from './constants';
+import routes from './routes';
 
 export default function (db: DatabaseClient, discordClient: Client, expressSession: RequestHandler) {
     const router = Router();
 
-    router.get('/login', async (request, response) => {
+    router.get(routes.auth.login, async (request, response) => {
         const query = zod.object({ code: zod.string() }).parse(request.query);
 
         // Check access token is valid by fetching user
@@ -49,13 +50,13 @@ export default function (db: DatabaseClient, discordClient: Client, expressSessi
         request.session.userId = user.id;
         await saveSession(request);
 
-        response.redirect(request.cookies['login-redirect'] || '/');
+        response.redirect(request.cookies['login-redirect'] || routes.home);
     });
 
-    router.get('/logout', async (request, response) => {
+    router.get(routes.auth.logout, async (request, response) => {
         await destroySession(request);
 
-        response.redirect('/');
+        response.redirect(routes.home);
     });
 
     return router;

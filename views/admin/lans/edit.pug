@@ -1,7 +1,7 @@
 extends ../../layout.pug
 
 block body
-    form(action=`/admin/lans/${lan.id}` method="post" class="mb-3")
+    form(action=helpers.routeUrl(routes.admin.lans.get, lan.id) method="post" class="mb-3")
         h2(class="text-2xl font-semibold mb-4") Edit LAN
 
         input(type="hidden" name="csrf" value=csrfToken)

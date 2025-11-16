@@ -9,6 +9,6 @@ block body
             span(class="px-3 py-2 self-center") Also known as
 
         each game of games
-            a(href=`/admin/games/${game.id}` class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
+            a(href=helpers.routeUrl(routes.admin.games.get, game.id) class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
                 span(class="px-3 py-2 self-center")=game.name
                 span(class="px-3 py-2 self-center")=game.duplicates.map((duplicate) => duplicate.name).join(', ')

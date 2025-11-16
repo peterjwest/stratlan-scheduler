@@ -16,8 +16,8 @@ mixin navigationLink(path, text)
 mixin dropdown(name, options, selectedId, required, placeholder, formatLabel, reverse)
     - const selected = options.find((option) => option.id === selectedId);
     div(data-dropdown class="relative")
-        select(data-dropdown-input data-player-input name=name class="hidden")
-            if !required
+        select(data-dropdown-input data-player-input name=name class="hidden" required=required)
+            if !selectedId
                 option(value="")= None
             each option of options
                 option(value=option.id selected=(option.id === selectedId))=formatLabel(option)

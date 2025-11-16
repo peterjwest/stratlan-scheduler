@@ -238,7 +238,7 @@ export function roundToNextMinutes(date = new Date(), minutes: number): Date {
     return new Date(Math.ceil(date.getTime() / multiplier) * multiplier);
 }
 
-export function getUrl(path: string) {
+export function parseUrl(path: string) {
     const url = new URL(path, 'https://example');
     return { path: url.pathname, query: url.searchParams, hash: url.hash };
 }
@@ -365,7 +365,7 @@ export function userIntroCode(user: User) {
     return md5(user.discordId).slice(0, 10)
 }
 
-function getRange(start: string, end: string) {
+export function getRange(start: string, end: string) {
     return lodash.range(start.charCodeAt(0), end.charCodeAt(0) + 1).map((code) => String.fromCharCode(code));
 }
 
@@ -389,4 +389,25 @@ export function addGroups<UserType extends User & { groupIds: string[] }>(users:
             (group) => group.name.toLowerCase(),
         ),
     }));
+}
+
+export function getScoreFilters(pageUrl: string, scoreTypes: ScoreType[]) {
+    return [
+        { name: 'All', url: pageUrl },
+        ...scoreTypes.map((type) => ({
+            name: formatScoreType(type),
+            type,
+            url: `${pageUrl}?type=${type}`
+        }))
+    ];
+}
+
+export function getPages(total: number, perPage: number) {
+    return lodash.range(1, Math.ceil(total / perPage) + 1);
+}
+
+export function buildQueryString(query: Record<string, string> = {}) {
+    return Object.entries(query).map(([key, value]) => {
+        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+    }).join('&');
 }

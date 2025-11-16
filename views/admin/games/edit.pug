@@ -11,12 +11,12 @@ block body
         each duplicate in game.duplicates
             div(class="grid grid-cols-subgrid col-span-2 hover:bg-highlight border-t border-border/50")
                 span(class="px-3 py-2 self-center min-w-50")=duplicate.name
-                form(action=`/admin/games/${game.id}/duplicates/${duplicate.id}/delete` method="post")
+                form(action=helpers.routeUrl(routes.admin.games.duplicates.delete, game.id, duplicate.id) method="post")
                     input(type="hidden" name="csrf" value=csrfToken)
                     button(type="submit" class="m-2 py-1 px-3 rounded-md border border-border/80 bg-highlight")
                         | Remove
 
-    form(action=`/admin/games/${game.id}/duplicates` method="post" class="mb-3")
+    form(action=helpers.routeUrl(routes.admin.games.duplicates.create, game.id) method="post" class="mb-3")
         input(type="hidden" name="csrf" value=csrfToken)
 
         label(data-player-field class="block sm:flex items-start py-2 px-3" data-event-game)

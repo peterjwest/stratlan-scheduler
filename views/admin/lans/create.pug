@@ -1,7 +1,7 @@
 extends ../../layout.pug
 
 block body
-    form(action=`/admin/lans/create` method="post")
+    form(action=routes.admin.lans.create method="post")
         h2(class="text-2xl font-semibold mb-4") Create LAN
 
         input(type="hidden" name="csrf" value=csrfToken)

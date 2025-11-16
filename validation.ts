@@ -27,6 +27,17 @@ const integerTypeOptional = (
     })
 );
 
+const positiveIntegerTypeOptional = (
+    zod.string()
+    .transform((id) => id === '' ? undefined : parseInt(id, 10))
+    .refine((value) => value === undefined || Number.isInteger(value), {
+        error: 'Expected an integer'
+    })
+    .refine((value) => value === undefined || value > 0, {
+        error: 'Must be greater than zero'
+    })
+);
+
 export const LanData = zod.object({
     name: zod.string(),
     role: zod.string(),
@@ -70,8 +81,16 @@ const AssignPlayerPoints = BaseAssignPoints.extend({
 export const AssignPointsData = zod.union([AssignPlayerPoints, AssignTeamPoints]);
 export type AssignPointsData = zod.infer<typeof AssignPointsData>;
 
-export const PointsQuery = zod.object({ type: zod.union([ScoreType, zod.undefined()]) });
+export const PointsQuery = zod.object({
+    type: zod.optional(ScoreType),
+    page: positiveIntegerTypeOptional.optional(),
+});
 export type PointsQuery = zod.infer<typeof PointsQuery>;
 
 export const DuplicateGameData = zod.object({ gameId: integerType });
 export type DuplicateGameData = zod.infer<typeof DuplicateGameData>;
+
+export const EventQuery = zod.object({
+    returnTo: zod.union([zod.literal('schedule'), zod.literal('')]).optional(),
+})
+export type EventQuery = zod.infer<typeof EventQuery>;

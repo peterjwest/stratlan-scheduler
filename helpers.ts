@@ -17,6 +17,7 @@ import {
     createSecretCode,
 } from './util';
 import { getAvatarUrl } from './discordApi';
+import { routeUrl } from './routes';
 
 const helpers = {
     formatDate,
@@ -36,6 +37,7 @@ const helpers = {
     isUserError,
     round,
     createSecretCode,
+    routeUrl,
 }
 
 export type Helpers = typeof helpers;

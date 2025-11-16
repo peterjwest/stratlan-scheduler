@@ -1,15 +1,16 @@
 extends ../../layout.pug
 
 block body
-    h2(class="text-2xl font-semibold mb-4")
-        =`${helpers.formatName(player)} `
-        span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(player.team)}`)
-            =player.team.name
+    h2(class="text-2xl font-semibold mb-4") Player
 
     div(class="flex mb-4 space-x-2")
         div(class="flex-grow")
+            span(class="font-semibold text-xl")=`${helpers.formatName(player)} `
+            span(class=`inline-block text-base font-normal px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(player.team)}`)
+                    =player.team.name
+
         each filter of filters
-            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.url === currentUrl ? 'bg-highlight' : ''}`)= filter.name
+            a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.type === query.type ? 'bg-highlight' : ''}`)= filter.name
 
     table(class="w-full text-left")
         tr
@@ -26,9 +27,16 @@ block body
                 td(class="px-3 py-2")= helpers.formatScoreType(score.type)
                 td(class="px-3 py-2")
                     if score.event
-                        a(href=`/admin/events/${score.event.id}` class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
+                        a(href=helpers.routeUrl(routes.admin.events.get, score.event.id) class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
                             =score.event.name
                 td(class="px-3 py-2")= score.assigner ? helpers.formatName(score.assigner) : ''
                 td(class="px-3 py-2 whitespace-nowrap")
                     time(datetime=helpers.formatTimestamp(score.createdAt))
                         = helpers.formatDateTime(score.createdAt)
+
+    if pages.length > 1
+        div(class="flex mt-4 space-x-2")
+            span(class="py-1.5 pl-3") Page
+            each page in pages
+                a(href=helpers.routeUrl(routes.admin.players.get, player.id, { ...query, page }) class=`py-1.5 px-3.5 rounded-md border border-border/50 ${page === (query.page || 1) ? 'bg-highlight' : ''}`)
+                    =page

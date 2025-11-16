@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max } from 'drizzle-orm';
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max, count } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import schema, {
@@ -41,6 +41,7 @@ import {
     MODERATOR_ROLES,
     HIDDEN_CODE_POINTS,
     SECRET_POINTS,
+    PAGE_SIZE,
 } from './constants';
 import {
     getTimeslotEnd,
@@ -319,12 +320,24 @@ export async function awardScore(
     }).returning())[0]!);
 }
 
+export async function countScores(db: DatabaseClient, lan: Lan, type: ScoreType | undefined) {
+    const conditions = [eq(Score.lanId, lan.id)];
+    if (type) conditions.push(eq(Score.type, type));
+    return (await db.select({ count: count() }).from(Score).where(and(...conditions)))[0]?.count || 0;
+}
+
+export async function countUserScores(db: DatabaseClient, lan: Lan, user: User, type: ScoreType | undefined) {
+    const conditions = [eq(Score.userId, user.id), eq(Score.lanId, lan.id)];
+    if (type) conditions.push(eq(Score.type, type));
+    return (await db.select({ count: count() }).from(Score).where(and(...conditions)))[0]?.count || 0;
+}
+
 export async function getScores(
-    db: DatabaseClient, lan: Lan & LanTeams, type: ScoreType | undefined,
+    db: DatabaseClient, lan: Lan & LanTeams, type: ScoreType | undefined, page: number = 1,
 ): Promise<Array<Score & ScoreReferences>> {
     if (!lan) return [];
 
-    const conditions = [eq(Score.lanId, lan.id), or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
+    const conditions = [eq(Score.lanId, lan.id)];
     if (type) conditions.push(eq(Score.type, type));
 
     const Assigner = alias(User, 'Assigner');
@@ -337,6 +350,8 @@ export async function getScores(
         .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .orderBy(desc(Score.createdAt))
         .where(and(...conditions))
+        .limit(PAGE_SIZE)
+        .offset((page - 1) * PAGE_SIZE)
     );
 
     return data.map((item) => {
@@ -351,7 +366,7 @@ export async function getScores(
 }
 
 export async function getUserScores(
-    db: DatabaseClient, lan: Lan & LanTeams, user: User, type?: ScoreType,
+    db: DatabaseClient, lan: Lan & LanTeams, user: User, type?: ScoreType, page: number = 1,
 ): Promise<Array<Score & ScoreReferences>> {
     if (!lan) return [];
 
@@ -371,6 +386,8 @@ export async function getUserScores(
         .leftJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
         .orderBy(desc(Score.createdAt))
         .where(and(...conditions))
+        .limit(PAGE_SIZE)
+        .offset((page - 1) * PAGE_SIZE)
     );
 
     return data.map((item) => {
