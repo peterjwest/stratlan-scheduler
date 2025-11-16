@@ -3,7 +3,7 @@ import { Client } from 'discord.js';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { getTeam, UserError, teamsWithCounts, getScoreFilters, getPages } from './util';
+import { getTeam, UserError, teamsWithCounts, getScoreFilters, getPages, addMinutes } from './util';
 import { randomiseTeams } from './teams';
 import { PAGE_SIZE } from './constants';
 import {
@@ -134,6 +134,19 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         const event = await getEvent(db, context.currentLan, Number(request.params.eventId));
         if (!event) throw new UserError('Event not found.');
+
+        const now = new Date()
+        if (now > event.startTime) {
+            if (Number(data.startTime) != Number(event.startTime)) {
+                throw new UserError('Start time can\'t be changed after the event starts.');
+            }
+            if (data.points !== event.points) {
+                throw new UserError('Points can\'t be changed after the event starts.');
+            }
+            if (data.duration !== event.duration && now > addMinutes(event.startTime, data.duration)) {
+                throw new UserError('Duration can\'t be reduced before now.');
+            }
+        }
 
         await updateEvent(db, event, data);
         response.redirect(query.returnTo === 'schedule' ? '/schedule' : routeUrl(routes.admin.events.list));
