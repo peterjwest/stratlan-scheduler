@@ -6,7 +6,8 @@ block body
     div(class="flex mb-4 space-x-2")
         div(class="flex-grow")
             span(class="font-semibold text-xl")=`${helpers.formatName(player)} `
-            span(class=`inline-block text-base font-normal px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(player.team)}`)
+            if player.team
+                span(class=`inline-block text-base font-normal px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(player.team)}`)
                     =player.team.name
 
         each filter of filters

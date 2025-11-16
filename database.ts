@@ -370,10 +370,7 @@ export async function getUserScores(
 ): Promise<Array<Score & ScoreReferences>> {
     if (!lan) return [];
 
-    const conditions = [
-        eq(Score.userId, user.id),
-        eq(Score.lanId, lan.id),
-        or(isNotNull(Score.teamId), isNotNull(UserLan.teamId))];
+    const conditions = [eq(Score.userId, user.id), eq(Score.lanId, lan.id)];
     if (type) conditions.push(eq(Score.type, type));
 
     const Assigner = alias(User, 'Assigner');

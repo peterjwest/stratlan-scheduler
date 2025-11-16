@@ -24,8 +24,9 @@ block body
         each score of scores
             tr(class="hover:bg-highlight border-t border-border/50")
                 td(class="px-3 py-2")
-                    span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(score.team)}`)
-                        =score.team.name
+                    if score.team
+                        span(class=`inline-block px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(score.team)}`)
+                            =score.team.name
                 td(class="px-3 py-2")
                     if score.user
                         a(href=helpers.routeUrl(routes.admin.players.get, score.user.id) class="inline-block px-1.5 py-1 mr-2 rounded-lg bg-highlight/60 border border-highlight-accent")
