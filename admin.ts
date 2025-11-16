@@ -111,7 +111,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const data = EventData.parse(request.body);
         const query = EventQuery.parse(request.query);
 
-        await createEvent(db, context.currentLan, data);
+        await createEvent(db, context.currentLan, { ...data, createdBy: context.user.id });
         response.redirect(query.returnTo === 'schedule' ? routes.schedule : routes.admin.events.list);
     });
 
