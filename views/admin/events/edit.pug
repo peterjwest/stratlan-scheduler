@@ -29,10 +29,18 @@ block body
                 span(class="py-2 pr-3") Points per 10 mins
                 input(name="points" type="number" min="0" step="10" value=event.points data-event-points-input class="py-2 px-3.5 border border-border/80 rounded-sm")
 
-            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-event-points)
-                span(class="py-2 pr-3") Cancelled?
-                div
-                    input(name="isCancelled" type="checkbox" checked=event.isCancelled data-event-points-input class="w-4 h-4 my-3 border border-border/80 rounded-sm")
+            div(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-event-points)
+                div(class="py-2 pr-3") Cancelled at
+                div(class="grid grid-cols-subgrid lg:col-span-2")
+                    div(class="py-2 px-3 mb-2 lg:mb-0")
+                        if event.cancelledAt
+                            =helpers.formatTimestamp(event.cancelledAt)
+                        else
+                            | n/a
+                    if !event.cancelledAt
+                        div(class="lg:ml-3")
+                            button(class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight" type="submit" name="submit")
+                                | Cancel event
 
             div(class="mt-2 flex gap-2")
                 input(type="submit" name="submit" value="Save" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")

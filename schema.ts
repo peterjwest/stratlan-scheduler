@@ -1,7 +1,7 @@
 import {
-    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, AnyPgColumn
+    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, uniqueIndex, AnyPgColumn
 } from 'drizzle-orm/pg-core';
-import { relations, sql } from 'drizzle-orm';
+import { relations, sql, eq } from 'drizzle-orm';
 
 import { NullToUndefined } from './util';
 import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
@@ -119,12 +119,13 @@ export const Score = pgTable('Score', {
     hiddenCodeId: integer().references(() => HiddenCode.id),
     secretNumber: integer(),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
-}, (table) => [
+}, (Score) => [
     // TODO: More constraints
     check(
-        "Team_teamId_or_userId",
-        sql`(${table.teamId} IS NOT NULL AND ${table.userId} IS NULL) OR (${table.teamId} IS NULL AND ${table.userId} IS NOT NULL)`,
+        "Score_teamId_or_userId",
+        sql`(${Score.teamId} IS NOT NULL AND ${Score.userId} IS NULL) OR (${Score.teamId} IS NULL AND ${Score.userId} IS NOT NULL)`,
     ),
+    uniqueIndex("Score_community_game").on(Score.userId, Score.timeslotId).where(sql`${Score.type} = 'CommunityGame'`),
 ]);
 export type Score = NullToUndefined<typeof Score.$inferSelect>;
 export type ScoreReferences = {
@@ -161,10 +162,10 @@ export const Event = pgTable('Event', {
     startTime: timestamp({ withTimezone: true }).notNull(),
     duration: integer().notNull(),
     isOfficial: boolean().notNull(),
-    isCancelled: boolean().notNull().default(false),
+    cancelledAt: timestamp({ withTimezone: true }),
     gameId: integer().references(() => Game.id),
     points: integer().notNull().default(0),
-    timeslotCount: integer().notNull().default(0),
+    isProcessed: boolean().notNull().default(false),
     createdBy: integer().references(() => User.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 });
@@ -183,6 +184,7 @@ export const EventTimeslot = pgTable('EventTimeslot', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     eventId: integer().references(() => Event.id).notNull(),
     time: timestamp({ withTimezone: true }).notNull(),
+    isProcessed: boolean().notNull().default(false),
 });
 export type EventTimeslot = NullToUndefined<typeof EventTimeslot.$inferSelect>;
 

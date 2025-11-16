@@ -157,7 +157,7 @@ export function getTimeslotTimes(event: Event, timeslots: number): Date[] {
 }
 
 export function groupEvents(events: Event[], isAdmin: boolean): Event[][][] {
-    const filteredEvents = isAdmin ? events : events.filter((event) => !event.isCancelled);
+    const filteredEvents = isAdmin ? events : events.filter((event) => !event.cancelledAt);
 
     if (filteredEvents.length === 0) return [];
 

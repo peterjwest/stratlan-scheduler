@@ -99,9 +99,12 @@ export function randomiseTeams(teams: Team[], groups: Group[], users: Array<User
     const usersById = lodash.keyBy(users, 'id');
 
     while (subGroups.length > 0) {
-        // TODO: Replace with single sort
-        subGroups = lodash.sortBy(subGroups, (subGroup) => -subGroup.userIds.length);
-        subGroups = lodash.sortBy(subGroups, (subGroup) => -subGroup.groupIds.size);
+        subGroups = lodash.sortBy(
+            subGroups,
+            (subGroup) => -subGroup.groupIds.size,
+            (subGroup) => -subGroup.userIds.length,
+        );
+
         const subGroup = subGroups[0]!;
         const user = usersById[subGroup.userIds.pop()!]!;
         const groupIds = getGroupIds(user.groups);

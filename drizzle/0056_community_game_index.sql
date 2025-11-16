@@ -1,0 +1,3 @@
+ALTER TABLE "Score" DROP CONSTRAINT "Team_teamId_or_userId";--> statement-breakpoint
+CREATE UNIQUE INDEX "Score_community_game" ON "Score" USING btree ("userId","timeslotId") WHERE "Score"."type" = 'CommunityGame';--> statement-breakpoint
+ALTER TABLE "Score" ADD CONSTRAINT "Score_teamId_or_userId" CHECK (("Score"."teamId" IS NOT NULL AND "Score"."userId" IS NULL) OR ("Score"."teamId" IS NULL AND "Score"."userId" IS NOT NULL));

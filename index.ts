@@ -98,7 +98,7 @@ app.use(async (request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, routes, csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
+        currentPath, currentUrl, routes,csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
     };
 
     next();

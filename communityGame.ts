@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import { DatabaseClient, getCurrentLanCached, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
@@ -26,7 +26,8 @@ export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameA
 }
 
 export function getExpectedTimeslots(event: EventWithTimeslots) {
-    const currentDuration = diffMinutes(event.startTime, minDate(new Date(), getEventEnd(event)));
+    const currentEnd = minDate(new Date(), getEventEnd(event));
+    const currentDuration = diffMinutes(event.startTime, event.cancelledAt ? minDate(currentEnd, event.cancelledAt) : currentEnd);
     return Math.floor(currentDuration / EVENT_TIMESLOT_MINUTES);
 }
 
@@ -62,7 +63,8 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
 
 export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
     const currentLan = withLanStatus(await getCurrentLanCached(db));
-    if (!currentLan?.isActive) return;
+    if (!currentLan) return;
+    if (!currentLan.isActive) return;
 
     console.log('Scoring community games:');
     try {
@@ -74,18 +76,16 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                 const expectedTimeslots = getExpectedTimeslots(event);
                 const missingTimeslots = getMissingTimeslots(event, expectedTimeslots);
 
-                if (missingTimeslots.length === 0) {
-                    console.log('No timeslots to update');
-                    return;
+                let timeslots = event.timeslots;
+                if (missingTimeslots.length > 0) {
+                    timeslots = timeslots.concat(await tx.insert(EventTimeslot).values(missingTimeslots.map((timeslot) => ({
+                        eventId: event.id,
+                        time: timeslot,
+                    }))).returning());
                 }
+                timeslots = timeslots.filter((timeslot) => !timeslot.isProcessed);
 
-                const timeslots = await tx.insert(EventTimeslot).values(missingTimeslots.map((timeslot) => ({
-                    eventId: event.id,
-                    time: timeslot,
-                }))).returning();
-
-                let scoresAdded = 0;
-
+                const scoresToAdd: Array<{ userId: number, timeslot: EventTimeslot }> = [];
                 for (const timeslot of timeslots) {
                     const activities = await getTimeslotActivities(db, currentLan, event, timeslot);
                     const activitiesByUser = Object.values(lodash.groupBy(activities, 'userId'));
@@ -93,23 +93,32 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                         const total = sumTimeslotActivities(timeslot, activities);
 
                         if (total > EVENT_TIMESLOT_MINUTES * EVENT_TIMESLOT_THRESHOLD) {
-                            const { teamId, userId } = activities[0]!;
-                            await tx.insert(Score).values({
-                                lanId: currentLan.id,
-                                teamId: teamId,
-                                type: 'CommunityGame',
-                                userId: userId,
-                                points: event.points,
-                                eventId: event.id,
-                                timeslotId: timeslot.id,
-                                createdAt: timeslot.time,
-                            });
-                            scoresAdded++;
+                            const { userId } = activities[0]!;
+                            scoresToAdd.push({ userId, timeslot });
                         }
                     }
                 }
 
-                await tx.update(Event).set({ timeslotCount: expectedTimeslots }).where(eq(Event.id, event.id));
+                let scoresAdded = 0;
+                const inserts = scoresToAdd.map(({ userId, timeslot }) => ({
+                    lanId: currentLan.id,
+                    type: 'CommunityGame',
+                    userId: userId,
+                    points: event.points,
+                    eventId: event.id,
+                    timeslotId: timeslot.id,
+                    createdAt: timeslot.time,
+                } as const));
+                if (inserts.length > 0) {
+                    const inserted = await tx.insert(Score).values(inserts).onConflictDoNothing().returning();
+                    scoresAdded += inserted.length;
+                }
+
+                await tx.update(EventTimeslot).set({ isProcessed: true }).where(eq(EventTimeslot.eventId, event.id));
+
+                if (new Date() > getEventEnd(event)) {
+                    await tx.update(Event).set({ isProcessed: true }).where(eq(Event.id, event.id));
+                }
 
                 console.log(`Created ${scoresAdded} scores processing ${timeslots.length} timeslots for ${event.name}`);
             });

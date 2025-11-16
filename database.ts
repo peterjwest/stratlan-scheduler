@@ -34,7 +34,6 @@ import { LanData, EventData, HiddenCodeData } from './validation';
 import {
     TeamName,
     ScoreType,
-    EVENT_TIMESLOT_MINUTES,
     IntroChallengeType,
     INTRO_CHALLENGE_TYPES,
     INTRO_CHALLENGE_POINTS,
@@ -199,7 +198,7 @@ export async function updateEvent(db: DatabaseClient, event: Event, data: EventD
     await db.update(Event).set(toNulls(data)).where(eq(Event.id, event.id));
 }
 
-export async function createEvent(db: DatabaseClient, lan: Lan, data: EventData) {
+export async function createEvent(db: DatabaseClient, lan: Lan, data: EventData & { createdBy: number }) {
     await db.insert(Event).values({ ...toNulls(data), lanId: lan.id, isOfficial: true });
 }
 
@@ -639,11 +638,10 @@ export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan)
     return fromNulls(await db.query.Event.findMany({
         where: and(
             eq(Event.lanId, lan.id),
-            eq(Event.isCancelled, false),
             isNotNull(Event.gameId),
             gt(Event.points, sql`0`),
             gt(sql`NOW()`, Event.startTime),
-            lt(Event.timeslotCount, sql`FLOOR(${Event.duration} / ${EVENT_TIMESLOT_MINUTES})`),
+            eq(Event.isProcessed, false),
         ),
         with: { timeslots: { orderBy: [asc(EventTimeslot.time)] }},
     }));

@@ -34,7 +34,7 @@ mixin dropdown(name, options, selectedId, required, placeholder, formatLabel, re
                     div(data-dropdown-item tabindex="0" class="py-2 px-3.5 hover:bg-white/20 focus:bg-white/20 cursor-pointer" data-value=option.id)
                         =formatLabel(option)
 
-mixin datetime(name, label, value, required)
+mixin datetime(name, label, value, required, disabled)
     label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-datetime)
         span(class="py-2 pr-3")=label
         div(class="grid grid-cols-subgrid lg:col-span-2")
@@ -44,16 +44,18 @@ mixin datetime(name, label, value, required)
                 data-datetime-input
                 value=value && helpers.formatTimestamp(value)
                 required=required
+                disabled=disabled
                 class="py-2 px-3.5 mb-2 lg:mb-0 border border-border/80 rounded-sm"
             )
-            div
-                button(
-                    type="button"
-                    data-datetime-set
-                    class="lg:ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                ) Now
-                button(
-                    type="button"
-                    data-datetime-clear
-                    class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
-                ) Clear
+            if !disabled
+                div
+                    button(
+                        type="button"
+                        data-datetime-set
+                        class="lg:ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Now
+                    button(
+                        type="button"
+                        data-datetime-clear
+                        class="ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                    ) Clear
