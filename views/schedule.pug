@@ -7,7 +7,7 @@ block body
                 div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
 
         each dayEvents of eventsByDay
-            div(class="flex-1 flex-grow min-h-[500px]" style="height: calc(100vh - 110px);")
+            div(class="flex-1 flex-grow min-h-[600px]" style="height: calc(100vh - 150px);")
                 div(class="flex h-full")
                     div(class="mt-10 border-r border-border/40 flex lg:hidden flex-col")
                         each hour of helpers.getScheduleHours()
