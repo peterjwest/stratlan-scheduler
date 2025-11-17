@@ -17,10 +17,13 @@ Objectives:
   - Click to see more
   - Colour code by location
   - Clip events and minimum visual length
-- Show player scores
-  - Show recent score animation
 - Privacy policy
 - Cookie policy
+
+## Nice to have
+
+- Add recompute button?
+- Show recent score animation
 
 ## LATER:
 

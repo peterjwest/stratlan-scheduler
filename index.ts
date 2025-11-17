@@ -81,6 +81,7 @@ app.use(async (request, response, next) => {
     const currentLan = withLanStatus(await getCurrentUserLan(db, request, response, isAdmin, lans));
 
     const user = userId ? await getUser(db, currentLan, userId) : undefined;
+    const points = currentLan && user ? await getUserPoints(db, currentLan, user) : undefined;
 
     if (user) {
         if (currentLan && !currentLan?.isEnded && !user.isEnrolled) {
@@ -98,7 +99,7 @@ app.use(async (request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, routes,csrfToken, discordAuthUrl, user, isAdmin, currentLan, lans, helpers,
+        currentPath, currentUrl, routes,csrfToken, discordAuthUrl, user, points, isAdmin, currentLan, lans, helpers,
     };
 
     next();
@@ -119,7 +120,6 @@ app.get(routes.home, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     response.render('guide', {
         ...context,
-        points: context.user ? await getUserPoints(db, context.currentLan, context.user) : 0,
         constants: { INTRO_CHALLENGE_POINTS },
         hiddenCode: context.user ? absoluteUrl(`/intro/code/${userIntroCode(context.user)}`) : undefined,
         introChallenges: await getIntroChallenges(db, context.currentLan, context.user),

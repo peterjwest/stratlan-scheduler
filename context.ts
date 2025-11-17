@@ -11,6 +11,7 @@ export type Context = {
     csrfToken: string;
     discordAuthUrl: string;
     user: User & UserTeams | undefined;
+    points: number | undefined;
     isAdmin: boolean;
     currentLan: Lan & LanTeams & LanProgress | undefined;
     lans: Array<Lan & LanTeams>;

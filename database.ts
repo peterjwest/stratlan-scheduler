@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max, count } from 'drizzle-orm';
+import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max, count, sum } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import schema, {
@@ -430,7 +430,7 @@ export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): P
 
 export async function getUserPoints(db: DatabaseClient, lan: Lan, user: User): Promise<number> {
     const results = (
-        await db.select({ total: sql`sum(${Score.points})`.mapWith(Number) })
+        await db.select({ total: sum(Score.points).mapWith(Number) })
         .from(Score)
         .where(and(eq(Score.userId, user.id), eq(Score.lanId, lan.id)))
     );

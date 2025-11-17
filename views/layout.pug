@@ -40,7 +40,7 @@ html(lang="en" class="h-full")
                                         +navigationLink(routes.admin.games.list, 'Games')
                                         +navigationLink(routes.admin.lans.list, 'LANs')
 
-                                    div(class="block md:hidden" data-lan-select)
+                                    div(class="block lg:hidden" data-lan-select)
                                         +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name, true)
 
             main(class="flex-grow")
@@ -51,15 +51,20 @@ html(lang="en" class="h-full")
                                 img(src="/menu.svg" class="p-2 w-12 h-12")
 
                         if isAdmin
-                            div(class="p-3 hidden md:block" data-lan-select)
+                            div(class="p-3 hidden lg:block" data-lan-select)
                                 +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name)
 
                         if user
+                            div(class="flex gap-2 p-3 items-center")
+                                if points !== undefined
+                                    span=`${points} points`
+
+                                if user.team
+                                        span(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(user.team)}`)
+                                            =user.team.name
+
                             div(class="sticky right-0 xl:relative z-2" data-user-menu-wrapper)
                                 div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
-                                    if user && user.team
-                                        span(class=`inline-block px-1.5 py-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(user.team)}`)
-                                            =user.team.name
                                     if user.discordAvatarId
                                         img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
                                     p(class="mr-4")= user.discordUsername
