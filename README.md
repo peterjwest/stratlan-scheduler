@@ -15,7 +15,6 @@ Objectives:
   - Show highest recent scores
 - Schedule
   - Click to see more
-  - Colour code by location
   - Clip events and minimum visual length
 - Privacy policy
 - Cookie policy
@@ -24,6 +23,8 @@ Objectives:
 
 - Add recompute button?
 - Show recent score animation
+- Schedule
+  - Colour code by location
 
 ## LATER:
 
