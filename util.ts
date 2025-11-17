@@ -190,7 +190,7 @@ export function groupEvents(events: Event[], isAdmin: boolean): Event[][][] {
 export function splitByDay(events: Event[], days: Date[]): DayEvents[] {
     return days.map((date) => ({
         day: formatDay(date),
-        events: events.filter((event) => event.startTime > getDayStart(date) && event.startTime < getDayEnd(date)),
+        events: events.filter((event) => event.startTime >= getDayStart(date) && event.startTime < getDayEnd(date)),
     }));
 }
 
@@ -210,8 +210,8 @@ export function getEventScheduleStyles(event: Event, column: number, columns: nu
     if (startMinutes < 0) startMinutes += 24 * 60;
 
     const width = `${100 / columns}%`;
-    const height = `${100 * event.duration / rangeMinutes}%`;
-    const top = `${100 * startMinutes / rangeMinutes}%`;
+    const height = `${100 * Math.min(event.duration, rangeMinutes - startMinutes) / rangeMinutes}%`;
+    const top = `${100 * Math.max(startMinutes, SCHEDULE_START_TIME) / rangeMinutes}%`;
     const left = `min(${100 * column / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
 
     return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`

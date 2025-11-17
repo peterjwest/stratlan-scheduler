@@ -11,9 +11,7 @@ Objectives:
 - Dashboard page
   - Fancy scores
   - Show highest recent scores
-- Schedule
-  - Click to see more
-  - Clip events and minimum visual length
+- Schedule - click to see more
 - Privacy policy
 - Cookie policy
 
