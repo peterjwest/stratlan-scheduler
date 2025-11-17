@@ -15,7 +15,7 @@ block body
                 span(class="py-2 pr-3") Description
                 textarea(name="description" type="text" maxlength="1024" class="py-2 px-3.5 border border-border/80 rounded-sm field-sizing-content")
 
-            +datetime("startTime", "Start time", undefined, true)
+            +datetime("startTime", "Start time", undefined, true, scheduleStart, scheduleEnd)
 
             label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
                 span(class="py-2 pr-3") Duration (minutes)

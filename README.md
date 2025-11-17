@@ -8,8 +8,6 @@ Objectives:
 - Stress testing
   - Indexes
   - Cache assets
-- Issues
-  - Prevent moving events off the edge of the schedule
 - Dashboard page
   - Fancy scores
   - Show highest recent scores

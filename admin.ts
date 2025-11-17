@@ -3,7 +3,16 @@ import { Client } from 'discord.js';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
-import { getTeam, UserError, teamsWithCounts, getScoreFilters, getPages, addMinutes } from './util';
+import {
+    getTeam,
+    UserError,
+    teamsWithCounts,
+    getScoreFilters,
+    getPages,
+    addMinutes,
+    getDayStart,
+    getDayEnd,
+} from './util';
 import { randomiseTeams } from './teams';
 import { PAGE_SIZE } from './constants';
 import {
@@ -102,8 +111,11 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const context = getContext(request, 'LOGGED_IN');
         const query = EventQuery.parse(request.query);
 
+        const scheduleStart = getDayStart(context.currentLan.scheduleStart);
+        const scheduleEnd = getDayEnd(context.currentLan.scheduleEnd);
+
         const games = await getGames(db);
-        response.render('admin/events/create', { ...context, games, query });
+        response.render('admin/events/create', { ...context, games, query, scheduleStart, scheduleEnd });
     });
 
     router.post(routes.admin.events.create, csrf.protect, async (request: Request, response: Response) => {
@@ -124,7 +136,10 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
 
         const games = await getGames(db);
 
-        response.render('admin/events/edit', { ...context, event, games, query });
+        const scheduleStart = getDayStart(context.currentLan.scheduleStart);
+        const scheduleEnd = getDayEnd(context.currentLan.scheduleEnd);
+
+        response.render('admin/events/edit', { ...context, event, games, query, scheduleStart, scheduleEnd });
     });
 
     router.post(routes.admin.events.get, csrf.protect, async (request: Request, response: Response) => {
