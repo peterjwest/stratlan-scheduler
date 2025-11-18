@@ -6,9 +6,8 @@ Objectives:
   - Assign Discord roles (or get permissions)
   - Interstitial privacy policy page
   - Setup Sentry
-  - CSP
 
-
+- Auto reload schedule/dashboard
 - Event start
   - Assign team after start
 - Codes for events

@@ -2,8 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import zod from 'zod';
 
 import { Cache } from './schema';
-import { DatabaseClient } from './database';
-import { fromNulls } from './util';
+import { get, DatabaseClient } from './database';
 
 const SessionTokenCache = zod.string();
 export type SessionTokenCache = zod.infer<typeof SessionTokenCache>;
@@ -17,7 +16,7 @@ type CacheTypes = {
 };
 
 export async function getCache<Key extends keyof CacheTypes>(db: DatabaseClient, name: Key): Promise<CacheTypes[Key] | undefined> {
-    const cache = fromNulls(await db.query.Cache.findFirst({ where: and(eq(Cache.name, name)) }));
+    const cache = await get(db.query.Cache.findFirst({ where: and(eq(Cache.name, name)) }));
     return cache ? CACHE_TYPES[name].parse(cache.value) as CacheTypes[Key] : undefined;
 }
 
