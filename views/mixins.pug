@@ -1,4 +1,4 @@
-mixin pointsButton(introChallenge, points)
+mixin introPointsButton(introChallenge, points)
     - const claimable = currentLan && !currentLan.isEnded && introChallenge && !introChallenge.scoreId;
     - const claimed = introChallenge && introChallenge.scoreId;
     - const inactive = !currentLan || currentLan.isEnded || claimed;
@@ -8,6 +8,13 @@ mixin pointsButton(introChallenge, points)
         span(class=`block px-2.5 py-1.5 rounded-lg text-sm font-semibold ${inactive ? 'bg-highlight-accent' : 'bg-(image:--gradient-pop)'}`)
             span(class=`${inactive ? 'opacity-70' : ''}`)=`${introChallenge ? 'claim' : 'earn'} ${points} points`
         img(src="/tick.svg" class=`${claimed ? '' : 'hidden'} w-5 absolute -top-1.5 -right-1.5 bg-white rounded-full border`)
+
+mixin pointsTag(points)
+    span(class="relative inline-block rounded-lg bg-(image:--rainbow) bg-animate p-0.5")
+        span(class="block px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-(image:--gradient-pop)")
+            span=`+${points} points`
+        img(src="/tick.svg" class="w-5 absolute -top-1.5 -right-1.5 bg-white rounded-full border")
+
 
 mixin navigationLink(path, text)
     a(href=path class=`block px-3 py-2 mb-0.5 text-md rounded-md pb ${currentPath === path ? 'bg-highlight/60' : ''} hover:bg-highlight text-gray-100`)

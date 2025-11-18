@@ -37,7 +37,8 @@ import {
     checkIsEligible,
     getOrCreateUserLan,
     getHiddenCodeByCode,
-    getOrCreateHiddenCodeScore,
+    getHiddenCodeScore,
+    createHiddenCodeScore,
     findSecretScoreByLan,
     createSecretScore,
 } from './database';
@@ -47,10 +48,10 @@ import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
 import {
     DISCORD_AUTH_URL,
     INTRO_CHALLENGE_POINTS,
-    HIDDEN_CODE_POINTS,
     SECRET_POINTS,
     SECRETS_BY_CODE,
     CONTENT_SECURITY_POLICY,
+    HIDDEN_CODE_BONUS_POINTS,
 } from './constants';
 import { getExpressSession, getConditionalSession } from './session';
 import routes from './routes';
@@ -188,13 +189,14 @@ app.get(routes.code, async (request, response) => {
     const code = await getHiddenCodeByCode(db, context.currentLan, request.params.hiddenCode);
     if (!code) throw new UserError('Not a valid code, sorry!');
 
-    await getOrCreateHiddenCodeScore(db, context.user, code);
+    const existingScore = await getHiddenCodeScore(db, context.user, code);
+    if (existingScore) {
+        return response.render('code', { ...context, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: true });
+    }
 
-    response.render('code', {
-        ...context,
-        points: HIDDEN_CODE_POINTS,
-        code,
-    });
+    const score = await createHiddenCodeScore(db, context.user, code);
+
+    response.render('code', { ...context, score, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: false });
 });
 
 app.get(routes.secret, async (request: Request, response: Response, next: NextFunction) => {
@@ -210,7 +212,7 @@ app.get(routes.secret, async (request: Request, response: Response, next: NextFu
 
     await createSecretScore(db, context.currentLan, context.user, secretNumber)
 
-    response.render('secret', { ...context, valid: true, points: SECRET_POINTS });
+    response.render('secret', { ...context, valid: true, secretPoints: SECRET_POINTS });
 });
 
 /** Require login for following routes */

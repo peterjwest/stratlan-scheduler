@@ -1,5 +1,23 @@
 extends layout.pug
 
 block body
-    h1(class="text-2xl font-semibold mb-4")=`You found #${code.number}`
-    p=`Good job! +${points} points`
+    if existing
+        h1(class="text-2xl font-semibold mb-4")=`You already found #${code.number}`
+        p Keep looking!
+    else
+        h1(class="text-2xl font-semibold mb-4")=`You found #${code.number}`
+        if score.hasBonus
+            p(class="mb-2")
+                ="Get "
+                span(class="inline-block -rotate-2")
+                    +pointsTag(score.points - bonus)
+            p
+                b(class="text-lg")="FIRST! "
+                =" Extra "
+                span(class="inline-block rotate-1")
+                    +pointsTag(bonus)
+        else
+            p
+                ="Good job! Get "
+                span(class="inline-block -rotate-2")
+                    +pointsTag(score.points)

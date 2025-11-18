@@ -25,7 +25,7 @@ block body
                         | Login with Discord
 
                 span(class="inline-block -rotate-3 absolute -bottom-3 -right-2 z-1")
-                    +pointsButton(introChallenges.Login, constants.INTRO_CHALLENGE_POINTS.Login)
+                    +introPointsButton(introChallenges.Login, constants.INTRO_CHALLENGE_POINTS.Login)
 
             li(class="flex-grow flex-1 mb-3 relative")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
@@ -73,7 +73,7 @@ block body
                     p(class="mb-2")
                         ="Check it's working by launching a game to "
                         span(class="inline-block rotate-1")
-                            +pointsButton(introChallenges.GameActivity, constants.INTRO_CHALLENGE_POINTS.GameActivity)
+                            +introPointsButton(introChallenges.GameActivity, constants.INTRO_CHALLENGE_POINTS.GameActivity)
 
         section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="tournaments")
             h3(class="text-xl font-semibold mb-3") Win games and tournaments
@@ -87,8 +87,8 @@ block body
             if hiddenCode
                 p(class="mb-2")
                     ="Scan this code to "
-                    span(class="inline-block -rotate-3 ")
-                        +pointsButton(introChallenges.HiddenCode, constants.INTRO_CHALLENGE_POINTS.HiddenCode)
+                    span(class="inline-block -rotate-3")
+                        +introPointsButton(introChallenges.HiddenCode, constants.INTRO_CHALLENGE_POINTS.HiddenCode)
                 div(class="mt-5 mb-2 h-50 w-50" data-hidden-code=hiddenCode)
 
         section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="events")
