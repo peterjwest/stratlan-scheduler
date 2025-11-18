@@ -5,7 +5,6 @@ Objectives:
 - Before launch
   - Assign Discord roles (or get permissions)
   - Interstitial privacy policy page
-  - Setup Sentry
 
 - Auto reload schedule/dashboard
 - Event start
