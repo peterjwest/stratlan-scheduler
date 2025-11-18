@@ -79,9 +79,9 @@ export const CONTENT_SECURITY_POLICY = [
     "form-action 'self'",
     "frame-ancestors 'none'",
     "default-src 'none'",
-    "img-src 'self' data: cdn.discordapp.com",
+    "img-src 'self' data: https://cdn.discordapp.com",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "script-src 'nonce-<NONCE>'",
-    "connect-src 'self'"
+    "connect-src 'self' *.sentry.io"
 ].join('; ');

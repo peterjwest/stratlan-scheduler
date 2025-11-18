@@ -12,5 +12,8 @@ declare global {
         interface Request {
             context: Context;
         }
+        interface Response {
+            sentry: string;
+        }
     }
 }

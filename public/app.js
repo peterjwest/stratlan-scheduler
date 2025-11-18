@@ -1,3 +1,10 @@
+import QRCode from 'qrcode';
+import * as Sentry from "@sentry/browser";
+
+import '../css/style.css';
+
+Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, environment: import.meta.env.MODE });
+
 const pointsForm = document.querySelector('[data-points-form]');
 if (pointsForm) {
     const pointsTeamRadios = Array.from(pointsForm.querySelectorAll('[data-points-team]'));
@@ -251,19 +258,14 @@ datetimes.forEach((datetime) => {
 
 const hiddenCodes = Array.from(document.querySelectorAll('[data-hidden-code]'));
 hiddenCodes.forEach((element) => {
-    element.classList.add('hidden');
-    new QRCode(element, {
-        text: element.dataset.hiddenCode,
-        width: 512,
-        height: 512,
-        colorDark : '#000000',
-        colorLight : '#ffffff',
-        correctLevel : QRCode.CorrectLevel.H
+    const canvas = document.createElement('canvas');
+    element.appendChild(canvas);
+    const options = { margin: 1, width: element.dataset.hiddenCodeSize };
+    QRCode.toCanvas(canvas, element.dataset.hiddenCode, options, (error) => {
+        if (error) console.error(error);
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
     });
-    element.title = '';
-    setTimeout(() => {
-        element.classList.remove('hidden');
-    }, 10);
 });
 
 const printButtons = Array.from(document.querySelectorAll('[data-print-button]'));

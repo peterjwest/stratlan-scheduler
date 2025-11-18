@@ -6,4 +6,5 @@ block body
         p=error.message
     else
         h1(class="text-2xl font-semibold mb-4") An unexpected error occurred :(
-        p Please contact @baconsmoothie if this keeps happening.
+        p(class="mb-4") Please contact @baconsmoothie if this keeps happening.
+        code(class="text-sm")=`Sentry ID: ${code}`

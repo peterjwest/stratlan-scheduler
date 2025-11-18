@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import lodash from 'lodash';
+import * as Sentry from '@sentry/node';
 
 import { getContext } from './context';
 import {
@@ -44,7 +45,7 @@ import {
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
-import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
+import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment';
 import {
     DISCORD_AUTH_URL,
     INTRO_CHALLENGE_POINTS,
@@ -55,6 +56,8 @@ import {
 } from './constants';
 import { getExpressSession, getConditionalSession } from './session';
 import routes from './routes';
+
+Sentry.init({ dsn: SENTRY_DSN, environment: ENVIRONMENT, enableLogs: true, sendDefaultPii: false });
 
 const csrf = getCsrf();
 
@@ -75,7 +78,7 @@ const expressSession = getExpressSession();
 app.use(getConditionalSession(expressSession));
 
 app.use(express.urlencoded());
-app.use(express.static('build/public'));
+app.use(express.static('build'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
@@ -171,7 +174,7 @@ app.get(routes.intro.code, async (request, response) => {
     if (userIntroCode(context.user) === request.params.userCode) {
         await getOrCreateIntroChallenge(db, 'HiddenCode', context.currentLan, context.user);
     }
-    response.redirect(routes.home);
+    response.redirect(routes.home + '#qr');
 });
 
 app.get(routes.intro.claim, async (request, response) => {
@@ -230,10 +233,12 @@ app.use((request: Request, response: Response) => {
     response.status(404).render('404', getContext(request));
 });
 
+Sentry.setupExpressErrorHandler(app);
+
 /** Error handler */
 app.use((error: any, request: Request, response: Response, next: NextFunction) => {
     if (!isUserError(error)) console.error('Server error', error);
-    response.status(500).render('500', { ...getContext(request), error });
+    response.status(500).render('500', { ...getContext(request), error, code: response.sentry });
 });
 
 /** Start server */

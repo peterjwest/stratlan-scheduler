@@ -16,16 +16,16 @@
   "scripts": {
     "start": "tsx index.ts",
     "start:dev": "tsx watch --env-file=.env index.ts",
-    "build": "pnpm static:build && pnpm css:build",
-    "static:build": "rsync -a --exclude='style.css' public build/",
-    "css:build": "npx --no -- @tailwindcss/cli -i ./public/style.css -o ./build/public/style.css",
-    "css:watch": "pnpm css:build --watch",
+    "build": "vite build",
+    "build:dev": "vite build --mode development --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "groups:update": "tsx --env-file=.env updateGroups.ts",
     "tsx": "tsx --env-file=.env"
   },
   "devDependencies": {
+    "@sentry/browser": "^10.25.0",
+    "@tailwindcss/vite": "^4.1.17",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.3",
@@ -35,9 +35,11 @@
     "drizzle-kit": "^0.31.6",
     "tsup": "^8.5.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
   },
   "dependencies": {
+    "@sentry/node": "^10.25.0",
     "@tailwindcss/cli": "^4.1.11",
     "@types/md5": "^2.3.6",
     "@types/pg": "^8.15.6",

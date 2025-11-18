@@ -1,6 +1,7 @@
 import zod from 'zod';
 
 export const Environment = zod.object({
+    ENVIRONMENT: zod.string(),
     PORT: zod.string().transform((value) => parseInt(value, 10)),
     HOST: zod.string(),
     SECURE_COOKIE: zod.string().transform((value) => value === 'true'),
@@ -15,9 +16,11 @@ export const Environment = zod.object({
     SEATPICKER_DISCORD_USERNAME: zod.string().optional(),
     SEATPICKER_DISCORD_PASSWORD: zod.string().optional(),
     SECRET_ONE: zod.string(),
+    SENTRY_DSN: zod.string(),
 });
 
 export const {
+    ENVIRONMENT,
     PORT,
     HOST,
     SECURE_COOKIE,
@@ -32,4 +35,5 @@ export const {
     SEATPICKER_DISCORD_USERNAME,
     SEATPICKER_DISCORD_PASSWORD,
     SECRET_ONE,
+    SENTRY_DSN,
 } = Environment.parse(process.env);
