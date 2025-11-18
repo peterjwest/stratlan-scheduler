@@ -197,13 +197,15 @@ for (const dropdown of dropdowns) {
     document.addEventListener('click', closeMenu);
 }
 
-const header = document.querySelector('.header');
+const header = document.querySelector('header');
+const footer = document.querySelector('footer');
 const fullscreenHeading = document.querySelector('.fullscreen-heading');
 const fullscreenMatch = window.matchMedia('(display-mode: fullscreen)');
 
 function updateFullscreen(matches) {
     if (navigation) navigation.classList.toggle('md:hidden', matches);
     if (header) header.classList.toggle('hidden', matches);
+    if (footer) footer.classList.toggle('hidden', matches);
     if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
 }
 

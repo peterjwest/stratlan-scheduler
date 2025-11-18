@@ -4,10 +4,11 @@ Objectives:
 
 - Before launch
   - Assign Discord roles (or get permissions)
+  - Interstitial privacy policy page
   - Setup Sentry
   - CSP
   - Check XSS
-  - Release notes?
+
 
 - Event start
   - Assign team after start
@@ -22,7 +23,8 @@ Objectives:
 
 ## Nice to have
 
-- Add recompute button?
+- Release notes
+- Add recompute scores button
 - Show recent score animation
 - Schedule
   - Colour code by location

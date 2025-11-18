@@ -1,7 +1,7 @@
 import {
     integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, uniqueIndex, AnyPgColumn
 } from 'drizzle-orm/pg-core';
-import { relations, sql, eq } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 import { NullToUndefined } from './util';
 import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';

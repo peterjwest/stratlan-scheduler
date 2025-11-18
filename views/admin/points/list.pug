@@ -11,7 +11,7 @@ block body
         each filter of filters
             a(href=filter.url class=`py-1.5 px-3.5 rounded-md border border-border/50 ${filter.type === query.type ? 'bg-highlight' : ''}`)= filter.name
 
-    table(class="w-full text-left")
+    table(class="w-full text-left whitespace-nowrap")
         tr
             th(class="px-3 py-2") Team
             th(class="px-3 py-2") Player
