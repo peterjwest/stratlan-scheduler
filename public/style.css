@@ -31,7 +31,7 @@ label {
 }
 
 @theme {
-    --default-font-family: InterVariable;
+    --default-font-family: InterVariable, Arial, sans-serif;
     --color-bg-red: #3a1934;
     --color-bg-purple: #30193e;
     --color-bg-blue: #4927ba;
