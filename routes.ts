@@ -22,6 +22,7 @@ export function routeUrl<Value extends string>(route: Value, ...args: [...Extrac
 
 export default {
     home: '/',
+    privacy: '/privacy',
     auth: {
         login: '/auth/login',
         logout: '/auth/logout',

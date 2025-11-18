@@ -107,6 +107,8 @@ app.use(async (request, response, next) => {
 
 app.use(authRouter(db, discordClient, expressSession));
 
+app.use(routes.privacy, async (request, response) => response.render('privacy', getContext(request)));
+
 /** Require current LAN for following routes */
 app.use(async (request, response, next) => {
     const context = getContext(request);
@@ -126,7 +128,7 @@ app.get(routes.home, async (request, response) => {
     });
 });
 
-app.use(routes.dashboard, async (request, response) => {
+app.get(routes.dashboard, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
 
     const teamPoints: Array<{ team: Team, points: number }> = [];

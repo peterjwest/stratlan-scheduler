@@ -1,0 +1,62 @@
+extends layout.pug
+
+block body
+    h1(class="text-2xl font-semibold mb-8") Privacy & cookie policy
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") What information we collect, use, and why
+        p(class="mb-4 opacity-80") We currently collect and process the following information:
+
+        ul(class="list-disc ml-6 opacity-80")
+            li(class="mb-2") Website usage and session data - we use this to provide the service
+            li(class="mb-2") StratLAN Seatpicker data - we use this to fairly assign teams
+            li(class="mb-2") Discord user data and game activity (only over the course of an event) - we use this to identify you, integrate with the StratLAN Discord, and automatically assign points for community games
+            //- li(class="mb-2") Valve (Steam) user ID and achievements - we use this to assign points for achievements
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") Our lawful basis for the collection and use of your data
+        p(class="mb-4 opacity-80")
+            = "Consent - We have permission from you after we gave you all the relevant information. You have the right to withdraw your consent at any time, see "
+            a(href=`#complaints` class="underline") Complaints and data protection
+            = " below."
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") Where we get personal information from
+
+        ul(class="list-disc ml-6 opacity-80")
+            li(class="mb-2") Discord - via their APIs
+            //- li(class="mb-2") Valve (Steam) via their APIs
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") Retaining Your Data
+
+        p(class="mb-4 opacity-80") We retain your data while you remain an active attendee in order to faciliate better future events. We consider you an active attendee as long as you have attended an event within the last 1 year, otherwise we will remove your data.
+        p(class="mb-4 opacity-80")
+            = "You can request for you data to be removed at any time, see "
+            a(href=`#complaints` class="underline") Complaints and data protection
+            = " below."
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") Who we share information with
+
+        h3(class="font-semibold mb-4 opacity-80") Data processors
+
+        ul(class="list-disc ml-6 opacity-80")
+            li(class="mb-2") Heroku - Provide data processing and storage.
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4") Cookies
+
+        p(class="mb-4 opacity-80") We may store the following cookies on your computer:
+
+        ul(class="list-disc ml-6 opacity-80")
+            li(class="mb-2") Session - We use this cookie to remember you and maintain your session whilst you are using our website
+            li(class="mb-2") Login redirect - We temporarily use this cookie to return you to the page you attempted to visit before you logged in
+
+    section(class="mb-6")
+        h2(class="text-lg font-semibold mb-4" id="complaints") Complaints and data protection
+
+        p(class="mb-4 opacity-80")
+            = "To make a complaint or data protection rights request, please contact @baconsmoothie on Discord or, if you must, via email at "
+            a(href="mailto:thisjunewest@gmail.com" class="underline") thisjunewest@gmail.com
+            = "."

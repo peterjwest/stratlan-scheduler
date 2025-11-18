@@ -1,8 +1,15 @@
 # TODO:
 
 Objectives:
+
+- Before launch
+  - Assign Discord roles (or get permissions)
+  - Setup Sentry
+  - CSP
+  - Check XSS
+  - Release notes?
+
 - Event start
-  - Assign Discord roles
   - Assign team after start
 - Codes for events
 - Stress testing
@@ -12,8 +19,6 @@ Objectives:
   - Fancy scores
   - Show highest recent scores
 - Schedule - click to see more
-- Privacy policy
-- Cookie policy
 
 ## Nice to have
 
