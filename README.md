@@ -7,7 +7,6 @@ Objectives:
   - Interstitial privacy policy page
   - Setup Sentry
   - CSP
-  - Check XSS
 
 
 - Event start

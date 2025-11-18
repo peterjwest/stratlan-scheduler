@@ -15,7 +15,7 @@ export function routeUrl<Value extends string>(route: Value, ...args: [...Extrac
     const queryString = buildQueryString(query);
     let url: string = route;
     for (let i = 0; i < paramNames.length; i++) {
-        url = url.replace(paramNames[i]!, String(params[i]!));
+        url = url.replace(paramNames[i]!, encodeURIComponent(params[i]!));
     }
     return `${url}${queryString ? '?' + queryString : ''}`;
 }
