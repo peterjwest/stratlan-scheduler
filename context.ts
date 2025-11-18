@@ -8,6 +8,7 @@ export type Context = {
     currentPath: string;
     currentUrl: string;
     routes: typeof routes;
+    nonce: string;
     csrfToken: string;
     discordAuthUrl: string;
     user: User & UserTeams | undefined;

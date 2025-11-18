@@ -74,3 +74,15 @@ export const EVENT_TIMESLOT_THRESHOLD = 0.5;
 export const COMMUNITY_GAMES_SCORE_INTERVAL = 30 * 1000; // 30 seconds
 
 export const PAGE_SIZE = 20;
+
+export const CONTENT_SECURITY_POLICY = [
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "default-src 'none'",
+    "img-src 'self' data: cdn.discordapp.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
+    "script-src 'nonce-<NONCE>'",
+    "connect-src 'self'"
+].join('; ');

@@ -13,6 +13,7 @@ import {
     withLanStatus,
     absoluteUrl,
     userIntroCode,
+    randomCode,
     UserError,
 } from './util';
 import setupCommands from './commands';
@@ -43,7 +44,14 @@ import {
 import { watchPresenceUpdates, loginClient } from './discordApi';
 import { startScoringCommunityGames } from './communityGame';
 import { PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID } from './environment';
-import { DISCORD_AUTH_URL, INTRO_CHALLENGE_POINTS, HIDDEN_CODE_POINTS, SECRET_POINTS, SECRETS_BY_CODE } from './constants';
+import {
+    DISCORD_AUTH_URL,
+    INTRO_CHALLENGE_POINTS,
+    HIDDEN_CODE_POINTS,
+    SECRET_POINTS,
+    SECRETS_BY_CODE,
+    CONTENT_SECURITY_POLICY,
+} from './constants';
 import { getExpressSession, getConditionalSession } from './session';
 import routes from './routes';
 
@@ -70,6 +78,9 @@ app.use(express.static('build/public'));
 app.set('view engine', 'pug');
 
 app.use(async (request, response, next) => {
+    const nonce = randomCode();
+    response.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY.replace(/<NONCE>/g, nonce));
+
     const userId = request.session?.userId;
     const currentPath = parseUrl(request.originalUrl).path;
     const currentUrl = request.originalUrl;
@@ -99,7 +110,7 @@ app.use(async (request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, routes,csrfToken, discordAuthUrl, user, points, isAdmin, currentLan, lans, helpers,
+        currentPath, currentUrl, routes, nonce, csrfToken, discordAuthUrl, user, points, isAdmin, currentLan, lans, helpers,
     };
 
     next();
