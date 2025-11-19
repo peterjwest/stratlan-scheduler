@@ -84,12 +84,17 @@ block body
             h3(class="text-xl font-semibold mb-3") Find hidden QR codes
             p(class="mb-2" id="qr")
                 | Find hidden QR codes around the venue and scan them to earn points.
-            if hiddenCode
-                p(class="mb-2")
+            p(class="mb-2")
+                if user
                     ="Scan this code to "
-                    span(class="inline-block -rotate-3")
-                        +introPointsButton(introChallenges.HiddenCode, constants.INTRO_CHALLENGE_POINTS.HiddenCode)
+                else
+                    ="Login to scan this code and "
+                span(class="inline-block -rotate-3")
+                    +introPointsButton(introChallenges.HiddenCode, constants.INTRO_CHALLENGE_POINTS.HiddenCode)
+            if hiddenCode
                 div(class="mt-5 mb-2 h-50 w-50" data-hidden-code=hiddenCode data-hidden-code-size=200)
+            else
+                div(class="mt-5 mb-2 h-50 w-50 border border-4 border-dashed")
 
         section(class="mb-4 p-5 bg-highlight rounded-lg border border-highlight-accent" id="events")
             h3(class="text-xl font-semibold mb-3") Attend events
