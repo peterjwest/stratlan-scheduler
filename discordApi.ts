@@ -114,7 +114,7 @@ export function getActivityIds(activities: Activity[]) {
     return activities.map((activity) => activity.applicationId).filter((id): id is string => Boolean(id));
 }
 
-export function loginClient(discordToken: string) {
+export async function loginClient(discordToken: string) {
     const client = new Client({
         intents: [
             GatewayIntentBits.Guilds,
@@ -125,7 +125,7 @@ export function loginClient(discordToken: string) {
     });
 
     client.once(Events.ClientReady, readyClient => console.log(`Logged in to Discord as ${readyClient.user.tag}`));
-    client.login(discordToken);
+    await client.login(discordToken);
     return client;
 }
 

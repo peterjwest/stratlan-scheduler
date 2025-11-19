@@ -65,7 +65,7 @@ const db = await getDatabaseClient();
 
 const stopScoring = await startScoringCommunityGames(db);
 
-const discordClient = loginClient(DISCORD_TOKEN);
+const discordClient = await loginClient(DISCORD_TOKEN);
 watchPresenceUpdates(db, discordClient);
 await setupCommands(discordClient, DISCORD_CLIENT_ID);
 

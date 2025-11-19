@@ -2,6 +2,8 @@
 
 Objectives:
 
+- Fix navigation bug
+
 - Before launch
   - Assign Discord roles (or get permissions)
   - Interstitial privacy policy page
