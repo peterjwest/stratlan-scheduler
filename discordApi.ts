@@ -132,7 +132,7 @@ export async function loginClient(discordToken: string) {
 export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
     discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
         const currentLan = withLanStatus(await getCurrentLanCached(db));
-        if (!currentLan?.isActive) return;
+        if (!currentLan) return;
 
         const user = await getUserByDiscordId(db, newPresence.userId);
         if (!user) return;
@@ -140,12 +140,15 @@ export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) 
         const activities = newPresence.activities.filter(
             (activity): activity is ApplicationActivity => Boolean(activity.applicationId),
         );
-        const games = await getOrCreateGames(db, activities);
-        await endFinishedActivities(db, user, games);
 
-        if (games.length > 0) {
+        if (activities.length > 0) {
             await getOrCreateIntroChallenge(db, 'GameActivity', currentLan, user);
         }
+
+        if (!currentLan.isActive) return;
+
+        const games = await getOrCreateGames(db, activities);
+        await endFinishedActivities(db, user, games);
 
         for (const game of games) {
             await getOrCreateGameActivity(
