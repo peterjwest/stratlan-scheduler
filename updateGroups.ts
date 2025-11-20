@@ -6,7 +6,7 @@ import { updateGroups } from './teams';
 const isRemote = process.argv[2] === '--remote';
 
 const db = await getDatabaseClient(isRemote);
-const discordClient = loginClient(DISCORD_TOKEN);
+const discordClient = await loginClient(DISCORD_TOKEN);
 const currentLan = await getCurrentLan(db);
 
 if (!currentLan) {
