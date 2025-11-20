@@ -419,21 +419,21 @@ export async function getHiddenCodeScore(
 export async function createHiddenCodeScore(
     db: DatabaseClient, user: User, code: HiddenCode,
 ): Promise<Score & { hasBonus: boolean }> {
-    // TODO: Transaction, count hidden codes
+    return db.transaction(async (tx) => {
+        const existingScores = (
+            await tx.select({ count: count() }).from(Score).where(eq(Score.hiddenCodeId, code.id))
+        )[0]?.count || 0;
 
-    const existingScores = (
-        await db.select({ count: count() }).from(Score).where(eq(Score.hiddenCodeId, code.id))
-    )[0]?.count || 0;
+        const score = await get(tx.insert(Score).values({
+            type: 'HiddenCode',
+            userId: user.id,
+            lanId: code.lanId,
+            hiddenCodeId: code.id,
+            points: existingScores === 0 ? HIDDEN_CODE_POINTS + HIDDEN_CODE_BONUS_POINTS : HIDDEN_CODE_POINTS,
+        }).returning());
 
-    const score = await get(db.insert(Score).values({
-        type: 'HiddenCode',
-        userId: user.id,
-        lanId: code.lanId,
-        hiddenCodeId: code.id,
-        points: existingScores === 0 ? HIDDEN_CODE_POINTS + HIDDEN_CODE_BONUS_POINTS : HIDDEN_CODE_POINTS,
-    }).returning());
-
-    return { ...score, hasBonus: existingScores === 0 };
+        return { ...score, hasBonus: existingScores === 0 };
+    });
 }
 
 export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
