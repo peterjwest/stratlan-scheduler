@@ -708,7 +708,9 @@ export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, c
             eq(IntroChallenge.id, challengeId),
         ),
     }));
-    if (!introChallenge) throw new Error('Challenge not completed yet');
+    if (!introChallenge) {
+        throw new Error(`IntroChallenge#${challengeId} does not exist for User#${user.id}, Lan#${lan.id}`);
+    }
 
     const score = await get(db.insert(Score).values({
         type: 'IntroChallenge',
