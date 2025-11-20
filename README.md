@@ -19,6 +19,7 @@ Objectives:
   - Fancy scores
   - Show highest recent scores
 - Schedule - click to see more
+- User createdAt/modifiedAt
 
 ## Nice to have
 

@@ -4,7 +4,6 @@ import lodash from 'lodash';
 import { discordDataToUser, Required } from './util';
 import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker';
 import { getDiscordGuildMembers } from './discordApi';
-import { DISCORD_GUILD_ID } from './environment';
 import { Group, User, UserTeams, UserGroups, Lan, Team } from './schema';
 import { createOrUpdateSeatPickerUsers, createGroups, replaceUserGroups, DatabaseClient } from './database';
 
@@ -23,9 +22,9 @@ interface GroupDistribution {
 
 const GLOBAL_GROUP_ID = 0;
 
-export async function updateGroups(db: DatabaseClient, discordClient: Client, lan: Lan) {
-    const seatPickerUsers = await getSeatPickerData(db, lan);
-    const guildMembers = await getDiscordGuildMembers(discordClient, DISCORD_GUILD_ID);
+export async function updateGroups(db: DatabaseClient, discordClient: Client, lan: Lan, guildId: string) {
+    const seatPickerUsers = lodash.uniqBy(await getSeatPickerData(db, lan), 'name');
+    const guildMembers = await getDiscordGuildMembers(discordClient, guildId);
 
     matchSeatPickerUsers(seatPickerUsers, guildMembers);
 

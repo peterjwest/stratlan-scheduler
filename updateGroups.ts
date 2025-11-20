@@ -1,6 +1,6 @@
 import { getDatabaseClient, getCurrentLan } from './database';
 import { loginClient } from './discordApi';
-import { DISCORD_TOKEN } from './environment';
+import { DISCORD_TOKEN, REMOTE_DISCORD_GUILD_ID, DISCORD_GUILD_ID } from './environment';
 import { updateGroups } from './teams';
 
 const isRemote = process.argv[2] === '--remote';
@@ -13,7 +13,13 @@ if (!currentLan) {
     throw new Error('Current LAN not found');
 }
 
-await updateGroups(db, discordClient, currentLan);
+let guildId = DISCORD_GUILD_ID;
+if (isRemote) {
+    if (!REMOTE_DISCORD_GUILD_ID) throw new Error('Env variable REMOTE_DISCORD_GUILD_ID required');
+    guildId = REMOTE_DISCORD_GUILD_ID;
+}
+
+await updateGroups(db, discordClient, currentLan, guildId);
 
 await discordClient.destroy();
 await db.disconnect();

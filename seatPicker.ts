@@ -104,7 +104,7 @@ export async function getSeatPickerData(db: DatabaseClient, lan: Lan): Promise<S
 
     const data: SeatPickerUser[] = await page.evaluate(() => {
         const tempElement = document.createElement('div');
-        return Array.from(document.querySelectorAll('[data-bs-content]')).map((element: HTMLElement) => {
+        return Array.from(document.querySelectorAll('.taken[data-bs-content]')).map((element: HTMLElement) => {
             tempElement.innerHTML = element.dataset.bsContent!;
             const name = tempElement.querySelector(':scope > span')!.textContent;
             const groups = Array.from(tempElement.querySelectorAll('.badge')).map((group) => group.textContent);
