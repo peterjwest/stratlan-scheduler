@@ -1,8 +1,12 @@
+import { setTimeout } from 'node:timers/promises';
+
 import lodash from 'lodash';
 import zod from 'zod';
-import { REST, Routes, Activity, Client, Events, GatewayIntentBits, Partials } from 'discord.js';
-import { User } from './schema';
+import { REST, Routes, Activity, Client, Events, GuildMember, GatewayIntentBits, Partials, Collection } from 'discord.js';
+
+import { User, UserTeams, Lan, LanTeams, Team } from './schema';
 import { withLanStatus, fromNulls } from './util';
+import { DISCORD_GUILD_ID } from './environment';
 import {
     getCurrentLanCached,
     endFinishedActivities,
@@ -156,4 +160,50 @@ export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) 
             );
         }
     });
+}
+
+export function addTeamRoles(teams: Team[], roles: Collection<string, Role>) {
+    const rolesByName = Object.fromEntries(roles.entries().map((([id, role]) => [role.name, id])));
+    return teams.map((team) => {
+        const role = rolesByName[team.name];
+        if (!role) {
+            throw new Error(`Team role "${team.name}" not found`);
+        }
+        return { ...team, role };
+    });
+}
+
+export function addUserMembers(users: Array<User & UserTeams>, members: Collection<string, GuildMember>) {
+    return users.map((user) => {
+        const member = members.get(user.discordId);
+        if (!member) {
+            throw new Error(`Discord member ${user.discordId} not found`);
+        }
+        return { ...user, member };
+    });
+}
+
+export async function setTeams(discordClient: Client, lan: Lan & LanTeams, baseUsers: Array<User & UserTeams>) {
+    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+    if (!guild) throw new Error('Guild not found');
+
+    const teams = addTeamRoles(lan.teams, guild.roles.cache);
+    const users = addUserMembers(baseUsers, await guild.members.fetch());
+
+    let assignedTeamCount = 0;
+    for (const user of users) {
+        for (const team of teams) {
+            const hasTeam = user.team?.id === team.id;
+            if (user.member.roles.cache.has(team.role) !== hasTeam) {
+                if (hasTeam) {
+                    await user.member.roles.add(team.role);
+                    assignedTeamCount++;
+                } else {
+                    await user.member.roles.remove(team.role);
+                }
+                await setTimeout(100);
+            }
+        }
+    }
+    return assignedTeamCount;
 }

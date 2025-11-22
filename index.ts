@@ -15,6 +15,7 @@ import {
     absoluteUrl,
     userIntroCode,
     randomCode,
+    repeatTask,
     UserError,
 } from './util';
 import setupCommands from './commands';
@@ -44,7 +45,9 @@ import {
     createSecretScore,
 } from './database';
 import { watchPresenceUpdates, loginClient } from './discordApi';
-import { startScoringCommunityGames } from './communityGame';
+import { scoreCommunityGames, getIsNextSlotReady } from './communityGame';
+import { startLan, getIsLanStarted } from './lanStart';
+
 import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment';
 import {
     DISCORD_AUTH_URL,
@@ -63,11 +66,12 @@ const csrf = getCsrf();
 
 const db = await getDatabaseClient();
 
-const stopScoring = await startScoringCommunityGames(db);
-
 const discordClient = await loginClient(DISCORD_TOKEN);
 watchPresenceUpdates(db, discordClient);
 await setupCommands(discordClient, DISCORD_CLIENT_ID);
+
+const stopMonitoringLanStart = await repeatTask(async () => await startLan(db, discordClient), await getIsLanStarted(db));
+const stopScoring = await repeatTask(async () => await scoreCommunityGames(db), getIsNextSlotReady());
 
 const app = express();
 
@@ -252,6 +256,7 @@ const server = app.listen(PORT, () => {
 
 const shutDown = lodash.once(async () => {
     console.log('Shutting down');
+    stopMonitoringLanStart();
     stopScoring();
 
     await promisify(server.close);

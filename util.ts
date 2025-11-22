@@ -14,6 +14,7 @@ import {
     TeamName,
     SCORE_TYPE_NAMES,
     ScoreType,
+    REPEAT_INTERVAL,
 } from './constants';
 import { HOST, SECRET_ONE } from './environment';
 import { DiscordUser, DiscordGuildMember } from './discordApi';
@@ -410,4 +411,24 @@ export function buildQueryString(query: Record<string, string> = {}) {
     return Object.entries(query).map(([key, value]) => {
         return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
     }).join('&');
+}
+
+export async function repeatTask(
+    task: () => Promise<void>, criteria: () => boolean, interval = REPEAT_INTERVAL,
+): Promise<() => void> {
+    await task().catch((error) => console.error(`Task failed with error ${error}`));
+
+    let timeout: NodeJS.Timeout | undefined;
+    async function process() {
+        if (criteria()) {
+            await task();
+        }
+        if (timeout) timeout = setTimeout(process, interval);
+    }
+
+    timeout = setTimeout(process, interval);
+    return () => {
+        clearTimeout(timeout);
+        timeout = undefined;
+    }
 }

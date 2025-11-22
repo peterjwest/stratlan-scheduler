@@ -70,7 +70,7 @@ export const SCHEDULE_END_TIME = 26;
 export const EVENT_TIMESLOT_MINUTES = 10;
 export const EVENT_TIMESLOT_THRESHOLD = 0.5;
 
-export const COMMUNITY_GAMES_SCORE_INTERVAL = 30 * 1000; // 30 seconds
+export const REPEAT_INTERVAL = 10 * 1000; // 10 seconds
 
 export const PAGE_SIZE = 20;
 

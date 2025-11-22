@@ -98,6 +98,27 @@ export function getDatabaseClient(isRemote = false): DatabaseClient {
 }
 
 export async function getLanUsers(
+    db: DatabaseClient, lan: Lan & LanTeams,
+): Promise<Array<User & UserTeams>> {
+    const data = await list(
+        db.select({
+            user: User,
+            userLan: UserLan,
+        })
+        .from(User)
+        .innerJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
+    );
+
+    const users = data.map((item) => ({
+        ...item.user,
+        team: getTeam(lan, item.userLan!.teamId),
+        isEnrolled: true,
+    }));
+
+    return lodash.orderBy(users, (user) => formatName(user).toLowerCase());
+}
+
+export async function getLanUsersWithGroups(
     db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
 ): Promise<Array<User & UserTeams & UserGroups>> {
     const data = await list(
@@ -171,8 +192,8 @@ export async function getPointsByUser(db: DatabaseClient, lan: Lan, users: User[
 
 export async function getLanUsersWithPoints(
     db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
-): Promise<Array<User & UserTeams & UserPoints>> {
-    const users = await getLanUsers(db, lan, groups);
+): Promise<Array<User & UserTeams & UserGroups & UserPoints>> {
+    const users = await getLanUsersWithGroups(db, lan, groups);
     const pointsByUser = await getPointsByUser(db, lan, users);
     return lodash.orderBy(users.map((user) => ({
         ...user,
@@ -489,14 +510,14 @@ export async function getLan(db: DatabaseClient, lanId: number): Promise<Lan & L
     return get(db.query.Lan.findFirst({ where: eq(Lan.id, lanId), with: { teams: true } }));
 }
 
-export async function createLan(db: DatabaseClient, data: Omit<Lan, 'id'>) {
+export async function createLan(db: DatabaseClient, data: LanData) {
     await db.insert(Lan).values(toNulls(data));
 
     clearCurrentLanCache();
     clearLansCache();
 }
 
-export async function updateLan(db: DatabaseClient, lan: Lan, data: LanData) {
+export async function updateLan(db: DatabaseClient, lan: Lan, data: Partial<LanData>) {
     await db.update(Lan).set(toNulls(data)).where(eq(Lan.id, lan.id));
 
     clearCurrentLanCache();
@@ -514,6 +535,7 @@ export async function endFinishedActivities(db: DatabaseClient, user: User, game
 export async function getOrCreateGames(
     db: DatabaseClient, activities: ApplicationActivity[],
 ): Promise<Game[]> {
+    // TODO: Fix dupe issue!?
     const existingIdentifiers = await db.query.GameIdentifier.findMany({
         where: inArray(GameIdentifier.id, activities.map((activity) => activity.applicationId)),
     });

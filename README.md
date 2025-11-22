@@ -1,11 +1,5 @@
 # TODO:
 
-Objectives:
-
-- Before launch
-  - Assign Discord roles (or get permissions)
-  - Interstitial privacy policy page
-
 - Auto reload schedule/dashboard
 - Event start
   - Assign team after start
@@ -21,6 +15,7 @@ Objectives:
 
 ## Nice to have
 
+- Interstitial privacy policy page
 - Release notes
 - Add recompute scores button
 - Show recent score animation

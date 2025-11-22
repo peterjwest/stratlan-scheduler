@@ -1,4 +1,4 @@
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import lodash from 'lodash';
 
 import { DatabaseClient, getCurrentLanCached, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
@@ -14,8 +14,7 @@ import {
     roundToNextMinutes,
     withLanStatus,
 } from './util';
-import { EVENT_TIMESLOT_MINUTES,
-    EVENT_TIMESLOT_THRESHOLD, COMMUNITY_GAMES_SCORE_INTERVAL } from './constants';
+import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD } from './constants';
 
 export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameActivity[]) {
     return lodash.sum(activities.map((activity) => {
@@ -128,24 +127,14 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
     }
 }
 
-export async function startScoringCommunityGames(db: DatabaseClient): Promise<() => void> {
-    await scoreCommunityGames(db);
-
+export function getIsNextSlotReady() {
     let nextSlot = roundToNextMinutes(new Date(), EVENT_TIMESLOT_MINUTES);
-
-    let timeout: NodeJS.Timeout | undefined;
-    async function process() {
-        let now = new Date();
+    return function isNextSlotReady() {
+        const now = new Date();
         if (now > nextSlot) {
             nextSlot = roundToNextMinutes(now, EVENT_TIMESLOT_MINUTES);
-            await scoreCommunityGames(db);
+            return true;
         }
-        if (timeout) timeout = setTimeout(process, COMMUNITY_GAMES_SCORE_INTERVAL);
-    }
-
-    timeout = setTimeout(process, COMMUNITY_GAMES_SCORE_INTERVAL);
-    return () => {
-        clearTimeout(timeout);
-        timeout = undefined;
-    }
+        return false;
+    };
 }

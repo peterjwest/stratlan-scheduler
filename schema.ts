@@ -204,6 +204,7 @@ export const Lan = pgTable('Lan', {
     scheduleEnd: date({ mode: 'date' }).notNull(),
     eventStart: timestamp({ withTimezone: true }).notNull(),
     eventEnd: timestamp({ withTimezone: true }).notNull(),
+    isStartProcessed: boolean().notNull().default(false),
 });
 export type Lan = NullToUndefined<typeof Lan.$inferSelect>;
 export type LanTeams = { teams: Team[] };

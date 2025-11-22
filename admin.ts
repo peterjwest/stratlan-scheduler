@@ -16,7 +16,7 @@ import {
 import { randomiseTeams } from './teams';
 import { PAGE_SIZE } from './constants';
 import {
-    getLanUsers,
+    getLanUsersWithGroups,
     getUser,
     getUserWithTeam,
     getMinimalUsers,
@@ -258,7 +258,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         }
 
         const groups = await getGroups(db);
-        const users = await getLanUsers(db, context.currentLan, groups);
+        const users = await getLanUsersWithGroups(db, context.currentLan, groups);
         const userTeams = randomiseTeams(context.currentLan.teams, groups, users);
 
         for (const [user, team] of userTeams) {
