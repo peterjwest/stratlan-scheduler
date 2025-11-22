@@ -12,36 +12,35 @@ html(lang="en" class="h-full")
             img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[70px] ml-4 mr-2")
             img(src="/red-vs-blue.png" class="mb-2 h-[70px]")
         div(class="print:hidden flex-grow flex")
-            nav(class="bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-30% bg-fixed hidden md:block z-3 -mr-60 md:mr-0")
-                div(class="w-60 h-full backdrop-blur-xl backdrop-brightness-150")
-                    div(class="sticky top-0")
-                        button(class="md:hidden p-2" data-menu)
-                            img(src="/menu.svg" class="p-2 w-12 h-12")
-                        div(class="top-0 w-60")
-                            div(class="p-2 px-2 md:pt-4 -mt-4 md:mt-0")
-                                h1(class="")
-                                    a(href=routes.home)
-                                        img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px] mb-1.5")
-                                img(src="/red-vs-blue.png" class="h-[46px] px-2")
+            nav(class="hidden md:block w-60 bg-linear-150 from-bg-red-nav from-10% via-bg-purple-nav via-25% to-bg-blue-nav to-70% bg-fixed z-3 -mr-60 md:mr-0")
+                div(class="sticky top-0")
+                    button(class="md:hidden p-2" data-menu)
+                        img(src="/menu.svg" class="p-2 w-12 h-12")
+                    div(class="top-0 w-60")
+                        div(class="p-2 px-2 md:pt-4 -mt-4 md:mt-0")
+                            h1(class="")
+                                a(href=routes.home)
+                                    img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px] mb-1.5")
+                            img(src="/red-vs-blue.png" class="h-[46px] px-2")
 
-                            div(class="px-5 pb-4 space-y-3")
+                        div(class="px-5 pb-4 space-y-3")
+                            section
+                                +navigationLink(routes.home, 'Introduction')
+                                +navigationLink(routes.dashboard, 'Dashboard')
+                                +navigationLink(routes.schedule, 'Schedule')
+
+                            if isAdmin
                                 section
-                                    +navigationLink(routes.home, 'Introduction')
-                                    +navigationLink(routes.dashboard, 'Dashboard')
-                                    +navigationLink(routes.schedule, 'Schedule')
+                                    div(class="text-xl pb-1") Admin
+                                    +navigationLink(routes.admin.players.list, 'Players')
+                                    +navigationLink(routes.admin.points.list, 'Points')
+                                    +navigationLink(routes.admin.events.list, 'Events')
+                                    +navigationLink(routes.admin.codes.list, 'Hidden codes')
+                                    +navigationLink(routes.admin.games.list, 'Games')
+                                    +navigationLink(routes.admin.lans.list, 'LANs')
 
-                                if isAdmin
-                                    section
-                                        div(class="text-xl pb-1") Admin
-                                        +navigationLink(routes.admin.players.list, 'Players')
-                                        +navigationLink(routes.admin.points.list, 'Points')
-                                        +navigationLink(routes.admin.events.list, 'Events')
-                                        +navigationLink(routes.admin.codes.list, 'Hidden codes')
-                                        +navigationLink(routes.admin.games.list, 'Games')
-                                        +navigationLink(routes.admin.lans.list, 'LANs')
-
-                                    div(class="block lg:hidden" data-lan-select)
-                                        +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name, true)
+                                div(class="block lg:hidden" data-lan-select)
+                                    +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name, true)
 
             main(class="flex-grow flex flex-col")
                 div(class="flex-grow flex justify-center")
@@ -51,7 +50,7 @@ html(lang="en" class="h-full")
                                 button(class="md:hidden p-2" data-menu)
                                     img(src="/menu.svg" class="p-2 w-12 h-12")
 
-                            div(class="flex sticky right-0")
+                            div(class="flex sticky right-0 z-2")
                                 if isAdmin
                                     div(class="p-3 hidden lg:block" data-lan-select)
                                         +dropdown("lanId", lans, currentLan && currentLan.id, true, 'Select LAN', (lan) => lan.name)
@@ -65,7 +64,7 @@ html(lang="en" class="h-full")
                                                 span(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(user.team)}`)
                                                     =user.team.name
 
-                                    div(class="xl:relative z-2" data-user-menu-wrapper)
+                                    div(class="xl:relative" data-user-menu-wrapper)
                                         div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
                                             if user.discordAvatarId
                                                 img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
