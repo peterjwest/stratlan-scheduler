@@ -22,13 +22,25 @@ block body
                                     div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
                                         - const marginRight = index === group.length - 1 ? 'mr-1' : 'mr-0';
                                         - const opacity = event.cancelledAt ? 'opacity-50' : 'opacity-100';
-                                        div(class=`relative flex-grow px-2 py-1.5 mx-1 my-0.5 ${marginRight} bg-highlight rounded-lg border border-highlight-accent overflow-hidden ${opacity}`)
+                                        div(data-dialog-button tabindex="0" class=`relative flex-grow flex flex-col px-2 py-1.5 mx-1 my-0.5 ${marginRight} text-left bg-highlight rounded-lg border border-highlight-accent overflow-hidden ${opacity} cursor-pointer`)
                                             div(class="text-sm")= event.name
                                             div(class="text-xs")= helpers.formatTime(event.startTime)
-                                            if isAdmin
-                                                a(href=helpers.routeUrl(routes.admin.events.get, event.id, { returnTo: 'schedule' }) class="w-8 absolute p-2 right-0 top-0 bg-highlight rounded-md")
-                                                    img(src="/edit.svg")
 
+                                            dialog(class="fixed z-3 inset-0 size-auto bg-black/30 backdrop:bg-transparent text-white cursor-default")
+                                                div(class="size-full flex items-center justify-center")
+                                                    div(data-dialog-content class="relative w-100 min-h-50 p-3 bg-highlight border border-highlight-accent rounded-md")
+                                                        div(class="text-lg")= event.name
+                                                        div(class="text-sm mb-3")=`${helpers.formatTime(event.startTime)} - ${helpers.formatTime(helpers.getEventEnd(event))}`
+                                                        each line of event.description.split('\n')
+                                                            p(class="min-h-4")=line
+
+                                                        div(class="absolute right-1.5 top-2")
+                                                            form(method="dialog")
+                                                                button(data-dialog-close class="block p-1 bg-highlight rounded-md ")
+                                                                    img(class="size-6" src="/cross.svg")
+                                                            if isAdmin
+                                                                a(href=helpers.routeUrl(routes.admin.events.get, event.id, { returnTo: 'schedule' }) data-control class="block p-1 bg-highlight rounded-md")
+                                                                    img(class="size-6" src="/edit.svg")
         if isAdmin
-            a(href=helpers.routeUrl(routes.admin.events.create, { returnTo: 'schedule' }) class="fixed lg:absolute px-4 py-2 bottom-4 right-4 bg-highlight text-2xl border border-highlight-accent rounded-full")
+            a(href=helpers.routeUrl(routes.admin.events.create, { returnTo: 'schedule' }) data-control class="fixed lg:absolute px-4 py-2 bottom-4 right-4 bg-highlight text-2xl border border-highlight-accent rounded-full")
                 | +

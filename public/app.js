@@ -214,6 +214,9 @@ function updateFullscreen(matches) {
     if (header) header.classList.toggle('hidden', matches);
     if (footer) footer.classList.toggle('hidden', matches);
     if (fullscreenHeading) fullscreenHeading.classList.toggle('hidden', !matches);
+    for (const control of Array.from(document.querySelectorAll('[data-control]'))) {
+        control.classList.toggle('hidden', matches);
+    }
 }
 
 fullscreenMatch.addEventListener('change', ({ matches }) => updateFullscreen(matches));
@@ -316,5 +319,27 @@ if (printSelect) {
         codes.forEach((code) => {
             code.classList.toggle('hidden', !selectAllCheckbox.checked);
         });
+    });
+}
+
+const dialogButtons = Array.from(document.querySelectorAll('[data-dialog-button]'));
+for (const dialogButton of dialogButtons) {
+    const dialog = dialogButton.querySelector('dialog');
+    const dialogContent = dialogButton.querySelector('[data-dialog-content]');
+    const dialogClose = dialogButton.querySelector('[data-dialog-close]');
+
+    dialogButton.addEventListener('click', () => {
+        dialog.show();
+    });
+    dialogButton.addEventListener('keypress', (event) => {
+        console.log('OPEN', event);
+        if (event.key === 'Enter') dialog.show();
+    });
+    dialog.addEventListener('click', (event) => {
+        event.stopPropagation();
+        dialog.close();
+    });
+    dialogContent.addEventListener('click', (event) => {
+        event.stopPropagation();
     });
 }

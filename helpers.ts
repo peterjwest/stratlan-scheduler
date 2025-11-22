@@ -15,6 +15,7 @@ import {
     isUserError,
     round,
     createSecretCode,
+    getEventEnd,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 import { routeUrl } from './routes';
@@ -37,6 +38,7 @@ const helpers = {
     isUserError,
     round,
     createSecretCode,
+    getEventEnd,
     routeUrl,
 }
 
