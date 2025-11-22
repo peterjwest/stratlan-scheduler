@@ -532,62 +532,38 @@ export async function endFinishedActivities(db: DatabaseClient, user: User, game
     ));
 }
 
+export async function createGames(db: DatabaseClient, names: string[]) {
+    return db.insert(Game).values(names.map((name) => ({ name }))).onConflictDoNothing();
+}
+
 export async function getOrCreateGames(
     db: DatabaseClient, activities: ApplicationActivity[],
 ): Promise<Game[]> {
-    // TODO: Fix dupe issue!?
-    const existingIdentifiers = await db.query.GameIdentifier.findMany({
-        where: inArray(GameIdentifier.id, activities.map((activity) => activity.applicationId)),
+    if (activities.length === 0) return [];
+
+    const gameNames = lodash.uniq(activities.map((item) => item.name));
+    await createGames(db, gameNames);
+
+    const games = await list(db.query.Game.findMany({ where: inArray(Game.name, gameNames) }));
+    const gamesByName = lodash.keyBy(games, 'name');
+
+    const identifiers = activities.map(({ applicationId, name }) => {
+        return { id: applicationId, gameId: gamesByName[name]!.id };
     });
-    const existingApplicationIds = new Set(existingIdentifiers.map((item) => item.id));
-    const missingActivities = activities.filter(
-        ({ applicationId }) => !existingApplicationIds.has(applicationId),
+
+    const existingIdentifiers = await db.query.GameIdentifier.findMany({
+        where: inArray(GameIdentifier.id, identifiers.map((identifier) => identifier.id)),
+    });
+    const existingIdentifierIds = new Set(existingIdentifiers.map((item) => item.id));
+
+    const missingIdentifiers = identifiers.filter(
+        ({ id }) => !existingIdentifierIds.has(id),
     );
+    if (missingIdentifiers.length > 0) {
+        await db.insert(GameIdentifier).values(missingIdentifiers).onConflictDoNothing()
+    };
 
-    const identifiedGames = await list(db.query.Game.findMany({
-        where: inArray(Game.id, existingIdentifiers.map((item) => item.gameId))
-    }));
-
-    const activitiesById = lodash.keyBy(activities, 'applicationId');
-    const activitiesByGameId = Object.fromEntries(
-        existingIdentifiers.map((identifier) => [identifier.gameId, activitiesById[identifier.id]]),
-    );
-    for (const game of identifiedGames) {
-        const activity = activitiesByGameId[game.id] as ApplicationActivity;
-        if (game.name !== activity.name) {
-            console.warn(`Warning: Activity "${activity.name}" conflicts with existing Game "${game.name}"`);
-        }
-    }
-
-    identifiedGames.filter((game) => existingApplicationIds)
-
-    if (missingActivities.length === 0) {
-        return identifiedGames;
-    }
-
-    const existingGames = await list(db.query.Game.findMany({
-        where: inArray(Game.name, missingActivities.map((item) => item.name))
-    }));
-    const existingGameNames = new Set(existingGames.map((item) => item.name));
-
-    const missingGameActivities = missingActivities.filter(({ name }) => !existingGameNames.has(name));
-
-    const createdGames = missingGameActivities.length > 0 ? await list(
-        db.insert(Game)
-        .values(missingGameActivities.map(({ name }) => ({ name })))
-        .returning()
-    ) : [];
-    const nonIdentifiedGames = existingGames.concat(createdGames);
-    const nonIdentifiedGamesByName = lodash.keyBy(nonIdentifiedGames, 'name');
-
-    await db.insert(GameIdentifier).values(missingActivities.map(({ applicationId, name }) => {
-        return {
-            id: applicationId,
-            gameId: nonIdentifiedGamesByName[name]!.id,
-        };
-    })).returning();
-
-    return identifiedGames.concat(nonIdentifiedGames);
+    return games;
 }
 
 export async function getGame(db: DatabaseClient, gameId: number): Promise<Game | undefined> {
