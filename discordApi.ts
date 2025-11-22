@@ -179,7 +179,7 @@ export function addUserMembers(users: Array<User & UserTeams>, members: Collecti
     });
 }
 
-export async function setTeams(discordClient: Client, lan: Lan & LanTeams, baseUsers: Array<User & UserTeams>) {
+export async function assignTeamRoles(discordClient: Client, lan: Lan & LanTeams, baseUsers: Array<User & UserTeams>) {
     const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
     if (!guild) throw new Error('Guild not found');
 
@@ -204,7 +204,7 @@ export async function setTeams(discordClient: Client, lan: Lan & LanTeams, baseU
     return assignedTeamCount;
 }
 
-export async function setTeam(discordClient: Client, lan: Lan & LanTeams, user: User & UserTeams) {
+export async function assignTeamRole(discordClient: Client, lan: Lan & LanTeams, user: User & UserTeams) {
     const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
     if (!guild) throw new Error('Guild not found');
 
@@ -223,4 +223,24 @@ export async function setTeam(discordClient: Client, lan: Lan & LanTeams, user: 
             await setTimeout(100);
         }
     }
+}
+
+export async function unassignTeamRoles(discordClient: Client, lan: Lan & LanTeams) {
+    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+    if (!guild) throw new Error('Guild not found');
+
+    const teams = addTeamRoles(lan.teams, guild.roles.cache);
+    const members = await guild.members.fetch()
+
+    let assignedTeamCount = 0;
+    for (const member of members.values()) {
+        for (const team of teams) {
+            if (member.roles.cache.has(team.role)) {
+                assignedTeamCount++;
+                await member.roles.remove(team.role);
+                await setTimeout(100);
+            }
+        }
+    }
+    return assignedTeamCount;
 }

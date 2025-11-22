@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { drizzle, NodePgDatabase, NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
-import { alias, PgTransaction } from 'drizzle-orm/pg-core';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { alias } from 'drizzle-orm/pg-core';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max, count, sum } from 'drizzle-orm';
 import lodash from 'lodash';
 

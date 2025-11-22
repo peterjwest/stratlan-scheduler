@@ -47,6 +47,7 @@ export const LanData = zod.object({
     scheduleStart: dateType,
     scheduleEnd: dateType,
     isStartProcessed: zod.boolean().optional(),
+    isEndProcessed: zod.boolean().optional(),
 });
 export type LanData = zod.infer<typeof LanData>;
 

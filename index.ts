@@ -48,9 +48,9 @@ import {
     updateUserTeam,
 } from './database';
 import { chooseTeam } from './teams';
-import { watchPresenceUpdates, loginClient, setTeam } from './discordApi';
+import { watchPresenceUpdates, loginClient, assignTeamRole } from './discordApi';
 import { scoreCommunityGames, getIsNextSlotReady } from './communityGame';
-import { startLan, getIsLanStarted } from './lanStart';
+import { startLan, getIsLanStarted, endLan, getIsLanEnded } from './lanEvents';
 
 import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment';
 import {
@@ -74,9 +74,11 @@ const discordClient = await loginClient(DISCORD_TOKEN);
 watchPresenceUpdates(db, discordClient);
 await setupCommands(discordClient, DISCORD_CLIENT_ID);
 
-const stopMonitoringLanStart = await repeatTask(async () => await startLan(db, discordClient), await getIsLanStarted(db));
-const stopScoring = await repeatTask(async () => await scoreCommunityGames(db), getIsNextSlotReady());
-
+const tasks = [
+    await repeatTask(async () => await startLan(db, discordClient), await getIsLanStarted(db)),
+    await repeatTask(async () => await endLan(db, discordClient), await getIsLanEnded(db)),
+    await repeatTask(async () => await scoreCommunityGames(db), getIsNextSlotReady()),
+];
 const app = express();
 
 app.use(cookieParser());
@@ -122,7 +124,7 @@ app.use(async (request, response, next) => {
                 user.team = chooseTeam(currentLan.teams, groups, users, user.id);
                 await updateUserTeam(tx, currentLan, user, user.team);
             });
-            await setTeam(discordClient, currentLan, user);
+            await assignTeamRole(discordClient, currentLan, user);
         }
 
         // Hide current team until event has started
@@ -269,8 +271,9 @@ const server = app.listen(PORT, () => {
 
 const shutDown = lodash.once(async () => {
     console.log('Shutting down');
-    stopMonitoringLanStart();
-    stopScoring();
+
+    for (const cancelTask of tasks) cancelTask();
+    console.log('Tasks cancelled');
 
     await promisify(server.close);
     console.log('Server closed');
