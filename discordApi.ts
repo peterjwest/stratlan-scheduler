@@ -9,9 +9,9 @@ import { withLanStatus, fromNulls } from './util';
 import { DISCORD_GUILD_ID } from './environment';
 import {
     getCurrentLanCached,
-    endFinishedActivities,
+    startGameActivities,
+    endGameActivities,
     getOrCreateGames,
-    getOrCreateGameActivity,
     getUserByDiscordId,
     getOrCreateIntroChallenge,
     DatabaseClient,
@@ -152,13 +152,9 @@ export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) 
         if (!currentLan.isActive) return;
 
         const games = await getOrCreateGames(db, activities);
-        await endFinishedActivities(db, user, games);
+        await endGameActivities(db, user, games);
 
-        for (const game of games) {
-            await getOrCreateGameActivity(
-                db, currentLan, user, game, new Date(),
-            );
-        }
+        await startGameActivities(db, currentLan, user, games, new Date())
     });
 }
 

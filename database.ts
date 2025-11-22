@@ -524,7 +524,7 @@ export async function updateLan(db: DatabaseClient, lan: Lan, data: Partial<LanD
     clearLansCache();
 }
 
-export async function endFinishedActivities(db: DatabaseClient, user: User, games: Game[]): Promise<void> {
+export async function endGameActivities(db: DatabaseClient, user: User, games: Game[]): Promise<void> {
     await db.update(GameActivity).set({ endTime: sql`NOW()` }).where(and(
         eq(GameActivity.userId, user.id),
         not(inArray(GameActivity.gameId, games.map((game) => game.id))),
@@ -605,23 +605,17 @@ export async function getGameActivity(
     }));
 }
 
-export async function createGameActivity(
-    db: DatabaseClient, lan: Lan, user: User, game: Game, startTime: Date,
+export async function startGameActivities(
+    db: DatabaseClient, lan: Lan, user: User, games: Game[], startTime: Date,
 ) {
-    return (await db.insert(GameActivity).values({
+    if (games.length === 0) return;
+
+    await db.insert(GameActivity).values(games.map((game) => ({
         lanId: lan.id,
         userId: user.id,
         gameId: game.id,
         startTime: startTime,
-    }).returning())[0];
-}
-
-export async function getOrCreateGameActivity(
-    db: DatabaseClient, lan: Lan, user: User, game: Game, startTime: Date,
-) {
-    const gameActivity = await getGameActivity(db, lan, user, game);
-    if (gameActivity) return gameActivity;
-    await createGameActivity(db, lan, user, game, startTime);
+    }))).onConflictDoNothing();
 }
 
 export async function getTimeslotActivities(
