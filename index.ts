@@ -43,8 +43,12 @@ import {
     createHiddenCodeScore,
     findSecretScoreByLan,
     createSecretScore,
+    getGroups,
+    getLanUsersWithGroups,
+    updateUserTeam,
 } from './database';
-import { watchPresenceUpdates, loginClient } from './discordApi';
+import { chooseTeam } from './teams';
+import { watchPresenceUpdates, loginClient, setTeam } from './discordApi';
 import { scoreCommunityGames, getIsNextSlotReady } from './communityGame';
 import { startLan, getIsLanStarted } from './lanStart';
 
@@ -103,13 +107,22 @@ app.use(async (request, response, next) => {
     const points = currentLan && user ? await getUserPoints(db, currentLan, user) : undefined;
 
     if (user) {
-        if (currentLan && !currentLan?.isEnded && !user.isEnrolled) {
+        if (currentLan && !currentLan.isEnded && !user.isEnrolled) {
             if (await checkIsEligible(db, user, currentLan)) {
-                // TODO: Also assign team if started
                 await getOrCreateUserLan(db, user, currentLan);
                 await getOrCreateIntroChallenge(db, 'Login', currentLan, user);
                 user.isEnrolled = true;
             }
+        }
+
+        if (currentLan && currentLan.isActive && !user.team) {
+            const groups = await getGroups(db);
+            await db.transaction(async (tx) => {
+                const users = await getLanUsersWithGroups(tx, currentLan, groups);
+                user.team = chooseTeam(currentLan.teams, groups, users, user.id);
+                await updateUserTeam(tx, currentLan, user, user.team);
+            });
+            await setTeam(discordClient, currentLan, user);
         }
 
         // Hide current team until event has started

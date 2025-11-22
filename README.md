@@ -1,8 +1,6 @@
 # TODO:
 
 - Auto reload schedule/dashboard
-- Event start
-  - Assign team after start
 - Codes for events
 - Stress testing
   - Indexes

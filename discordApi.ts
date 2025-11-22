@@ -203,3 +203,24 @@ export async function setTeams(discordClient: Client, lan: Lan & LanTeams, baseU
     }
     return assignedTeamCount;
 }
+
+export async function setTeam(discordClient: Client, lan: Lan & LanTeams, user: User & UserTeams) {
+    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+    if (!guild) throw new Error('Guild not found');
+
+    const teams = addTeamRoles(lan.teams, guild.roles.cache);
+    const member = await guild.members.fetch(user.discordId);
+    console.log(teams);
+
+    for (const team of teams) {
+        const hasTeam = user.team?.id === team.id;
+        if (member.roles.cache.has(team.role) !== hasTeam) {
+            if (hasTeam) {
+                await member.roles.add(team.role);
+            } else {
+                await member.roles.remove(team.role);
+            }
+            await setTimeout(100);
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { alias } from 'drizzle-orm/pg-core';
+import { drizzle, NodePgDatabase, NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
+import { alias, PgTransaction } from 'drizzle-orm/pg-core';
 import { eq, isNotNull, sql, asc, desc, or, and, gt, lt, gte, not, inArray, isNull, max, count, sum } from 'drizzle-orm';
 import lodash from 'lodash';
 
@@ -60,6 +60,7 @@ import { ApplicationActivity } from './discordApi';
 import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
 
 export type DatabaseClient = NodePgDatabase<typeof schema> & { disconnect: () => Promise<void> };
+export type Transaction = Parameters<Parameters<DatabaseClient["transaction"]>[0]>[0];
 
 type UserData = {
     discordId: string,
@@ -119,7 +120,7 @@ export async function getLanUsers(
 }
 
 export async function getLanUsersWithGroups(
-    db: DatabaseClient, lan: Lan & LanTeams, groups: Group[],
+    db: DatabaseClient | Transaction, lan: Lan & LanTeams, groups: Group[],
 ): Promise<Array<User & UserTeams & UserGroups>> {
     const data = await list(
         db.select({
@@ -289,6 +290,12 @@ export async function createOrUpdateSeatPickerUsers(db: DatabaseClient, data: Us
 
 export async function updateUser(db: DatabaseClient, userId: number, data: Partial<User>) {
     await db.update(User).set(toNulls(data)).where(eq(User.id, userId));
+}
+
+export async function updateUserTeam(db: DatabaseClient | Transaction, lan: Lan, user: User, team: Team) {
+    await db.update(UserLan).set({ teamId: team.id }).where(and(
+        eq(UserLan.lanId, lan.id), eq(UserLan.userId, user.id),
+    ));
 }
 
 export async function updateRoles(db: DatabaseClient, user: User, roles: string[]) {

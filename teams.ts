@@ -20,7 +20,7 @@ interface GroupDistribution {
   [key: string]: GroupTeamDistribution;
 }
 
-const GLOBAL_GROUP_ID = 0;
+export const GLOBAL_GROUP_ID = 0;
 
 export async function updateGroups(db: DatabaseClient, discordClient: Client, lan: Lan, guildId: string) {
     const seatPickerUsers = lodash.uniqBy(await getSeatPickerData(db, lan), 'name');
@@ -63,15 +63,27 @@ function getSubGroups(users: Array<User & UserGroups>): SubGroup[] {
     return Array.from(subGroups.values());
 }
 
-function getInitialGroupDistributions(groups: Group[], teams: Team[]) {
-    const groupDistributions: GroupDistribution = {};
-    for (const groupId of getGroupIds(groups)) {
-        groupDistributions[groupId] = {};
-        for (const team of teams) {
-            groupDistributions[groupId][team.id] = 0;
-        }
-    }
-    return groupDistributions;
+export function getInitialGroupDistributions(
+    groups: Group[], teams: Team[], users?: Array<User & UserTeams & UserGroups>,
+) {
+    const usersByGroup = lodash.mapValues(
+        lodash.groupBy(
+            lodash.flatMap(users || [], (user) =>
+                [{ groupId: GLOBAL_GROUP_ID, user }, ...user.groups.map((group) => ({ groupId: group.id, user }))]
+            ),
+            'groupId',
+        ),
+        (entries) => entries.map(({ user }) => user),
+    );
+
+    return Object.fromEntries(
+        getGroupIds(groups).map((groupId) => {
+            const teamCounts = lodash.countBy(usersByGroup[groupId] || [], (user) => user.team?.id);
+            return [
+                groupId, Object.fromEntries(teams.map((team) => [team.id, teamCounts[team.id] || 0])),
+            ];
+        })
+    ) as GroupDistribution;
 }
 
 function incrementDistribution(distribution: GroupTeamDistribution, assignedTeam: Team) {
@@ -86,8 +98,18 @@ function groupBalanceDiff(distribution: GroupTeamDistribution): number {
     }));
 }
 
-function getGroupIds(groups: Group[]) {
+export function getGroupIds(groups: Group[]) {
     return [GLOBAL_GROUP_ID, ...groups.map((group) => group.id)];
+}
+
+export function pickBestTeam(teams: Team[], groupDistributions: GroupDistribution, user: User & UserGroups) {
+    const groupIds = getGroupIds(user.groups);
+    const possibleChoices: Array<[Team, number]> = lodash.sortBy(lodash.shuffle(teams).map((team) => {
+        return [team, lodash.sum(groupIds.map((groupId) => {
+            return groupBalanceDiff(incrementDistribution(groupDistributions[groupId]!, team));
+        }))];
+    }), ([team, score]) => score);
+    return possibleChoices[0]![0];
 }
 
 export function randomiseTeams(teams: Team[], groups: Group[], users: Array<User & UserTeams & UserGroups>) {
@@ -106,23 +128,22 @@ export function randomiseTeams(teams: Team[], groups: Group[], users: Array<User
 
         const subGroup = subGroups[0]!;
         const user = usersById[subGroup.userIds.pop()!]!;
-        const groupIds = getGroupIds(user.groups);
+        const chosenTeam = pickBestTeam(teams, groupDistributions, user);
 
-        const possibleChoices: Array<[Team, number]> = lodash.sortBy(lodash.shuffle(teams).map((team) => {
-            return [team, lodash.sum(groupIds.map((groupId) => {
-                return groupBalanceDiff(incrementDistribution(groupDistributions[groupId]!, team));
-            }))];
-        }), ([team, score]) => score);
-        const [chosenTeam] = possibleChoices[0]!;
-
-        for (const groupId of groupIds) {
+        for (const groupId of getGroupIds(user.groups)) {
             groupDistributions[groupId] = incrementDistribution(groupDistributions[groupId]!, chosenTeam);
         }
 
         userTeams.push([user, chosenTeam]);
-
         subGroups = subGroups.filter((subGroup) => subGroup.userIds.length > 0);
     }
 
     return userTeams;
+}
+
+export function chooseTeam(
+    teams: Team[], groups: Group[], users: Array<User & UserTeams & UserGroups>, userId: number,
+) {
+    const groupDistributions = getInitialGroupDistributions(groups, teams, users);
+    return pickBestTeam(teams, groupDistributions, users.find((user) => user.id  === userId)!);
 }
