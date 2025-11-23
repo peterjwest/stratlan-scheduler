@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Client } from 'discord.js';
+import { Server } from 'socket.io';
 
 import { Csrf } from './csrf';
 import { getContext } from 'context';
@@ -15,6 +15,7 @@ import {
 } from './util';
 import { randomiseTeams } from './teams';
 import { PAGE_SIZE } from './constants';
+import { User, UserTeams, Team } from './schema';
 import {
     getLanUsersWithGroups,
     getUser,
@@ -46,6 +47,7 @@ import {
     getHiddenCode,
     createHiddenCode,
     updateHiddenCode,
+    getScoresDetails,
     DatabaseClient,
 } from './database';
 import {
@@ -60,7 +62,7 @@ import {
 
 import routes, { routeUrl } from './routes';
 
-export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) {
+export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
     const router = Router();
 
     router.get(routes.admin.lans.list, async (request: Request, response: Response) => {
@@ -225,6 +227,7 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
         const event = data.eventId ? await getEvent(db, context.currentLan, data.eventId) : undefined;
         if (data.eventId && !event) throw new Error(`Event ${data.eventId} not found`);
 
+        let owner: User & UserTeams | Team;
         if (data.type === 'player') {
             const player = await getUser(db, context.currentLan, data.userId);
             if (!player) {
@@ -234,18 +237,17 @@ export default function (db: DatabaseClient, csrf: Csrf, discordClient: Client) 
                     throw new Error(`Player ${data.userId} not found`);
                 }
             }
-
-            await awardScore(
-                db, context.currentLan, context.user, data.points, data.reason, event, player,
-            );
+            owner = player;
         } else {
             const team = getTeam(context.currentLan, data.teamId);
             if (!team) throw new Error(`Team ${data.type} not found`);
-
-            await awardScore(
-                db, context.currentLan, context.user, data.points, data.reason, event, team,
-            );
+            owner = team;
         }
+
+        const score = await awardScore(
+            db, context.currentLan, context.user, data.points, data.reason, event, owner,
+        );
+        io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
 
         response.redirect(routes.admin.points.list);
     });

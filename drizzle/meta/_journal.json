@@ -421,6 +421,13 @@
       "when": 1763833813127,
       "tag": "0059_is_end_processed",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1763859646541,
+      "tag": "0060_points_not_null",
+      "breakpoints": true
     }
   ]
 }

@@ -73,6 +73,7 @@ export const Team = pgTable('Team', {
     unique('Team_name_and_lan_unique').on(table.name, table.lanId),
 ]);
 export type Team = NullToUndefined<typeof Team.$inferSelect>;
+export type TeamScore = { points: number };
 
 export const teamRelations = relations(Team, ({ one }) => ({
     lan: one(Lan, {
@@ -112,7 +113,7 @@ export const Score = pgTable('Score', {
     type: ScoreTypeEnum().notNull(),
     userId: integer().references(() => User.id),
     assignerId: integer().references(() => User.id),
-    points: integer(),
+    points: integer().notNull(),
     reason: varchar({ length: 256 }),
     eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),

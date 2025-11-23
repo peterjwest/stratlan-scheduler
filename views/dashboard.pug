@@ -1,18 +1,38 @@
 extends layout.pug
 
 block body
-    article(class="h-full flex items-stretch justify-center pt-6")
-        each data of teamPoints
-            div(class="flex-grow flex justify-center")
-                div(class="flex flex-col w-[60%] max-w-[300px]")
-                    div(class="flex-grow relative w-full min-h-[100px] border border-border/50")
-                        div(
-                            class=`absolute bottom-0 w-full ${helpers.getTeamBackground(data.team)}`
-                            style=`height: ${helpers.round(100 * currentLan.progress * data.points / maxPoints, 4)}%;`
-                        )
-                            - const background = data.points > 0 ? helpers.getTeamBackground(data.team) : 'bg-highlight';
-                            div(class=`absolute top-[-16px] left-full pr-2 pl-4 py-1 ml-[2px] arrow-4 z-1 whitespace-nowrap ${background}`)
-                                =data.points
-                                span(class="hidden lg:inline")=' points'
+    article(class="relative h-full flex items-stretch gap-30 pt-6 @container")
+        each team of teams
+            div(class="flex-grow flex flex-col items-stretch")
+                div(class="flex justify-center")
+                    div(class="min-w-[108px] max-w-[min(300px,32cqh)] flex-grow flex @container")
+                        div(class="relative flex-grow min-h-[175cqw] max-h-[175cqw]")
+                            div(
+                                class="absolute bottom-0"
+                                data-team-score
+                                data-team-id=team.id
+                                data-team-name=team.name
+                                data-team-points=team.points
+                                data-max-points=maxPoints
+                                data-lan-progress=lanProgress
+                            )
+                                - const background = helpers.getTeamBackground(team);
+                                if team.name == 'Red'
+                                    div(data-points-marker class=`hidden absolute bottom-0 left-[calc(100%-15px)] -mb-4 pr-2 pl-4 py-1 ml-[2px] arrow-l-4 z-1 whitespace-nowrap ${background}`)
+                                        span(data-text)=team.points
 
-                    img(class="w-full pt-4 px-[10%]" src=data.team.name === "Red" ? "/red.png" : "/blue.png")
+                                        div(data-user-scores class="hidden lg:block absolute top-12 left-5 text-xs flex flex-col items-start")
+                                            div(data-user-score-template class="hidden absolute top-0 left-0 font-bold text-[#ffe2a0] bg-[#dc7a11] py-1 px-2 rounded-lg transition-user-score")
+                                if team.name == 'Blue'
+                                    div(data-points-marker class=`hidden absolute bottom-0 right-[calc(100%-15px)] -mb-4 pl-2 pr-4 py-1 mr-[2px] arrow-r-4 z-1 whitespace-nowrap ${background}`)
+                                        span(data-text)=team.points
+
+                                        div(data-user-scores class="hidden lg:block absolute top-12 right-5 text-xs flex flex-col items-end")
+                                            div(data-user-score-template class="hidden absolute top-0 right-0 font-bold text-[#ffe2a0] bg-[#dc7a11] py-1 px-2 rounded-lg transition-user-score")
+
+                div(class="flex justify-center pt-4")
+                    img(class="max-h-[100px]" src=team.name === "Red" ? "/red.png" : "/blue.png")
+
+        div(data-syncing class="hidden absolute inset-0 flex flex-col justify-center items-center")
+            span(class="text-lg") Syncing
+            img(class="inline h-8 animate-spin" src="refresh.svg")

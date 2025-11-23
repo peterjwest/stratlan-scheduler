@@ -14,6 +14,7 @@ import schema, {
     Group,
     UserLan,
     Team,
+    TeamScore,
     Score,
     ScoreReferences,
     Event,
@@ -29,6 +30,7 @@ import schema, {
     IntroChallenge,
     HiddenCode,
     HiddenCodeUrl,
+    LanProgress,
 } from './schema';
 import { LanData, EventData, HiddenCodeData } from './validation';
 import {
@@ -54,6 +56,7 @@ import {
     absoluteUrl,
     randomCode,
     addGroups,
+    round,
     NullToUndefined,
 } from './util';
 import { ApplicationActivity } from './discordApi';
@@ -464,6 +467,31 @@ export async function createHiddenCodeScore(
     });
 }
 
+export async function getScoresDetails(db: DatabaseClient, lan: Lan & LanTeams, scores: Score[]) {
+    const userIds = scores.map((score) => score.userId).filter((userId): userId is number => Boolean(userId));
+    const userData = await list(db.select({ user: User, userLan: UserLan })
+        .from(User)
+        .where(and(inArray(User.id, userIds), isNotNull(UserLan.teamId)))
+        .innerJoin(UserLan, and(eq(UserLan.userId, User.id), eq(UserLan.lanId, lan.id)))
+    );
+    const users = userData.map((data) => ({
+        ...data.user,
+        team: getTeam(lan, data.userLan.teamId!),
+    }));
+
+    const usersById = lodash.keyBy(users, 'id');
+
+    return scores.map((score) => {
+        const user = score.userId ? usersById[score.userId] : undefined;
+        const teamId = user ? user.team.id : score.teamId;
+        return teamId && {
+            teamId,
+            username: user && formatName(user),
+            points: score.points,
+        };
+    });
+}
+
 export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
     const results = await get(
         db.select({ total: sql`sum(${Score.points})`.mapWith(Number) })
@@ -476,6 +504,24 @@ export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): P
         ))
     );
     return results.total || 0;
+}
+
+export async function getTeamVisiblePoints(db: DatabaseClient, lan: Lan & LanProgress, team: Team): Promise<number> {
+    return lan.isStarted ? await getTeamPoints(db, lan, team) : 0;
+}
+
+export async function teamsWithPoints(
+    db: DatabaseClient, lan: Lan & LanTeams & LanProgress,
+): Promise<Array<Team & TeamScore>> {
+    let teamPoints: Record<string, number> = {};
+    for (const team of lan.teams) {
+        teamPoints[team.id] = await getTeamVisiblePoints(db, lan, team);
+    }
+
+    return lan.teams.map((team) => {
+        const points = teamPoints[team.id]!;
+        return { ...team, points };
+    });
 }
 
 export async function getUserPoints(db: DatabaseClient, lan: Lan, user: User): Promise<number> {
@@ -719,6 +765,8 @@ export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, c
     }).returning());
 
     await db.update(IntroChallenge).set({ scoreId: score.id }).where(eq(IntroChallenge.id, challengeId));
+
+    return score;
 }
 
 export async function getOrCreateUserLan(db: DatabaseClient, user: User, lan: Lan): Promise<UserLan> {
@@ -821,11 +869,11 @@ export async function findSecretScoreByLan(
 }
 
 export async function createSecretScore(db: DatabaseClient, lan: Lan, user: User, secretNumber: number) {
-    await db.insert(Score).values({
+    return get(db.insert(Score).values({
         type: 'Secret',
         lanId: lan.id,
         userId: user.id,
         points: SECRET_POINTS,
         secretNumber,
-    });
+    }).returning());
 }

@@ -4,6 +4,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import lodash from 'lodash';
 import * as Sentry from '@sentry/node';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 import { getContext } from './context';
 import {
@@ -20,7 +22,6 @@ import {
     UserError,
 } from './util';
 import setupCommands from './commands';
-import { Team } from './schema';
 import adminRouter from './admin';
 import steamRouter from './steam';
 import authRouter, { getCurrentUserLan } from './auth';
@@ -29,7 +30,7 @@ import getCsrf from './csrf';
 import {
     getDatabaseClient,
     getUser,
-    getTeamPoints,
+    teamsWithPoints,
     getEvents,
     getLansCached,
     getUserPoints,
@@ -47,11 +48,13 @@ import {
     getGroups,
     getLanUsersWithGroups,
     updateUserTeam,
+    getScoresDetails,
 } from './database';
 import { chooseTeam } from './teams';
 import { watchPresenceUpdates, loginClient, assignTeamRole } from './discordApi';
 import { scoreCommunityGames, getIsNextSlotReady } from './communityGame';
 import { startLan, getIsLanStarted, endLan, getIsLanEnded } from './lanEvents';
+import { sendScoreUpdates } from './scores';
 
 import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment';
 import {
@@ -71,6 +74,10 @@ const csrf = getCsrf();
 
 const db = await getDatabaseClient();
 
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
 const discordClient = await loginClient(DISCORD_TOKEN);
 watchPresenceUpdates(db, discordClient);
 await setupCommands(discordClient, DISCORD_CLIENT_ID);
@@ -78,9 +85,9 @@ await setupCommands(discordClient, DISCORD_CLIENT_ID);
 const tasks = [
     await repeatTask(async () => await startLan(db, discordClient), await getIsLanStarted(db)),
     await repeatTask(async () => await endLan(db, discordClient), await getIsLanEnded(db)),
-    await repeatTask(async () => await scoreCommunityGames(db), getIsNextSlotReady()),
+    await repeatTask(async () => await scoreCommunityGames(db, io), getIsNextSlotReady()),
+    await repeatTask(async () => await sendScoreUpdates(db, io), true, 60 * 1000),
 ];
-const app = express();
 
 app.use(cookieParser());
 
@@ -166,15 +173,10 @@ app.get(routes.home, async (request, response) => {
 app.get(routes.dashboard, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
 
-    const teamPoints: Array<{ team: Team, points: number }> = [];
-    for (const team of context.currentLan.teams) {
-        const points = context.currentLan.isStarted ? await getTeamPoints(db, context.currentLan, team) : 0;
-        teamPoints.push({ team, points });
-    }
-
-    const maxPoints = lodash.maxBy(teamPoints, 'points')?.points;
-    // TODO: Slowly animate max points on change
-    response.render('dashboard', { ...context, teamPoints, maxPoints });
+    const teams = await teamsWithPoints(db, context.currentLan);
+    const maxPoints = lodash.max(teams.map((team) => team.points)) || 0;
+    const lanProgress = context.currentLan.progress;
+    response.render('dashboard', { ...context, teams, maxPoints, lanProgress });
 });
 
 app.get(routes.schedule, async (request, response) => {
@@ -204,7 +206,8 @@ app.get(routes.intro.claim, async (request, response) => {
 
     if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
-    await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
+    const score = await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
     response.redirect(routes.home);
 });
 
@@ -223,6 +226,7 @@ app.get(routes.code, async (request, response) => {
     }
 
     const score = await createHiddenCodeScore(db, context.user, code);
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
 
     response.render('code', { ...context, score, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: false });
 });
@@ -240,7 +244,8 @@ app.get(routes.secret, async (request: Request, response: Response, next: NextFu
         return response.render('secret', { ...context, valid: true, alreadyFound: true });
     }
 
-    await createSecretScore(db, context.currentLan, context.user, secretNumber)
+    const score = await createSecretScore(db, context.currentLan, context.user, secretNumber)
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
 
     response.render('secret', { ...context, valid: true, secretPoints: SECRET_POINTS });
 });
@@ -253,7 +258,7 @@ app.use(async (request, response, next) => {
 });
 
 app.use(steamRouter(db));
-app.use(adminRouter(db, csrf, discordClient));
+app.use(adminRouter(db, csrf, io));
 
 /** 404 handler */
 app.use((request: Request, response: Response) => {
@@ -269,7 +274,7 @@ app.use((error: any, request: Request, response: Response, next: NextFunction) =
 });
 
 /** Start server */
-const server = app.listen(PORT, () => {
+const server = httpServer.listen(PORT, () => {
     console.log(`Server listening at ${HOST}`);
 
     process.on('unhandledRejection', (reason, promise) => {

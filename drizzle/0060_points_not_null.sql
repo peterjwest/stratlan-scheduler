@@ -1,0 +1,1 @@
+ALTER TABLE "Score" ALTER COLUMN "points" SET NOT NULL;

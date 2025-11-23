@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THREE.js + Rapier Physics Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.181.2/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier3d-compat';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(0, 10, 15);
+        camera.lookAt(0, 2, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Initialize Rapier physics world
+        let world;
+        let physicsObjects = [];
+        const cylinderRadius = 3; // Make accessible globally
+        const fixedCubeSpeed = 0.001; // Speed at which fixed cubes move down
+
+        RAPIER.init().then(() => {
+            // Create physics world with gravity
+            world = new RAPIER.World({ x: 0.0, y: -9.81, z: 0.0 });
+
+            const cylinderHeight = 15;
+            const cylinderPosition = { x: 0, y: cylinderHeight / 2, z: 0 };
+            const segments = 32; // Number of segments for the cylinder wall
+
+            // Create hollow cylinder walls using trimesh
+            // Generate vertices for the inner wall of the cylinder
+            const vertices = [];
+            const indices = [];
+
+            // Create vertices for top and bottom circles
+            for (let i = 0; i <= segments; i++) {
+                const angle = (i / segments) * Math.PI * 2;
+                const x = Math.cos(angle) * cylinderRadius;
+                const z = Math.sin(angle) * cylinderRadius;
+
+                // Top circle vertices
+                vertices.push(x, cylinderHeight, z);
+                // Bottom circle vertices
+                vertices.push(x, 0, z);
+            }
+
+            // Create indices for the wall quads (as triangles)
+            for (let i = 0; i < segments; i++) {
+                const top1 = i * 2;
+                const top2 = (i + 1) * 2;
+                const bottom1 = i * 2 + 1;
+                const bottom2 = (i + 1) * 2 + 1;
+
+                // First triangle of quad
+                indices.push(top1, bottom1, top2);
+                // Second triangle of quad
+                indices.push(top2, bottom1, bottom2);
+            }
+
+            // Create trimesh collider for the cylinder walls
+            const cylinderColliderDesc = RAPIER.ColliderDesc.trimesh(
+                new Float32Array(vertices),
+                new Uint32Array(indices)
+            )
+            .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+
+            world.createCollider(cylinderColliderDesc);
+
+            // Add a ground cylinder at the bottom
+            const groundHeight = 0.5;
+            const groundColliderDesc = RAPIER.ColliderDesc.cylinder(
+                groundHeight / 2,
+                cylinderRadius
+            )
+            .setTranslation(0, groundHeight / 2, 0)
+            .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+
+            const groundCollider = world.createCollider(groundColliderDesc);
+
+            // Visual semitransparent base cylinder
+            const groundGeometry = new THREE.CylinderGeometry(
+                cylinderRadius,
+                cylinderRadius,
+                groundHeight,
+                32
+            );
+            const groundMaterial = new THREE.MeshStandardMaterial({
+                color: 0xff0000,
+            });
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            groundMesh.position.y = groundHeight / 2;
+            scene.add(groundMesh);
+
+            // Mouse click handler to add cubes
+            renderer.domElement.addEventListener('click', (event) => {
+                addCube(event);
+            });
+
+            // Animation loop
+            let lastTime = performance.now();
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const currentTime = performance.now();
+                const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+                lastTime = currentTime;
+
+                // Step the physics simulation
+                world.step();
+
+                // Check if any cubes should be fixed (stationary for 0.5s and close to base)
+                const velocityThreshold = 0.1; // Consider stationary if velocity is below this
+                const stationaryDuration = 0.5; // Seconds of being stationary before fixing
+                const baseProximity = 0.5; // Distance from base to consider "close"
+                const groundY = 0.5; // Ground top surface (cylinder is at y=0.25 with height 0.5)
+
+                physicsObjects.forEach((obj) => {
+                    if (!obj.isFixed) {
+                        const position = obj.rigidBody.translation();
+                        const velocity = obj.rigidBody.linvel();
+                        const bottomY = position.y - obj.size / 2;
+
+                        // Calculate velocity magnitude
+                        const velocityMagnitude = Math.sqrt(
+                            velocity.x * velocity.x +
+                            velocity.y * velocity.y +
+                            velocity.z * velocity.z
+                        );
+
+                        // Check if cube is close to the base
+                        const distanceFromBase = Math.abs(bottomY - groundY);
+                        const isCloseToBase = distanceFromBase <= baseProximity;
+
+                        // Check if cube is not significantly moving
+                        const isStationary = velocityMagnitude < velocityThreshold;
+
+                        if (isStationary && isCloseToBase) {
+                            // Increment stationary time
+                            obj.stationaryTime += deltaTime;
+
+                            // Fix if stationary for required duration
+                            if (obj.stationaryTime >= stationaryDuration) {
+                                obj.rigidBody.setBodyType(RAPIER.RigidBodyType.Fixed, true);
+                                obj.isFixed = true;
+                            }
+                        } else {
+                            // Reset stationary time if cube is moving or not close to base
+                            obj.stationaryTime = 0;
+                        }
+
+                        // Store current velocity for next frame
+                        obj.lastVelocity = { x: velocity.x, y: velocity.y, z: velocity.z };
+                    }
+                });
+
+                // Move fixed cubes downward slowly
+                physicsObjects.forEach((obj) => {
+                    if (obj.isFixed) {
+                        const position = obj.rigidBody.translation();
+                        const newY = position.y - fixedCubeSpeed;
+                        obj.rigidBody.setTranslation({ x: position.x, y: newY, z: position.z }, true);
+                    }
+                });
+
+                // Remove cubes that are outside the cylinder (horizontally or below)
+                const cubesToRemove = [];
+                physicsObjects.forEach((obj, index) => {
+                    const position = obj.rigidBody.translation();
+                    // Check horizontal distance from center (x^2 + z^2)
+                    const horizontalDistance = Math.sqrt(position.x * position.x + position.z * position.z);
+                    // Check if cube is below the cylinder (cylinder goes from y=0 to y=10)
+                    const isBelowCylinder = position.y < -1; // Remove when well below the bottom
+
+                    if (horizontalDistance > cylinderRadius || isBelowCylinder) {
+                        cubesToRemove.push(index);
+                    }
+                });
+
+                // Remove cubes in reverse order to maintain indices
+                for (let i = cubesToRemove.length - 1; i >= 0; i--) {
+                    const index = cubesToRemove[i];
+                    const obj = physicsObjects[index];
+
+                    // Remove from THREE.js scene
+                    scene.remove(obj.mesh);
+                    obj.mesh.geometry.dispose();
+                    obj.mesh.material.dispose();
+
+                    // Remove from physics world
+                    world.removeRigidBody(obj.rigidBody);
+
+                    // Remove from array
+                    physicsObjects.splice(index, 1);
+                }
+
+                // Update THREE.js meshes to match physics bodies
+                physicsObjects.forEach((obj) => {
+                    const position = obj.rigidBody.translation();
+                    const rotation = obj.rigidBody.rotation();
+
+                    obj.mesh.position.set(position.x, position.y, position.z);
+                    obj.mesh.quaternion.set(
+                        rotation.x,
+                        rotation.y,
+                        rotation.z,
+                        rotation.w
+                    );
+                });
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        });
+
+        function addCube(event) {
+            if (!world) return;
+
+            // Calculate mouse position in 3D space
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+
+            // Spawn cubes at positions above the cylinder
+            const spawnHeight = 12;
+            const baseX = (mouse.x * 5);
+            const baseZ = (mouse.y * 5);
+
+            // Create 8 cubes with slight position offsets
+            for (let i = 0; i < 8; i++) {
+                // Add small random offset to spread cubes slightly
+                const offsetX = (Math.random() - 0.5) * 0.5;
+                const offsetZ = (Math.random() - 0.5) * 0.5;
+                const offsetY = (Math.random() - 0.5) * 0.3;
+
+                const spawnX = baseX + offsetX;
+                const spawnZ = baseZ + offsetZ;
+                const spawnY = spawnHeight + offsetY;
+
+                // Create cube geometry and material
+                const size = 0.5;
+                const geometry = new THREE.BoxGeometry(size, size, size);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0xff0000,
+                    roughness: 0.4
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.position.set(spawnX, spawnY, spawnZ);
+                scene.add(mesh);
+
+                // Create physics body for the cube
+                const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic()
+                    .setTranslation(spawnX, spawnY, spawnZ);
+
+                const rigidBody = world.createRigidBody(rigidBodyDesc);
+
+                const colliderDesc = RAPIER.ColliderDesc.cuboid(
+                    size / 2,
+                    size / 2,
+                    size / 2
+                )
+                .setDensity(1.0)
+                .setRestitution(0.1)
+                .setFriction(0.7)
+                .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+
+                // Store the physics object
+                physicsObjects.push({
+                    mesh: mesh,
+                    rigidBody: rigidBody,
+                    collider: world.createCollider(colliderDesc, rigidBody),
+                    size: size,
+                    isFixed: false,
+                    stationaryTime: 0,
+                    lastVelocity: { x: 0, y: 0, z: 0 }
+                });
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

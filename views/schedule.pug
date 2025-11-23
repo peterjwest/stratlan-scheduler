@@ -41,7 +41,7 @@ block body
 
                                                         div(class="absolute right-1.5 top-2")
                                                             form(method="dialog")
-                                                                button(data-dialog-close class="block p-1 bg-highlight rounded-md ")
+                                                                button(class="block p-1 bg-highlight rounded-md ")
                                                                     img(class="size-6" src="/cross.svg")
                                                             if isAdmin
                                                                 a(href=helpers.routeUrl(routes.admin.events.get, event.id, { returnTo: 'schedule' }) data-control class="block p-1 bg-highlight rounded-md")

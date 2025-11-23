@@ -1,28 +1,31 @@
 # TODO:
 
-- Auto reload schedule/dashboard
-- Codes for events
+- Dashboard page
+  - Sync/update feature
+  - Show user's scores
+- Codes/points for events
+- Winner animation!
+
 - Stress testing
   - Indexes
   - Cache assets
-- Dashboard page
-  - Fancy scores
-  - Show highest recent scores
-- Schedule - click to see more
-- User createdAt/modifiedAt
+  - Test community game scoring ???
 
 ## Nice to have
 
+- XHR collect points
 - Interstitial privacy policy page
 - Release notes
 - Add recompute scores button
-- Show recent score animation
+- Show animation for your own scores
 - Schedule
   - Colour code by location
 
 ## LATER:
 
+- Disambiguate between identically named events
 - Super admin
+- User createdAt/modifiedAt
 - Schedule
   - Schedule commands
   - Discord integration / sync
@@ -50,3 +53,6 @@ pnpm run db:migrate
 
 Notes:
 - If someone becomes Staff, they will need to login again to get admin access
+
+https://github.com/getsentry/sentry-javascript/discussions/15916
+https://www.npmjs.com/package/helmet

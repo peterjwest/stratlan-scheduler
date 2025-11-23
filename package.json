@@ -40,11 +40,13 @@
     "vite": "^7.2.2"
   },
   "dependencies": {
+    "@dimforge/rapier3d": "^0.19.3",
     "@sentry/node": "^10.25.0",
     "@tailwindcss/cli": "^4.1.11",
     "@types/md5": "^2.3.6",
     "@types/pg": "^8.15.6",
     "@types/qrcode": "^1.5.6",
+    "cannon-es": "^0.20.0",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "csrf-sync": "^4.2.1",
@@ -60,7 +62,11 @@
     "puppeteer": "^24.27.0",
     "qrcode": "^1.5.4",
     "session-file-store": "^1.5.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.11",
+    "three": "^0.181.2",
+    "vite-plugin-wasm": "^3.5.0",
     "zod": "^4.0.13"
   }
 }

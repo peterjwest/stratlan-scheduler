@@ -123,6 +123,8 @@ export function formatScoreType(type: ScoreType) {
     return SCORE_TYPE_NAMES[type];
 }
 
+export function getTeam(lan: Lan & LanTeams, teamId: number): Team;
+export function getTeam(lan: Lan & LanTeams, teamId: number | undefined): Team | undefined;
 export function getTeam(lan: Lan & LanTeams, teamId: number | undefined): Team | undefined {
     return lan.teams.find((team) => team.id === teamId);
 }
@@ -245,7 +247,7 @@ export function roundToNextMinutes(date = new Date(), minutes: number): Date {
 
 export function parseUrl(path: string) {
     const url = new URL(path, 'https://example');
-    return { path: url.pathname, query: url.searchParams, hash: url.hash };
+    return { path: url.pathname, host: url.host, query: url.searchParams, hash: url.hash };
 }
 
 export function isLanStarted(lan: Lan) {
@@ -418,13 +420,13 @@ export function buildQueryString(query: Record<string, string> = {}) {
 }
 
 export async function repeatTask(
-    task: () => Promise<void>, criteria: () => boolean, interval = REPEAT_INTERVAL,
+    task: () => Promise<void>, criteria: (() => boolean) | true, interval = REPEAT_INTERVAL,
 ): Promise<() => void> {
     await task().catch((error) => console.error(`Task failed with error ${error}`));
 
     let timeout: NodeJS.Timeout | undefined;
     async function process() {
-        if (criteria()) {
+        if (criteria === true || criteria()) {
             await task();
         }
         if (timeout) timeout = setTimeout(process, interval);

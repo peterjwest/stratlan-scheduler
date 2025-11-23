@@ -4,6 +4,7 @@ import zod from 'zod';
 import lodash from 'lodash';
 
 import { HOST, DISCORD_CLIENT_ID, SECRET_ONE } from './environment';
+import { parseUrl } from './util';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 
@@ -83,5 +84,6 @@ export const CONTENT_SECURITY_POLICY = [
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "script-src 'nonce-<NONCE>'",
-    "connect-src 'self' *.sentry.io"
+    `connect-src 'self' wss://${parseUrl(HOST).host} *.sentry.io`,
+    "worker-src 'self'",
 ].join('; ');

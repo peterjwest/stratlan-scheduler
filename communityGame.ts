@@ -1,7 +1,15 @@
 import { eq } from 'drizzle-orm';
 import lodash from 'lodash';
+import { Server } from 'socket.io';
 
-import { DatabaseClient, getCurrentLanCached, getIncompleteCommunityEvents, getTimeslotActivities } from './database';
+import {
+    list,
+    getCurrentLanCached,
+    getIncompleteCommunityEvents,
+    getTimeslotActivities,
+    getScoresDetails,
+    DatabaseClient,
+} from './database';
 import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema';
 import {
     getEventEnd,
@@ -60,13 +68,15 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
     return missingTimeslots;
 }
 
-export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
+export async function scoreCommunityGames(db: DatabaseClient, io: Server): Promise<void> {
     const currentLan = withLanStatus(await getCurrentLanCached(db));
     if (!currentLan) return;
     if (!currentLan.isActive) return;
 
     console.log('Scoring community games:');
     try {
+        let scores: Score[] = [];
+
         const events = await getIncompleteCommunityEvents(db, currentLan);
         if (events.length === 0) console.log('No games to process');
         for (const event of events) {
@@ -98,7 +108,7 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                     }
                 }
 
-                let scoresAdded = 0;
+                let eventScoreCount = 0;
                 const inserts = scoresToAdd.map(({ userId, timeslot }) => ({
                     lanId: currentLan.id,
                     type: 'CommunityGame',
@@ -109,8 +119,9 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                     createdAt: timeslot.time,
                 } as const));
                 if (inserts.length > 0) {
-                    const inserted = await tx.insert(Score).values(inserts).onConflictDoNothing().returning();
-                    scoresAdded += inserted.length;
+                    const inserted = await list(tx.insert(Score).values(inserts).onConflictDoNothing().returning());
+                    scores = scores.concat(inserted);
+                    eventScoreCount += inserted.length;
                 }
 
                 await tx.update(EventTimeslot).set({ isProcessed: true }).where(eq(EventTimeslot.eventId, event.id));
@@ -119,9 +130,11 @@ export async function scoreCommunityGames(db: DatabaseClient): Promise<void> {
                     await tx.update(Event).set({ isProcessed: true }).where(eq(Event.id, event.id));
                 }
 
-                console.log(`Created ${scoresAdded} scores processing ${timeslots.length} timeslots for ${event.name}`);
+                console.log(`Created ${eventScoreCount} scores processing ${timeslots.length} timeslots for ${event.name}`);
             });
         }
+
+        io.emit('NEW_SCORES', await getScoresDetails(db, currentLan, scores));
     } catch (error) {
         console.error('Failed to score community games:', error);
     }

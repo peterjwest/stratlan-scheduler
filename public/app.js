@@ -1,4 +1,3 @@
-import QRCode from 'qrcode';
 import * as Sentry from "@sentry/browser";
 
 import '../css/style.css';
@@ -261,18 +260,6 @@ datetimes.forEach((datetime) => {
     });
 });
 
-const hiddenCodes = Array.from(document.querySelectorAll('[data-hidden-code]'));
-hiddenCodes.forEach((element) => {
-    const canvas = document.createElement('canvas');
-    element.appendChild(canvas);
-    const options = { margin: 1, width: element.dataset.hiddenCodeSize };
-    QRCode.toCanvas(canvas, element.dataset.hiddenCode, options, (error) => {
-        if (error) console.error(error);
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-    });
-});
-
 const printButtons = Array.from(document.querySelectorAll('[data-print-button]'));
 printButtons.forEach((printButton) => {
     printButton.addEventListener('click', (event) => {
@@ -328,7 +315,6 @@ const dialogButtons = Array.from(document.querySelectorAll('[data-dialog-button]
 for (const dialogButton of dialogButtons) {
     const dialog = dialogButton.querySelector('dialog');
     const dialogContent = dialogButton.querySelector('[data-dialog-content]');
-    const dialogClose = dialogButton.querySelector('[data-dialog-close]');
 
     dialogButton.addEventListener('click', () => {
         dialog.show();
@@ -363,5 +349,26 @@ for (const confirmButton of confirmButtons) {
         if (!window.confirm('Are you sure?')) {
             event.preventDefault();
         }
+    });
+}
+
+const scoreContainers = Array.from(document.querySelectorAll('[data-team-score]'));
+if (scoreContainers.length) {
+    const { renderTeamScore } = await import('./dashboard');
+    scoreContainers.forEach(renderTeamScore);
+}
+
+const hiddenCodes = Array.from(document.querySelectorAll('[data-hidden-code]'));
+if (hiddenCodes.length) {
+    const QRCode = await import('qrcode');
+    hiddenCodes.forEach((element) => {
+        const canvas = document.createElement('canvas');
+        element.appendChild(canvas);
+        const options = { margin: 1, width: element.dataset.hiddenCodeSize };
+        QRCode.toCanvas(canvas, element.dataset.hiddenCode, options, (error) => {
+            if (error) console.error(error);
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+        });
     });
 }

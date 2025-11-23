@@ -90,7 +90,7 @@ label {
     background-image: var(--gradient-blue);
 }
 
-@utility arrow-* {
+@utility arrow-l-* {
     corner-shape: bevel round round bevel;
     border-radius:
         calc(var(--spacing) * --value(integer) * 2)
@@ -98,6 +98,20 @@ label {
         calc(var(--spacing) * --value(integer))
         calc(var(--spacing) * --value(integer) * 2)
     ;
+}
+
+@utility arrow-r-* {
+    corner-shape: round bevel bevel round;
+    border-radius:
+        calc(var(--spacing) * --value(integer))
+        calc(var(--spacing) * --value(integer) * 2)
+        calc(var(--spacing) * --value(integer) * 2)
+        calc(var(--spacing) * --value(integer))
+    ;
+}
+
+@utility transition-user-score {
+    transition: top 0.5s, opacity 0.5s;
 }
 
 @keyframes gradient {
