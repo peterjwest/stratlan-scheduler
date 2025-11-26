@@ -40,10 +40,10 @@ export const INTRO_CHALLENGE_POINTS = {
     'HiddenCode': 50,
 } as const satisfies { [Property in IntroChallengeType]: number };
 
-export const HIDDEN_CODE_BONUS_POINTS = 50;
+export const HIDDEN_CODE_BONUS_POINTS = 75;
 export const HIDDEN_CODE_POINTS = 25;
 
-export const SECRET_POINTS = 100;
+export const SECRET_POINTS = 200;
 
 export const SECRETS = { 1: SECRET_ONE } as const;
 export const SECRETS_BY_CODE = lodash.mapValues(lodash.invert(SECRETS), (value) => Number(value));
