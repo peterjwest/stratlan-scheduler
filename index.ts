@@ -16,6 +16,7 @@ import {
     userIntroCode,
     randomCode,
     repeatTask,
+    getDayStart,
     UserError,
 } from './util';
 import setupCommands from './commands';
@@ -178,7 +179,8 @@ app.get(routes.dashboard, async (request, response) => {
 
 app.get(routes.schedule, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
-    const events = await getEvents(db, context.currentLan);
+    const showEvents = new Date() > getDayStart(context.currentLan.scheduleStart);
+    const events = showEvents || context.isAdmin ? await getEvents(db, context.currentLan) : [];
 
     response.render('schedule', {
         ...context,

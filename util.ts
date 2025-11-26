@@ -69,9 +69,9 @@ export function getDayStart(date: Date) {
 }
 
 export function getDayEnd(date: Date) {
-    const dayStart = new Date(date);
-    dayStart.setUTCHours(SCHEDULE_END_TIME, 0, 0, 0);
-    return dayStart;
+    const dayEnd = new Date(date);
+    dayEnd.setUTCHours(SCHEDULE_END_TIME, 0, 0, 0);
+    return dayEnd;
 }
 
 export function getScheduleHours() {
