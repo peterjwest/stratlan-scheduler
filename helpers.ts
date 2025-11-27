@@ -1,5 +1,6 @@
 import {
     formatDate,
+    formatDateShort,
     formatHourAsTime,
     formatTime,
     formatDateTime,
@@ -22,6 +23,7 @@ import { routeUrl } from './routes';
 
 const helpers = {
     formatDate,
+    formatDateShort,
     formatHourAsTime,
     formatTime,
     formatDateTime,

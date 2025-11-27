@@ -99,6 +99,10 @@ export function formatDate(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
+export function formatDateShort(date: Date) {
+    return `${formatDay(date)} ${formatTime(date)}`;
+}
+
 export function formatDateTime(date: Date) {
     return `${formatDay(date)} ${formatTime(date)}, ${formatDate(date)}`;
 }

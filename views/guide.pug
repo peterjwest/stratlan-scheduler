@@ -27,11 +27,13 @@ block body
                 span(class="inline-block -rotate-3 absolute -bottom-3 -right-2 z-1")
                     +introPointsButton(introChallenges.Login, constants.INTRO_CHALLENGE_POINTS.Login)
 
-            li(class="flex-grow flex-1 mb-3 relative")
+            li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
-                    | Wait for the event to start
-                if currentLan && currentLan.isStarted
-                    img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                    if currentLan && currentLan.isStarted
+                        | Event started!
+                        img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                    else
+                        =`Event starts at ${helpers.formatDateShort(currentLan.eventStart)}`
 
             li(class="flex-grow flex-1 mb-3")
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
