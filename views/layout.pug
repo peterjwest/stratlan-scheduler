@@ -64,7 +64,7 @@ html(lang="en" class="h-full")
                                                 span(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(user.team)}`)
                                                     =user.team.name
 
-                                    div(class="xl:relative" data-user-menu-wrapper)
+                                    div(class="relative" data-user-menu-wrapper)
                                         div(class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:bg-highlight/60 cursor-pointer rounded-b" data-user-menu-button)
                                             if user.discordAvatarId
                                                 img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
