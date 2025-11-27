@@ -202,6 +202,8 @@ app.get(routes.intro.claim, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
+    if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
+
     await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
     response.redirect(routes.home);
 });
@@ -209,6 +211,8 @@ app.get(routes.intro.claim, async (request, response) => {
 app.get(routes.code, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
+
+    if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
     const code = await getHiddenCodeByCode(db, context.currentLan, request.params.hiddenCode);
     if (!code) throw new UserError('Not a valid code, sorry!');
@@ -226,6 +230,8 @@ app.get(routes.code, async (request, response) => {
 app.get(routes.secret, async (request: Request, response: Response, next: NextFunction) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
+
+    if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
     const secretNumber = SECRETS_BY_CODE[request.params.secretCode || ''];
     if (!secretNumber) return response.render('secret', { ...context });
