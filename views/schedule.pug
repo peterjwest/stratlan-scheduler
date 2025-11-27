@@ -32,8 +32,9 @@ block body
                                                     div(data-dialog-content class="relative w-100 min-h-50 p-3 bg-highlight border border-highlight-accent rounded-md")
                                                         div(class="text-lg")= event.name
                                                         div(class="text-sm mb-3")=`${helpers.formatTime(event.startTime)} - ${helpers.formatTime(helpers.getEventEnd(event))}`
-                                                        each line of event.description.split('\n')
-                                                            p(class="min-h-4")=line
+                                                        if event.description
+                                                            each line of event.description.split('\n')
+                                                                p(class="min-h-4")=line
 
                                                         if (event.points)
                                                             p(class="text-sm mt-3")=`Community game: Earn ${event.points} points per 10 minutes played.`
