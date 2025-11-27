@@ -58,7 +58,7 @@ html(lang="en" class="h-full")
                                 if user
                                     div(class="flex gap-2 p-3 items-center")
                                         if points !== undefined
-                                            span=`${points} points`
+                                            span(class="hidden sm:inline")=`${points} points`
 
                                         if user.team
                                                 span(class=`px-1.5 py-1 rounded-lg ${helpers.getTeamBackground(user.team)}`)
