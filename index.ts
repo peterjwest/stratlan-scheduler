@@ -118,7 +118,7 @@ app.use(async (request, response, next) => {
             }
         }
 
-        if (currentLan && currentLan.isActive && !user.team) {
+        if (currentLan && currentLan.isActive && user.isEnrolled && !user.team) {
             const groups = await getGroups(db);
             await db.transaction(async (tx) => {
                 const users = await getLanUsersWithGroups(tx, currentLan, groups);
