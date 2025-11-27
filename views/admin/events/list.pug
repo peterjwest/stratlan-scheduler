@@ -6,20 +6,20 @@ block body
     div(class="flex mb-3 gap-2 items-center")
         a(href=routes.admin.events.create, class="inline-block py-1.5 px-3.5 rounded-md border border-border/50 bg-highlight") Create event
 
-    div(class="grid grid-cols-[repeat(6,max-content)]")
-        div(class="grid grid-cols-subgrid col-span-6 font-bold")
+    div(class="grid grid-cols-[repeat(5,max-content)]")
+        div(class="grid grid-cols-subgrid col-span-5 font-bold")
             span(class="px-3 py-2 self-center") Name
             span(class="px-3 py-2 self-center") Start time
             span(class="px-3 py-2 self-center") Duration
             span(class="px-3 py-2 self-center") Game
             span(class="px-3 py-2 self-center") Points / 10 mins
-            span(class="px-3 py-2 self-center") Cancelled at
+            //- span(class="px-3 py-2 self-center") Cancelled at
 
         each event of events
-            div(class="grid grid-cols-subgrid col-span-6 hover:bg-highlight border-t border-border/50")
+            div(class="grid grid-cols-subgrid col-span-5 hover:bg-highlight border-t border-border/50")
                 a(
                     href=helpers.routeUrl(routes.admin.events.get, event.id)
-                    class=`grid grid-cols-subgrid col-span-6 ${event.cancelledAt ? 'opacity-50' : ''}`
+                    class=`grid grid-cols-subgrid col-span-5 ${event.cancelledAt ? 'opacity-50' : ''}`
                 )
                     span(class="px-3 py-2 self-center")=event.name
                     span(class="px-3 py-2 self-center")
@@ -28,9 +28,9 @@ block body
                     span(class="px-3 py-2 self-center")=`${event.duration} mins`
                     span(class="px-3 py-2 self-center")=event.gameId
                     span(class="px-3 py-2 self-center")=event.points
-                    span(class="px-3 py-2 self-center flex justify-center")
-                        if event.cancelledAt
-                            =helpers.formatTimestamp(event.cancelledAt)
-                        else
-                            button(class="py-1 px-2 rounded-md border border-border/80 bg-highlight" type="submit" name="submit")
-                                | Cancel event
+                    //- span(class="px-3 py-2 self-center flex justify-center")
+                    //-     if event.cancelledAt
+                    //-         =helpers.formatTimestamp(event.cancelledAt)
+                    //-     else
+                    //-         button(class="py-1 px-2 rounded-md border border-border/80 bg-highlight" type="submit" name="submit")
+                    //-             | Cancel event
