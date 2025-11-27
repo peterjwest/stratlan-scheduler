@@ -15,16 +15,17 @@ block body
                     h2(class="font-semibold py-2")= dayEvents.day
                     div(class="border-r border-b border-border/40 flex-grow flex flex-col relative")
                         each hour of helpers.getScheduleHours()
-                            div(class="flex-1 flex-grow border-t border-border/40 min-h-10 lg:min-h-8")
+                            div(class="flex-1 flex-grow border-t border-border/40 min-h-10")
                         each group of helpers.groupEvents(dayEvents.events, isAdmin)
                             each [column, index] of group.map((column, index) => [column, index])
                                 each event of column
-                                    div(class="absolute flex min-h-[55px]" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
+                                    div(class="absolute flex" style=helpers.getEventScheduleStyles(event, index, group.length, 80))
                                         - const marginRight = index === group.length - 1 ? 'mr-1' : 'mr-0';
                                         - const opacity = event.cancelledAt ? 'opacity-50' : 'opacity-100';
                                         div(data-dialog-button tabindex="0" class=`relative flex-grow flex flex-col px-2 py-1.5 mx-1 my-0.5 ${marginRight} text-left bg-highlight rounded-lg border border-highlight-accent overflow-hidden ${opacity} cursor-pointer`)
-                                            div(class="text-sm")= event.name
-                                            div(class="text-xs")= helpers.formatTime(event.startTime)
+                                            div(class="text-sm/4")
+                                                =`${event.name} - `
+                                                span(class="text-xs")= helpers.formatTime(event.startTime)
 
                                             dialog(class="fixed z-3 inset-0 size-auto bg-black/30 backdrop:bg-transparent text-white cursor-default")
                                                 div(class="size-full flex items-center justify-center")
@@ -33,6 +34,9 @@ block body
                                                         div(class="text-sm mb-3")=`${helpers.formatTime(event.startTime)} - ${helpers.formatTime(helpers.getEventEnd(event))}`
                                                         each line of event.description.split('\n')
                                                             p(class="min-h-4")=line
+
+                                                        if (event.points)
+                                                            p(class="text-sm mt-3")=`Community game: Earn ${event.points} points per 10 minutes played.`
 
                                                         div(class="absolute right-1.5 top-2")
                                                             form(method="dialog")
