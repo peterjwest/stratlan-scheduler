@@ -208,8 +208,10 @@ const header = document.querySelector('header');
 const footer = document.querySelector('footer');
 const fullscreenHeading = document.querySelector('.fullscreen-heading');
 const fullscreenMatch = window.matchMedia('(display-mode: fullscreen)');
+let isFullscreen = false;
 
 function updateFullscreen(matches) {
+    isFullscreen = matches;
     if (navigation) navigation.classList.toggle('md:hidden', matches);
     if (header) header.classList.toggle('hidden', matches);
     if (footer) footer.classList.toggle('hidden', matches);
@@ -342,4 +344,15 @@ for (const dialogButton of dialogButtons) {
     dialogContent.addEventListener('click', (event) => {
         event.stopPropagation();
     });
+}
+
+const SCHEDULE_UPDATE_PERIOD = 60 * 1000;
+const schedule = document.querySelector('[data-schedule]');
+if (schedule) {
+    setInterval(() => {
+        console.log(isFullscreen);
+        if (isFullscreen) {
+            window.location.reload();
+        }
+    }, SCHEDULE_UPDATE_PERIOD);
 }

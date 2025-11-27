@@ -1,7 +1,7 @@
 extends layout.pug
 
 block body
-    div(class="h-full flex-none lg:flex relative")
+    div(data-schedule class="h-full flex-none lg:flex relative")
         div(class="mt-10 border-r border-border/40 hidden lg:flex flex-col")
             each hour of helpers.getScheduleHours()
                 div(class="flex-1 flex-grow px-2 text-sm relative -top-2")= helpers.formatHourAsTime(hour)
