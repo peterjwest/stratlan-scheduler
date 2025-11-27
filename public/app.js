@@ -356,3 +356,12 @@ if (schedule) {
         }
     }, SCHEDULE_UPDATE_PERIOD);
 }
+
+const confirmButtons = Array.from(document.querySelectorAll('[data-confirm]'));
+for (const confirmButton of confirmButtons) {
+    confirmButton.addEventListener('click', (event) => {
+        if (!window.confirm('Are you sure?')) {
+            event.preventDefault();
+        }
+    });
+}

@@ -33,4 +33,4 @@ block body
 
             form(action=helpers.routeUrl(routes.admin.players.switch, player.id) method="post" class="px-3 py-2 border-t border-border/50")
                 input(type="hidden" name="csrf" value=csrfToken)
-                input(type="submit" name="submit" value="Switch team" class="py-1 px-2 rounded-md border border-border/80 bg-highlight")
+                input(type="submit" name="submit" value="Switch team" data-confirm class="py-1 px-2 rounded-md border border-border/80 bg-highlight")
