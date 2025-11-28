@@ -220,8 +220,16 @@ function updateFullscreen(matches) {
     }
 }
 
-fullscreenMatch.addEventListener('change', ({ matches }) => updateFullscreen(matches));
-updateFullscreen(fullscreenMatch.matches);
+const urlParams = new URLSearchParams(window.location.search);
+const fullscreenOverride = urlParams.get('fullscreen') === 'true';
+
+if (fullscreenOverride) {
+    isFullscreen = true;
+    updateFullscreen(isFullscreen);
+} else {
+    fullscreenMatch.addEventListener('change', ({ matches }) => updateFullscreen(matches));
+    updateFullscreen(fullscreenMatch.matches);
+}
 
 const loginButtons = Array.from(document.querySelectorAll('[data-login]'));
 loginButtons.forEach((loginButton) => {
