@@ -4,7 +4,7 @@ doctype html
 html(lang="en" class="h-full")
     head
         title StratLAN Red vs. Blue
-        link(rel="stylesheet" href="/style.css")
+        link(rel="stylesheet" href="/style.css?v=1")
         link(rel="shortcut icon" href="/favicon.png")
         meta(name="viewport" content="width=device-width, initial-scale=1.0")
     body(class="min-h-[100vh] min-w-[400px] bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-50% bg-fixed text-white flex flex-col")
@@ -96,7 +96,7 @@ html(lang="en" class="h-full")
         div(class="hidden print:block")
             block print
 
-        script(type="module" src="/app.js" nonce=nonce)
+        script(type="module" src="/app.js?v=1" nonce=nonce)
 
         div(class="hidden")
             =helpers.createSecretCode()
