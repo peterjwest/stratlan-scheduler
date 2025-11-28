@@ -1,7 +1,7 @@
 extends layout.pug
 
 block body
-    article(class="relative h-full flex items-stretch gap-30 pt-6 @container")
+    article(class="relative h-full flex items-stretch gap-30 pt-6 @container" data-latest-scores=JSON.stringify(latestScoreDetails))
         each team of teams
             div(class="flex-grow flex flex-col items-stretch")
                 div(class="flex justify-center")

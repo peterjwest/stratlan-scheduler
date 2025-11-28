@@ -20,6 +20,8 @@ import {
     repeatTask,
     getDayStart,
     UserError,
+    addMinutes,
+    dateIsValid,
 } from './util';
 import setupCommands from './commands';
 import adminRouter from './admin';
@@ -48,6 +50,7 @@ import {
     getGroups,
     getLanUsersWithGroups,
     updateUserTeam,
+    getScores,
     getScoresDetails,
 } from './database';
 import { chooseTeam } from './teams';
@@ -173,10 +176,19 @@ app.get(routes.home, async (request, response) => {
 app.get(routes.dashboard, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
 
-    const teams = await teamsWithPoints(db, context.currentLan);
+    const lastDashboard = new Date(Number(request.cookies['dashboard-last-open']));
+    let scoresUntil = addMinutes(new Date(), -10);
+    if (dateIsValid(lastDashboard) && lastDashboard > scoresUntil) {
+        scoresUntil = lastDashboard;
+    }
+
+    const latestScores = await getScores(db, context.currentLan, scoresUntil);
+    const latestScoreDetails = await getScoresDetails(db, context.currentLan, latestScores);
+
+    const teams = await teamsWithPoints(db, context.currentLan, scoresUntil);
     const maxPoints = lodash.max(teams.map((team) => team.points)) || 0;
     const lanProgress = context.currentLan.progress;
-    response.render('dashboard', { ...context, teams, maxPoints, lanProgress });
+    response.render('dashboard', { ...context, teams, maxPoints, lanProgress, latestScoreDetails });
 });
 
 app.get(routes.schedule, async (request, response) => {

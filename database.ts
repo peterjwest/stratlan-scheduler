@@ -373,11 +373,9 @@ export async function countUserScores(db: DatabaseClient, lan: Lan, user: User, 
     return (await db.select({ count: count() }).from(Score).where(and(...conditions)))[0]?.count || 0;
 }
 
-export async function getScores(
+export async function getScoresPaged(
     db: DatabaseClient, lan: Lan & LanTeams, type: ScoreType | undefined, page: number = 1,
 ): Promise<Array<Score & ScoreReferences>> {
-    if (!lan) return [];
-
     const conditions = [eq(Score.lanId, lan.id)];
     if (type) conditions.push(eq(Score.type, type));
 
@@ -401,10 +399,31 @@ export async function getScores(
             team: getTeam(lan, item.userLan?.teamId || item.score.teamId),
             event: item.event,
             assigner: item.assigner,
+            user: item.user,
+        }
+    });
+}
+
+export async function getScores(
+    db: DatabaseClient, lan: Lan & LanTeams, after: Date,
+): Promise<Array<Score & { user: User | undefined }>> {
+    const data = await list(
+        db.select({ score: Score, user: User})
+        .from(Score)
+        .leftJoin(Event, eq(Score.eventId, Event.id))
+        .leftJoin(User, eq(Score.userId, User.id))
+        .orderBy(asc(Score.createdAt))
+        .where(and(eq(Score.lanId, lan.id), gt(Score.createdAt, after)))
+    );
+
+    return data.map((item) => {
+        return {
+            ...item.score,
             user: item.user && item.user,
         }
     });
 }
+
 
 export async function getUserScores(
     db: DatabaseClient, lan: Lan & LanTeams, user: User, type?: ScoreType, page: number = 1,
@@ -434,7 +453,7 @@ export async function getUserScores(
             team: getTeam(lan, item.userLan?.teamId || item.score.teamId),
             event: item.event,
             assigner: item.assigner,
-            user: item.user && item.user,
+            user: item.user,
         }
     });
 }
@@ -492,30 +511,34 @@ export async function getScoresDetails(db: DatabaseClient, lan: Lan & LanTeams, 
     });
 }
 
-export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team): Promise<number> {
+export async function getTeamPoints(db: DatabaseClient, lan: Lan, team: Team, until?: Date): Promise<number> {
+    const conditions = [
+        eq(Score.lanId, lan.id),
+        or(eq(Score.teamId, team.id), eq(UserLan.teamId, team.id)),
+    ];
+    if (until) conditions.push(lt(Score.createdAt, until));
     const results = await get(
         db.select({ total: sql`sum(${Score.points})`.mapWith(Number) })
         .from(Score)
         .leftJoin(User, eq(User.id, Score.userId))
         .leftJoin(UserLan, eq(UserLan.userId, User.id))
-        .where(and(
-            eq(Score.lanId, lan.id),
-            or(eq(Score.teamId, team.id), eq(UserLan.teamId, team.id)),
-        ))
+        .where(and(...conditions))
     );
     return results.total || 0;
 }
 
-export async function getTeamVisiblePoints(db: DatabaseClient, lan: Lan & LanProgress, team: Team): Promise<number> {
-    return lan.isStarted ? await getTeamPoints(db, lan, team) : 0;
+export async function getTeamVisiblePoints(
+    db: DatabaseClient, lan: Lan & LanProgress, team: Team, until?: Date,
+): Promise<number> {
+    return lan.isStarted ? await getTeamPoints(db, lan, team, until) : 0;
 }
 
 export async function teamsWithPoints(
-    db: DatabaseClient, lan: Lan & LanTeams & LanProgress,
+    db: DatabaseClient, lan: Lan & LanTeams & LanProgress, until?: Date
 ): Promise<Array<Team & TeamScore>> {
     let teamPoints: Record<string, number> = {};
     for (const team of lan.teams) {
-        teamPoints[team.id] = await getTeamVisiblePoints(db, lan, team);
+        teamPoints[team.id] = await getTeamVisiblePoints(db, lan, team, until);
     }
 
     return lan.teams.map((team) => {

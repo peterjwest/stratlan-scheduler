@@ -438,3 +438,7 @@ export async function repeatTask(
         timeout = undefined;
     }
 }
+
+export function dateIsValid(date: Date) {
+    return !isNaN(date.getTime());
+}

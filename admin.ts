@@ -35,7 +35,7 @@ import {
     updateGame,
     countScores,
     countUserScores,
-    getScores,
+    getScoresPaged,
     getUserScores,
     awardScore,
     getLans,
@@ -203,7 +203,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
             ['Awarded', 'CommunityGame', 'IntroChallenge', 'HiddenCode'],
         );
         const pages = getPages(await countScores(db, context.currentLan, query.type), PAGE_SIZE);
-        const scores = await getScores(db, context.currentLan, query.type, query.page);
+        const scores = await getScoresPaged(db, context.currentLan, query.type, query.page);
         response.render('admin/points/list', { ...context, filters, query, pages, scores });
     });
 

@@ -223,14 +223,6 @@ function updateFullscreen(matches) {
 fullscreenMatch.addEventListener('change', ({ matches }) => updateFullscreen(matches));
 updateFullscreen(fullscreenMatch.matches);
 
-const ONE_DAY = 24 * 60 * 60 * 1000;
-
-function setCookie(name, value) {
-    const date = new Date();
-    date.setTime(date.getTime() + ONE_DAY);
-    document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
-}
-
 const loginButtons = Array.from(document.querySelectorAll('[data-login]'));
 loginButtons.forEach((loginButton) => {
     loginButton.addEventListener('click', () => {
