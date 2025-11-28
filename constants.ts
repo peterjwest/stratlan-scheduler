@@ -78,7 +78,7 @@ export const PAGE_SIZE = 20;
 export const CONTENT_SECURITY_POLICY = [
     "base-uri 'none'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    "frame-ancestors http://portal.event.liab",
     "default-src 'none'",
     "img-src 'self' data: https://cdn.discordapp.com",
     "style-src 'self' 'unsafe-inline'",
