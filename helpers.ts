@@ -17,6 +17,7 @@ import {
     round,
     createSecretCode,
     getEventEnd,
+    absoluteUrl,
 } from './util';
 import { getAvatarUrl } from './discordApi';
 import { routeUrl } from './routes';
@@ -41,6 +42,7 @@ const helpers = {
     round,
     createSecretCode,
     getEventEnd,
+    absoluteUrl,
     routeUrl,
 }
 

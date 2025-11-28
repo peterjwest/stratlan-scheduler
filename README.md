@@ -1,18 +1,11 @@
 # TODO:
 
-- Dashboard page
-  - Sync/update feature
-  - Show user's scores
-- Codes/points for events
 - Winner animation!
-
-- Stress testing
-  - Indexes
-  - Cache assets
-  - Test community game scoring ???
 
 ## Nice to have
 
+- Indexes
+- Cache assets
 - XHR collect points
 - Interstitial privacy policy page
 - Release notes

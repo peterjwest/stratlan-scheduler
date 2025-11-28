@@ -12,6 +12,7 @@ import {
     addMinutes,
     getDayStart,
     getDayEnd,
+    randomCode,
 } from './util';
 import { randomiseTeams } from './teams';
 import { PAGE_SIZE } from './constants';
@@ -125,7 +126,11 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         const data = EventData.parse(request.body);
         const query = EventQuery.parse(request.query);
 
-        await createEvent(db, context.currentLan, { ...data, createdBy: context.user.id });
+        await createEvent(db, context.currentLan, {
+            ...data,
+            createdBy: context.user.id,
+            eventCode: randomCode(),
+        });
         response.redirect(query.returnTo === 'schedule' ? routes.schedule : routes.admin.events.list);
     });
 
@@ -157,7 +162,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
             if (Number(data.startTime) != Number(event.startTime)) {
                 throw new UserError('Start time can\'t be changed after the event starts.');
             }
-            if (data.points !== event.points) {
+            if (data.gamePoints !== event.gamePoints) {
                 throw new UserError('Points can\'t be changed after the event starts.');
             }
             if (data.duration !== event.duration && now > addMinutes(event.startTime, data.duration)) {
@@ -165,7 +170,8 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
             }
         }
 
-        await updateEvent(db, event, data);
+        // Event code is only needed temporarily, can be removed after 2025 LAN
+        await updateEvent(db, event, { ...data, eventCode: event.eventCode || randomCode() });
         response.redirect(query.returnTo === 'schedule' ? '/schedule' : routeUrl(routes.admin.events.list));
     });
 

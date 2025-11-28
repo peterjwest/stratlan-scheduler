@@ -36,8 +36,11 @@ block body
                                                             each line of event.description.split('\n')
                                                                 p(class="min-h-4")=line
 
-                                                        if (event.points)
-                                                            p(class="text-sm mt-3")=`Community game: Earn ${event.points} points per 10 minutes played.`
+                                                        if (event.eventPoints)
+                                                            p(class="text-sm mt-3")=`Earn ${event.eventPoints} points for attending (scan a code).`
+
+                                                        if (event.gamePoints)
+                                                            p(class="text-sm mt-3")=`Community game: Earn ${event.gamePoints} points per 10 minutes played.`
 
                                                         div(class="absolute right-1.5 top-2")
                                                             form(method="dialog")

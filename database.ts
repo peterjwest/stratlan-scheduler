@@ -231,11 +231,13 @@ export async function getEvent(db: DatabaseClient, lan: Lan, eventId: number): P
     }));
 }
 
-export async function updateEvent(db: DatabaseClient, event: Event, data: EventData) {
+export async function updateEvent(db: DatabaseClient, event: Event, data: EventData & { eventCode: string }) {
     await db.update(Event).set(toNulls(data)).where(eq(Event.id, event.id));
 }
 
-export async function createEvent(db: DatabaseClient, lan: Lan, data: EventData & { createdBy: number }) {
+export async function createEvent(
+    db: DatabaseClient, lan: Lan, data: EventData & { createdBy: number, eventCode: string },
+) {
     await db.insert(Event).values({ ...toNulls(data), lanId: lan.id, isOfficial: true });
 }
 
@@ -456,6 +458,27 @@ export async function getUserScores(
             user: item.user,
         }
     });
+}
+
+export async function getEventCodeScore(
+    db: DatabaseClient, user: User, event: Event,
+): Promise<Score | undefined> {
+    return get(db.query.Score.findFirst({
+        where: and(eq(Score.userId, user.id), eq(Score.eventId, event.id), eq(Score.attendedEvent, true)),
+    }));
+}
+
+export async function createEventCodeScore(
+    db: DatabaseClient, user: User, event: Event,
+): Promise<Score> {
+    return get(db.insert(Score).values({
+        type: 'AttendedEvent',
+        userId: user.id,
+        lanId: event.lanId,
+        eventId: event.id,
+        attendedEvent: true,
+        points: event.eventPoints,
+    }).returning());
 }
 
 export async function getHiddenCodeScore(
@@ -729,7 +752,7 @@ export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan)
         where: and(
             eq(Event.lanId, lan.id),
             isNotNull(Event.gameId),
-            gt(Event.points, sql`0`),
+            gt(Event.gamePoints, sql`0`),
             gt(sql`NOW()`, Event.startTime),
             eq(Event.isProcessed, false),
         ),
@@ -864,7 +887,6 @@ export async function getHiddenCodeByCode(
     return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
 }
 
-
 export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: HiddenCodeData) {
     await db.transaction(async (tx) => {
         const maxNumber = (await get(
@@ -882,6 +904,15 @@ export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: Hidde
 export async function updateHiddenCode(db: DatabaseClient, lan: Lan, code: HiddenCode, data: HiddenCodeData) {
     await db.update(HiddenCode).set(toNulls(data)).where(eq(HiddenCode.id, code.id));
 }
+
+export async function getEventByCode(
+    db: DatabaseClient, lan: Lan, code: string,
+): Promise<Event | undefined> {
+    return get(db.query.Event.findFirst({
+        where: and(eq(Event.eventCode, code), eq(Event.lanId, lan.id)),
+    }));
+}
+
 
 export async function findSecretScoreByLan(
     db: DatabaseClient, lan: Lan, secretNumber: number,

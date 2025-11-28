@@ -34,6 +34,7 @@ export default {
         claim: '/intro/claim/:challengeId',
     },
     code: '/code/:hiddenCode',
+    event: '/event/:code',
     secret: '/secret/:secretCode',
     steam: {
         login: '/steam',

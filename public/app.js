@@ -356,6 +356,7 @@ if (scoreContainers.length) {
     scoreContainers.forEach(renderTeamScore);
 }
 
+// TODO: Rename since these are not just for hidden codes
 const hiddenCodes = Array.from(document.querySelectorAll('[data-hidden-code]'));
 if (hiddenCodes.length) {
     const QRCode = await import('qrcode');

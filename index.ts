@@ -22,6 +22,7 @@ import {
     UserError,
     addMinutes,
     dateIsValid,
+    getEventEnd,
 } from './util';
 import setupCommands from './commands';
 import adminRouter from './admin';
@@ -52,6 +53,9 @@ import {
     updateUserTeam,
     getScores,
     getScoresDetails,
+    getEventByCode,
+    getEventCodeScore,
+    createEventCodeScore,
 } from './database';
 import { chooseTeam } from './teams';
 import { watchPresenceUpdates, loginClient, assignTeamRole } from './discordApi';
@@ -241,6 +245,30 @@ app.get(routes.code, async (request, response) => {
     io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
 
     response.render('code', { ...context, score, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: false });
+});
+
+app.get(routes.event, async (request, response) => {
+    const context = getContext(request, 'WITH_LAN');
+    if (!context.user) return response.status(403).render('403', context);
+
+    if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
+
+    const event = await getEventByCode(db, context.currentLan, request.params.code);
+    if (!event) throw new UserError('Not a valid code, sorry!');
+
+    const now = new Date();
+    if (now < event.startTime) throw new UserError('This event hasn\'t started yet.');
+    if (now > getEventEnd(event)) throw new UserError('This event has ended.');
+
+    const existingScore = await getEventCodeScore(db, context.user, event);
+    if (existingScore) {
+        return response.render('event', { ...context, event, existing: true });
+    }
+
+    const score = await createEventCodeScore(db, context.user, event);
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
+
+    response.render('event', { ...context, score, event, existing: false });
 });
 
 app.get(routes.secret, async (request: Request, response: Response, next: NextFunction) => {

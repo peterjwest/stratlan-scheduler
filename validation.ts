@@ -57,7 +57,8 @@ export const EventData = zod.object({
     startTime: dateType,
     duration: integerType,
     gameId: integerTypeOptional,
-    points: integerType,
+    gamePoints: integerType,
+    eventPoints: integerType,
 });
 export type EventData = zod.infer<typeof EventData>;
 

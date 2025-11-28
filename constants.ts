@@ -18,7 +18,7 @@ export const TEAM_BACKGROUND_CLASSES = {
     'Blue': 'bg-team-blue',
 } as const satisfies { [Property in TeamName]: string };
 
-export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'HiddenCode', 'Achievement', 'IntroChallenge', 'Secret'] as const;
+export const SCORE_TYPES = ['Awarded', 'CommunityGame', 'HiddenCode', 'AttendedEvent', 'Achievement', 'IntroChallenge', 'Secret'] as const;
 export const ScoreType = zod.enum(SCORE_TYPES);
 export type ScoreType = typeof SCORE_TYPES[number];
 
@@ -26,6 +26,7 @@ export const SCORE_TYPE_NAMES = {
     'Awarded': 'Awarded',
     'CommunityGame': 'Community game',
     'HiddenCode': 'Hidden code',
+    'AttendedEvent': 'Attended event',
     'Achievement': 'Steam achievement',
     'IntroChallenge': 'Intro challenge',
     'Secret': 'Secret',

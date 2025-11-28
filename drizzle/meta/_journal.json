@@ -428,6 +428,27 @@
       "when": 1763859646541,
       "tag": "0060_points_not_null",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1764350282833,
+      "tag": "0061_rename_game_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1764350620526,
+      "tag": "0062_event_code_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1764353541813,
+      "tag": "0063_event_score",
+      "breakpoints": true
     }
   ]
 }

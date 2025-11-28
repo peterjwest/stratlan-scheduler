@@ -113,7 +113,7 @@ export async function scoreCommunityGames(db: DatabaseClient, io: Server): Promi
                     lanId: currentLan.id,
                     type: 'CommunityGame',
                     userId: userId,
-                    points: event.points,
+                    points: event.gamePoints,
                     eventId: event.id,
                     timeslotId: timeslot.id,
                     createdAt: timeslot.time,

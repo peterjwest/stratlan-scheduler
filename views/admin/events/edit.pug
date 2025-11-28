@@ -28,7 +28,18 @@ block body
 
             label(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-event-points)
                 span(class="py-2 pr-3") Points per 10 mins
-                input(name="points" type="number" min="0" step="10" value=event.points data-event-points-input class="py-2 px-3.5 border border-border/80 rounded-sm")
+                input(name="gamePoints" type="number" min="0" step="5" value=event.gamePoints data-event-points-input class="py-2 px-3.5 border border-border/80 rounded-sm")
+
+            label(class="py-2 px-3 grid grid-cols-subgrid col-span-3")
+                span(class="py-2 pr-3") Points for attending
+                div(class="grid grid-cols-subgrid lg:col-span-2")
+                    input(name="eventPoints" type="number" min="0" step="5" value=event.eventPoints class="py-2 px-3.5 mb-2 lg:mb-0 border border-border/80 rounded-sm")
+                    div
+                        button(
+                            href="/"
+                            class="inline-block lg:ml-3 py-2 px-3 cursor-pointer rounded-lg border border-border/80 focus:border-white active:bg-highlight"
+                            data-print-button
+                        ) Print code
 
             //- div(class="py-2 px-3 grid grid-cols-subgrid col-span-3" data-event-points)
             //-     div(class="py-2 pr-3") Cancelled at
@@ -46,3 +57,9 @@ block body
             div(class="mt-2 flex gap-2")
                 input(type="submit" name="submit" value="Save" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
                 input(type="reset" value="Reset" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
+
+block print
+    div(class="w-full h-[1000px] flex items-center justify-center")
+        div
+            div(class="h-100 w-100" data-hidden-code=helpers.absoluteUrl(helpers.routeUrl(routes.event, event.eventCode))  data-hidden-code-size=400)
+            p(class="text-center my-2 text-black text-lg")=`${event.name}`

@@ -118,6 +118,7 @@ export const Score = pgTable('Score', {
     eventId: integer().references(() => Event.id),
     timeslotId: integer().references(() => EventTimeslot.id),
     hiddenCodeId: integer().references(() => HiddenCode.id),
+    attendedEvent: boolean().notNull().default(false),
     secretNumber: integer(),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 }, (Score) => [
@@ -165,7 +166,9 @@ export const Event = pgTable('Event', {
     isOfficial: boolean().notNull(),
     cancelledAt: timestamp({ withTimezone: true }),
     gameId: integer().references(() => Game.id),
-    points: integer().notNull().default(0),
+    gamePoints: integer().notNull().default(0),
+    eventPoints: integer().notNull().default(0),
+    eventCode: varchar(),
     isProcessed: boolean().notNull().default(false),
     createdBy: integer().references(() => User.id),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
