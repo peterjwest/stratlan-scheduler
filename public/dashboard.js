@@ -120,6 +120,16 @@ export function renderTeamScore(container) {
         }
     });
 
+    socket.on('NEW_SCORES', (scores) => {
+        const teamScores = scores.filter((score) => score.teamId === teamId);
+        if (teamScores.length > 0) {
+            let totalPoints = teamScores.reduce((sum, score) => sum + score.points, 0);
+            cubeQueue = Math.min(cubeQueue + Math.ceil(totalPoints / SCORE_UNIT), CUBE_QUEUE_MAX);
+            actualPoints += totalPoints;
+        }
+        userQueueQueue = userQueueQueue.concat(teamScores.filter((score) => score.username));
+    });
+
     // Add latest scores from embedded data
     const latestScores = JSON.parse(document.querySelector('[data-latest-scores]').dataset.latestScores);
     const teamScores = latestScores.filter((score) => score.teamId === teamId);
