@@ -320,7 +320,6 @@ for (const dialogButton of dialogButtons) {
         dialog.show();
     });
     dialogButton.addEventListener('keypress', (event) => {
-        console.log('OPEN', event);
         if (event.key === 'Enter') dialog.show();
     });
     dialog.addEventListener('click', (event) => {
@@ -336,7 +335,6 @@ const SCHEDULE_UPDATE_PERIOD = 60 * 1000;
 const schedule = document.querySelector('[data-schedule]');
 if (schedule) {
     setInterval(() => {
-        console.log(isFullscreen);
         if (isFullscreen) {
             window.location.reload();
         }

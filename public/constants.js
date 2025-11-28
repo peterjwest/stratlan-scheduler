@@ -50,3 +50,5 @@ export const SCORE_UNIT = 25;
 
 export const MAX_POINTS_DIFF = 1000;
 export const CUBE_QUEUE_MAX = MAX_POINTS_DIFF / SCORE_UNIT;
+export const MAX_USER_MESSAGES = 5;
+export const MIN_USER_MESSAGE_DELAY = 200;

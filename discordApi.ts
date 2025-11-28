@@ -210,7 +210,6 @@ export async function assignTeamRole(discordClient: Client, lan: Lan & LanTeams,
 
     const teams = addTeamRoles(lan.teams, guild.roles.cache);
     const member = await guild.members.fetch(user.discordId);
-    console.log(teams);
 
     for (const team of teams) {
         const hasTeam = user.team?.id === team.id;

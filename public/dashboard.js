@@ -19,6 +19,7 @@ import {
     CUBE_SMALL,
     SCORE_UNIT,
     CUBE_QUEUE_MAX,
+    MAX_USER_MESSAGES,
 } from './constants';
 
 function seek(value, target, increment) {
@@ -78,6 +79,7 @@ export function renderTeamScore(container) {
     let targetPoints = actualPoints;
     let currentPoints = actualPoints;
 
+    let userQueueQueue = [];
     let userQueue = [];
 
     let cubeQueue = 0;
@@ -124,8 +126,7 @@ export function renderTeamScore(container) {
             cubeQueue = Math.min(cubeQueue + Math.ceil(totalPoints / SCORE_UNIT), CUBE_QUEUE_MAX);
             actualPoints += totalPoints;
         }
-        console.log(teamScores);
-        userQueue = userQueue.concat(teamScores.filter((score) => score.username));
+        userQueueQueue = userQueueQueue.concat(teamScores.filter((score) => score.username));
     });
 
     const scene = new THREE.Scene();
@@ -215,34 +216,8 @@ export function renderTeamScore(container) {
         if (data.type === MESSAGE_TYPES.CUBE_LANDED) {
             targetPoints = Math.min(targetPoints + SCORE_UNIT, actualPoints);
 
-            const user = userQueue.shift();
-            if (user) {
-                for (const userScore of userScores.children) {
-                    userScore.style.top = (parseInt(userScore.style.top) + 30) + 'px';
-                }
-
-                const newUserScore = useScoreTemplate.cloneNode();
-                newUserScore.classList.remove('hidden');
-                newUserScore.textContent = `${user.username} +${user.points}`;
-                newUserScore.style.opacity = 0;
-                newUserScore.style.top = 0;
-                userScores.prepend(newUserScore);
-                setTimeout(() => {
-                    newUserScore.style.opacity = 1;
-                }, 20);
-
-                setTimeout(() => {
-                    newUserScore.style.opacity = 0;
-                    setTimeout(() => newUserScore.remove(), 500);
-                }, 20 * 1000);
-
-                console.log(userScores.children.length > 6);
-                if (userScores.children.length > 6) {
-                    const last = userScores.children[userScores.children.length - 2];
-                    last.style.opacity = 0;
-                    setTimeout(() => last.remove(), 500);
-                }
-            }
+            const user = userQueueQueue.shift();
+            if (user) userQueue.push(user);
             return;
         }
 
@@ -303,10 +278,41 @@ export function renderTeamScore(container) {
         const anySyncing = window.syncing.size > 0;
         const multiplier = actualMaxPoints / 300;
 
-        if (!anySyncing && queueFrameCount === 0) {
-            if (cubeQueue > 0) {
-                worker.postMessage({ type: MESSAGE_TYPES.CREATE_CUBE });
-                cubeQueue--;
+        if (queueFrameCount === 0) {
+            if (!anySyncing) {
+                if (cubeQueue > 0) {
+                    worker.postMessage({ type: MESSAGE_TYPES.CREATE_CUBE });
+                    cubeQueue--;
+                }
+            }
+
+            const user = userQueue.shift();
+            if (user) {
+
+                for (const userScore of userScores.children) {
+                    userScore.style.top = (parseInt(userScore.style.top) + 30) + 'px';
+                }
+
+                const newUserScore = useScoreTemplate.cloneNode();
+                newUserScore.classList.remove('hidden');
+                newUserScore.textContent = `${user.username} +${user.points}`;
+                newUserScore.style.opacity = 0;
+                newUserScore.style.top = 0;
+                userScores.prepend(newUserScore);
+                setTimeout(() => {
+                    newUserScore.style.opacity = 1;
+                }, 20);
+
+                setTimeout(() => {
+                    newUserScore.style.opacity = 0;
+                    setTimeout(() => newUserScore.remove(), 500);
+                }, 20 * 1000);
+
+                if (userScores.children.length > MAX_USER_MESSAGES + 1) {
+                    const last = userScores.children[MAX_USER_MESSAGES];
+                    last.style.opacity = 0;
+                    setTimeout(() => last.remove(), 500);
+                }
             }
         }
         queueFrameCount = (queueFrameCount + 1) % 15;
