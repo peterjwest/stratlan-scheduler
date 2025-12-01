@@ -9,8 +9,8 @@ import {
     getTimeslotActivities,
     getScoresDetails,
     DatabaseClient,
-} from './database';
-import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema';
+} from './database.js';
+import { Event, EventTimeslot, EventWithTimeslots, GameActivity, Score } from './schema.js';
 import {
     getEventEnd,
     minDate,
@@ -21,8 +21,8 @@ import {
     maxDate,
     roundToNextMinutes,
     withLanStatus,
-} from './util';
-import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD } from './constants';
+} from './util.js';
+import { EVENT_TIMESLOT_MINUTES, EVENT_TIMESLOT_THRESHOLD } from './constants.js';
 
 export function sumTimeslotActivities(timeslot: EventTimeslot, activities: GameActivity[]) {
     return lodash.sum(activities.map((activity) => {
@@ -41,11 +41,12 @@ export function getExpectedTimeslots(event: EventWithTimeslots) {
 export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots: number) {
     const timeslotTimes = getTimeslotTimes(event, expectedTimeslots);
 
-    let missingTimeslots: Date[] = [];
-    let erroneousTimeslots: EventTimeslot[] = [];
+    const missingTimeslots: Date[] = [];
+    const erroneousTimeslots: EventTimeslot[] = [];
     let currentIndex = 0;
     for (const timeslotTime of timeslotTimes) {
-        while (event.timeslots[currentIndex]!?.time < timeslotTime) {
+        const timeslot = event.timeslots[currentIndex];
+        while (timeslot && timeslot.time < timeslotTime) {
             erroneousTimeslots.push(event.timeslots[currentIndex]!);
             currentIndex++;
         }

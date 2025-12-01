@@ -1,4 +1,3 @@
-// import * as CANNON from 'cannon-es';
 import RAPIER from '@dimforge/rapier3d';
 import * as THREE from 'three';
 
@@ -14,9 +13,7 @@ import {
     MIN_SINK_SPEED,
     MAX_SINK_SPEED,
     CYLINDER_RADIUS,
-    CYLINDER_AREA,
     CYLINDER_SEGMENTS,
-    CYLINDER_HEIGHT_CREEP,
     INITIAL_CYLINDER_HEIGHT,
     CONTAINER_HEIGHT,
     CUBE_TYPES,
@@ -88,7 +85,7 @@ function createCylinderDesc(height, radius, segments) {
 
     return RAPIER.ColliderDesc.trimesh(
         new Float32Array(vertices),
-        new Uint32Array(indices)
+        new Uint32Array(indices),
     );
 }
 
@@ -253,7 +250,7 @@ function stepPhysics() {
         if (cube.isSinking) {
             const cubeY = cube.collider.translation().y;
             if (shouldSink) cube.rigidBody.wakeUp();
-            cube.rigidBody.setLinvel({ x: 0, y: shouldSink ? -sinkSpeed : 0, z: 0});
+            cube.rigidBody.setLinvel({ x: 0, y: shouldSink ? -sinkSpeed : 0, z: 0 });
 
             const target = -cube.boundingHeight;
             cube.sinkingProgress = (
@@ -268,9 +265,6 @@ function stepPhysics() {
     }
 
     cylinderHeight = targetCylinderHeight;
-    // if (cylinderHeight !== targetCylinderHeight) {
-    //     cylinderHeight += CYLINDER_HEIGHT_CREEP * (cylinderHeight < targetCylinderHeight ? 1 : -1);
-    // }
 
     world.step(eventQueue);
 
@@ -345,7 +339,7 @@ self.addEventListener('message', ({ data }) => {
 
     if (data.type === MESSAGE_TYPES.CREATE_CUBE) {
         createCube();
-        return
+        return;
     }
 
     throw new Error(`Unexpected message type ${data.type}`);

@@ -1,8 +1,8 @@
 import { Request } from 'express';
 
-import { User, UserTeams, Lan, LanTeams, LanProgress } from './schema';
-import { Helpers } from './helpers';
-import routes from './routes';
+import { User, UserTeams, Lan, LanTeams, LanProgress } from './schema.js';
+import { Helpers } from './helpers.js';
+import routes from './routes.js';
 
 export type Context = {
     currentPath: string;
@@ -28,8 +28,8 @@ type ContextLoggedIn = ContextWithLan & {
 }
 
 export function getContext(request: Request): Context;
-export function getContext(request: Request, mode: 'WITH_LAN'): ContextWithLan;
-export function getContext(request: Request, mode: 'LOGGED_IN'): ContextLoggedIn;
-export function getContext(request: Request, mode?: 'WITH_LAN' | 'LOGGED_IN'): Context | ContextLoggedIn | ContextLoggedIn {
+export function getContext(request: Request, _mode: 'WITH_LAN'): ContextWithLan;
+export function getContext(request: Request, _mode: 'LOGGED_IN'): ContextLoggedIn;
+export function getContext(request: Request, _mode?: 'WITH_LAN' | 'LOGGED_IN'): Context | ContextLoggedIn   {
     return request.context;
 }

@@ -1,5 +1,9 @@
 # TODO:
 
+- Front-end Typescript
+- React instead of pug
+- DRY CSS
+- Use tabs
 - Winner animation!
 
 ## Nice to have

@@ -31,8 +31,8 @@ import schema, {
     HiddenCode,
     HiddenCodeUrl,
     LanProgress,
-} from './schema';
-import { LanData, EventData, HiddenCodeData } from './validation';
+} from './schema.js';
+import { LanData, EventData, HiddenCodeData } from './validation.js';
 import {
     TeamName,
     ScoreType,
@@ -44,7 +44,7 @@ import {
     HIDDEN_CODE_BONUS_POINTS,
     SECRET_POINTS,
     PAGE_SIZE,
-} from './constants';
+} from './constants.js';
 import {
     getTimeslotEnd,
     addDays,
@@ -56,11 +56,10 @@ import {
     absoluteUrl,
     randomCode,
     addGroups,
-    round,
     NullToUndefined,
-} from './util';
-import { ApplicationActivity } from './discordApi';
-import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment';
+} from './util.js';
+import { ApplicationActivity } from './discordApi.js';
+import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment.js';
 
 export type DatabaseClient = NodePgDatabase<typeof schema> & { disconnect: () => Promise<void> };
 export type Transaction = Parameters<Parameters<DatabaseClient["transaction"]>[0]>[0];
@@ -115,7 +114,7 @@ export async function getLanUsers(
 
     const users = data.map((item) => ({
         ...item.user,
-        team: getTeam(lan, item.userLan!.teamId),
+        team: getTeam(lan, item.userLan.teamId),
         isEnrolled: true,
     }));
 
@@ -139,7 +138,7 @@ export async function getLanUsersWithGroups(
 
     const users = data.map((item) => ({
         ...item.user,
-        team: getTeam(lan, item.userLan!.teamId),
+        team: getTeam(lan, item.userLan.teamId),
         isEnrolled: true,
         groupIds: item.groupIds,
     }));
@@ -402,7 +401,7 @@ export async function getScoresPaged(
             event: item.event,
             assigner: item.assigner,
             user: item.user,
-        }
+        };
     });
 }
 
@@ -410,7 +409,7 @@ export async function getScores(
     db: DatabaseClient, lan: Lan & LanTeams, after: Date,
 ): Promise<Array<Score & { user: User | undefined }>> {
     const data = await list(
-        db.select({ score: Score, user: User})
+        db.select({ score: Score, user: User })
         .from(Score)
         .leftJoin(Event, eq(Score.eventId, Event.id))
         .leftJoin(User, eq(Score.userId, User.id))
@@ -422,7 +421,7 @@ export async function getScores(
         return {
             ...item.score,
             user: item.user && item.user,
-        }
+        };
     });
 }
 
@@ -456,7 +455,7 @@ export async function getUserScores(
             event: item.event,
             assigner: item.assigner,
             user: item.user,
-        }
+        };
     });
 }
 
@@ -559,7 +558,7 @@ export async function getTeamVisiblePoints(
 export async function teamsWithPoints(
     db: DatabaseClient, lan: Lan & LanTeams & LanProgress, until?: Date
 ): Promise<Array<Team & TeamScore>> {
-    let teamPoints: Record<string, number> = {};
+    const teamPoints: Record<string, number> = {};
     for (const team of lan.teams) {
         teamPoints[team.id] = await getTeamVisiblePoints(db, lan, team, until);
     }
@@ -659,7 +658,7 @@ export async function getOrCreateGames(
         ({ id }) => !existingIdentifierIds.has(id),
     );
     if (missingIdentifiers.length > 0) {
-        await db.insert(GameIdentifier).values(missingIdentifiers).onConflictDoNothing()
+        await db.insert(GameIdentifier).values(missingIdentifiers).onConflictDoNothing();
     };
 
     return games;
@@ -756,7 +755,7 @@ export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan)
             gt(sql`NOW()`, Event.startTime),
             eq(Event.isProcessed, false),
         ),
-        with: { timeslots: { orderBy: [asc(EventTimeslot.time)] }},
+        with: { timeslots: { orderBy: [asc(EventTimeslot.time)] } },
     }));
 }
 
@@ -902,7 +901,10 @@ export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: Hidde
 }
 
 export async function updateHiddenCode(db: DatabaseClient, lan: Lan, code: HiddenCode, data: HiddenCodeData) {
-    await db.update(HiddenCode).set(toNulls(data)).where(eq(HiddenCode.id, code.id));
+    await db.update(HiddenCode).set(toNulls(data)).where(and(
+        eq(HiddenCode.lanId, lan.id),
+        eq(HiddenCode.id, code.id),
+    ));
 }
 
 export async function getEventByCode(
@@ -918,7 +920,7 @@ export async function findSecretScoreByLan(
     db: DatabaseClient, lan: Lan, secretNumber: number,
 ): Promise<Score | undefined> {
     return get(db.query.Score.findFirst({
-        where: and(eq(Score.type, 'Secret'), eq(Score.lanId, lan.id), eq(Score.secretNumber, secretNumber))
+        where: and(eq(Score.type, 'Secret'), eq(Score.lanId, lan.id), eq(Score.secretNumber, secretNumber)),
     }));
 }
 

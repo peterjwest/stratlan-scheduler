@@ -1,4 +1,4 @@
-import { csrfSync, CsrfSynchronisedProtection, CsrfTokenGenerator } from 'csrf-sync';
+import { csrfSync, CsrfSynchronisedProtection, CsrfTokenGenerator, CsrfSyncedToken } from 'csrf-sync';
 
 export type Csrf = {
     protect: CsrfSynchronisedProtection,
@@ -7,7 +7,7 @@ export type Csrf = {
 
 export default function getCsrf(): Csrf {
     const csrf = csrfSync({
-        getTokenFromRequest: (request) => request.body.csrf,
+        getTokenFromRequest: (request) => (request.body as { csrf?: CsrfSyncedToken }).csrf,
         getTokenFromState: (request) => request.session?.csrfToken,
         storeTokenInState: (request, token) => {
             if (request.session) request.session.csrfToken = token;
@@ -16,5 +16,5 @@ export default function getCsrf(): Csrf {
     return {
         protect: csrf.csrfSynchronisedProtection,
         generateToken: csrf.generateToken,
-    }
+    };
 }

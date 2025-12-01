@@ -2,11 +2,11 @@ import { setTimeout } from 'node:timers/promises';
 
 import lodash from 'lodash';
 import zod from 'zod';
-import { REST, Routes, Activity, Client, Events, GuildMember, GatewayIntentBits, Partials, Collection } from 'discord.js';
+import { REST, Routes, Activity, Client, Events, GuildMember, GatewayIntentBits, Partials, Collection, Presence } from 'discord.js';
 
-import { User, UserTeams, Lan, LanTeams, Team } from './schema';
-import { withLanStatus, fromNulls } from './util';
-import { DISCORD_GUILD_ID } from './environment';
+import { User, UserTeams, Lan, LanTeams, Team } from './schema.js';
+import { withLanStatus, fromNulls } from './util.js';
+import { DISCORD_GUILD_ID } from './environment.js';
 import {
     getCurrentLanCached,
     startGameActivities,
@@ -15,7 +15,7 @@ import {
     getUserByDiscordId,
     getOrCreateIntroChallenge,
     DatabaseClient,
-} from './database';
+} from './database.js';
 
 export const DiscordUser = zod.object({
     id: zod.string(),
@@ -134,14 +134,14 @@ export async function loginClient(discordToken: string) {
 }
 
 export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) {
-    discordClient.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
-        const currentLan = withLanStatus(await getCurrentLanCached(db));
+    async function onPresenceUpdate(presence: Presence) {
+       const currentLan = withLanStatus(await getCurrentLanCached(db));
         if (!currentLan) return;
 
-        const user = await getUserByDiscordId(db, newPresence.userId);
+        const user = await getUserByDiscordId(db, presence.userId);
         if (!user) return;
 
-        const activities = newPresence.activities.filter(
+        const activities = presence.activities.filter(
             (activity): activity is ApplicationActivity => Boolean(activity.applicationId),
         );
 
@@ -154,8 +154,10 @@ export function watchPresenceUpdates(db: DatabaseClient, discordClient: Client) 
         const games = await getOrCreateGames(db, activities);
         await endGameActivities(db, user, games);
 
-        await startGameActivities(db, currentLan, user, games, new Date())
-    });
+        await startGameActivities(db, currentLan, user, games, new Date());
+    }
+
+    discordClient.on(Events.PresenceUpdate, (_oldPresence, newPresence) => void onPresenceUpdate(newPresence));
 }
 
 export function addTeamRoles(teams: Team[], roles: Collection<string, Role>) {
@@ -229,7 +231,7 @@ export async function unassignTeamRoles(discordClient: Client, lan: Lan & LanTea
     if (!guild) throw new Error('Guild not found');
 
     const teams = addTeamRoles(lan.teams, guild.roles.cache);
-    const members = await guild.members.fetch()
+    const members = await guild.members.fetch();
 
     let assignedTeamCount = 0;
     for (const member of members.values()) {

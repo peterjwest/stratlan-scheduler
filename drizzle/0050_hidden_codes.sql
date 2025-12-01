@@ -1,8 +1,8 @@
 CREATE TABLE "HiddenCode" (
-	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "HiddenCode_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"name" varchar NOT NULL,
-	"lanId" integer NOT NULL,
-	"code" varchar NOT NULL
+    "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "HiddenCode_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+    "name" varchar NOT NULL,
+    "lanId" integer NOT NULL,
+    "code" varchar NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "IntroChallenge" ALTER COLUMN "type" SET DATA TYPE text;--> statement-breakpoint

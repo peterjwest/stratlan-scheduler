@@ -5,7 +5,7 @@ import lodash from 'lodash';
 import md5 from 'md5';
 import QRCode from 'qrcode';
 
-import { User, UserTeams, Team, Event, EventTimeslot, Lan, LanTeams, LanProgress, Group } from './schema';
+import { User, UserTeams, Team, Event, EventTimeslot, Lan, LanTeams, LanProgress, Group } from './schema.js';
 import {
     SCHEDULE_START_TIME,
     SCHEDULE_END_TIME,
@@ -15,9 +15,9 @@ import {
     SCORE_TYPE_NAMES,
     ScoreType,
     REPEAT_INTERVAL,
-} from './constants';
-import { HOST, SECRET_ONE } from './environment';
-import { DiscordUser, DiscordGuildMember } from './discordApi';
+} from './constants.js';
+import { HOST, SECRET_ONE } from './environment.js';
+import { DiscordUser, DiscordGuildMember } from './discordApi.js';
 
 type DayEvents = {
     day: string;
@@ -156,7 +156,7 @@ export function getTimeslotEnd(eventTimeslot: EventTimeslot): Date {
 }
 
 export function getTimeslotTimes(event: Event, timeslots: number): Date[] {
-    const timeslotTimes: Date[] = []
+    const timeslotTimes: Date[] = [];
     for (let time = event.startTime; timeslotTimes.length < timeslots; time = addMinutes(time, EVENT_TIMESLOT_MINUTES)) {
         timeslotTimes.push(time);
     }
@@ -168,7 +168,7 @@ export function groupEvents(events: Event[], isAdmin: boolean): Event[][][] {
 
     if (filteredEvents.length === 0) return [];
 
-    let groups = [];
+    const groups = [];
     let groupEnd = getEventEnd(filteredEvents[0]!);
     let columns: Event[][] = [];
     for (const event of filteredEvents) {
@@ -221,7 +221,7 @@ export function getEventScheduleStyles(event: Event, column: number, columns: nu
     const top = `${100 * Math.max(startMinutes, SCHEDULE_START_TIME) / rangeMinutes}%`;
     const left = `min(${100 * column / columns}%, calc(${column} * (100% - ${minWidth}px) / ${columns - 1}))`;
 
-    return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`
+    return `min-width: ${minWidth}px; width: ${width}; height: ${height}; top: ${top}; left: ${left};`;
 }
 
 export function datesEqual(a: Date, b: Date): boolean {
@@ -273,14 +273,14 @@ export function withLanStatus(lan: Lan & LanTeams | undefined): Lan & LanTeams &
     return { ...lan, isStarted, isEnded, isActive, progress };
 }
 
-export function cacheCall<T extends (...args: any) => Promise<any>>(func: T): [T, () => void] {
-    let cachedValue: T | undefined;
+export function cacheCall<Value, T extends (...args: any) => Promise<Value>>(func: T): [T, () => void] {
+    let cachedValue: Value | undefined;
     let lastUpdate: Date | undefined;
     return [
-        (async (...args: Parameters<typeof func>) => {
+        (async (...args: Parameters<T>) => {
             if (!lastUpdate || new Date() > addMinutes(lastUpdate, 1)) {
-                cachedValue = await func(...args),
-                    lastUpdate = new Date();
+                cachedValue = await func(...args);
+                lastUpdate = new Date();
             }
             return cachedValue;
         }) as T,
@@ -300,23 +300,23 @@ export type NullToUndefined<T> = ConvertType<null, undefined, T>;
 export type UndefinedToNull<T> = ConvertType<undefined, null, T>;
 
 export function fromNulls<T>(object: T): NullToUndefined<T> {
-    if (object === null || object === undefined) return undefined as any;
-    if ((object as any).constructor.name === 'Object' || Array.isArray(object)) {
+    if (object === null || object === undefined) return undefined as NullToUndefined<T>;
+    if (object.constructor.name === 'Object' || Array.isArray(object)) {
         for (const key in object) {
-            object[key] = fromNulls(object[key]) as any;
+            object[key] = fromNulls(object[key]) as (T & {})[Extract<keyof (T & {}), string>];
         }
     }
-    return object as any;
+    return object as  NullToUndefined<T>;
 }
 
 export function toNulls<T>(object: T): UndefinedToNull<T> {
-    if (object === null || object === undefined) return null as any;
-    if ((object as any).constructor.name === 'Object' || Array.isArray(object)) {
+    if (object === null || object === undefined) return null as UndefinedToNull<T>;
+    if (object.constructor.name === 'Object' || Array.isArray(object)) {
         for (const key in object) {
-            object[key] = toNulls(object[key]) as any;
+            object[key] = toNulls(object[key]) as (T & {})[Extract<keyof (T & {}), string>];
         }
     }
-    return object as any;
+    return object as UndefinedToNull<T>;
 }
 
 /** Returns a name lowercased, and stripped of basic punctuation, emojis and bracketed sections.  */
@@ -369,7 +369,7 @@ export function absoluteUrl(relativeUrl: string) {
 }
 
 export function userIntroCode(user: User) {
-    return md5(user.discordId).slice(0, 10)
+    return md5(user.discordId).slice(0, 10);
 }
 
 export function getRange(start: string, end: string) {
@@ -378,7 +378,7 @@ export function getRange(start: string, end: string) {
 
 export function randomCode() {
     return Array.from(crypto.getRandomValues(new Uint16Array(10))).map((value) => {
-        return CODE_CHARACTER_SET[Math.floor(CODE_CHARACTER_SET.length * value / RANDOM_RANGE)]!
+        return CODE_CHARACTER_SET[Math.floor(CODE_CHARACTER_SET.length * value / RANDOM_RANGE)]!;
     }).join('');
 }
 
@@ -404,8 +404,8 @@ export function getScoreFilters(pageUrl: string, scoreTypes: ScoreType[]) {
         ...scoreTypes.map((type) => ({
             name: formatScoreType(type),
             type,
-            url: `${pageUrl}?type=${type}`
-        }))
+            url: `${pageUrl}?type=${type}`,
+        })),
     ];
 }
 
@@ -422,21 +422,21 @@ export function buildQueryString(query: Record<string, string> = {}) {
 export async function repeatTask(
     task: () => Promise<void>, criteria: (() => boolean) | true, interval = REPEAT_INTERVAL,
 ): Promise<() => void> {
-    await task().catch((error) => console.error(`Task failed with error ${error}`));
+    await task().catch((error: Error) => console.error(`Task failed with error ${error}`));
 
     let timeout: NodeJS.Timeout | undefined;
-    async function process() {
+    async function processTask() {
         if (criteria === true || criteria()) {
             await task();
         }
-        if (timeout) timeout = setTimeout(process, interval);
+        if (timeout) timeout = setTimeout(() => void processTask(), interval);
     }
 
-    timeout = setTimeout(process, interval);
+    timeout = setTimeout(() => void processTask(), interval);
     return () => {
         clearTimeout(timeout);
         timeout = undefined;
-    }
+    };
 }
 
 export function dateIsValid(date: Date) {

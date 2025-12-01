@@ -16,10 +16,8 @@ export const CANVAS_HEIGHT = 1000;
 export const COLOUR_WHITE = 0xffffff;
 
 export const CYLINDER_RADIUS = 1.8;
-export const CYLINDER_AREA = Math.PI * (CYLINDER_RADIUS ** 2);
 export const CYLINDER_SEGMENTS = 32;
 export const MAX_CYLINDER_HEIGHT = 5.5;
-export const CYLINDER_HEIGHT_CREEP = 0.00002;
 
 export const VIEW_WIDTH = 2.1 * CYLINDER_RADIUS;
 export const VIEW_TOP = VIEW_WIDTH * CANVAS_HEIGHT / CANVAS_WIDTH;
@@ -27,7 +25,7 @@ export const VIEW_BOTTOM = -0.7;
 
 export const SHADOW_MAP_SIZE = 1024;
 
-export const TARGET_MIN_CUBES = 130
+export const TARGET_MIN_CUBES = 130;
 export const TARGET_MAX_CUBES = 350;
 export const CUBE_START_POSITIONS = 8;
 export const CUBE_SPLIT_PERIOD = 6;

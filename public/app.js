@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/browser";
 
 import '../css/style.css';
+import { setCookie } from './util';
 
 Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, environment: import.meta.env.MODE });
 
@@ -31,7 +32,7 @@ const eventPoints = document.querySelector('[data-event-points]');
 
 if (eventGameInput && eventPoints) {
     const eventPointsInput = eventPoints.querySelector('[data-event-points-input]');
-    eventGameInput.addEventListener('change', (event) => {
+    eventGameInput.addEventListener('change', () => {
         const hasGame = Boolean(eventGameInput.value);
         eventPoints.classList[hasGame ? 'remove' : 'add']('hidden');
         if (!hasGame) {
@@ -75,16 +76,20 @@ if (userMenu) {
 
 function getPrevSiblings(element) {
     var siblings = [];
-    while (element = element.previousElementSibling) {
-        siblings.push(element)
+    element = element.previousElementSibling;
+    while (element) {
+        siblings.push(element);
+        element = element.previousElementSibling;
     }
     return siblings;
 }
 
 function getNextSiblings(element) {
     var siblings = [];
-    while (element = element.nextElementSibling) {
-        siblings.push(element)
+    element = element.nextElementSibling;
+    while (element) {
+        siblings.push(element);
+        element = element.nextElementSibling;
     }
     return siblings;
 }
@@ -113,7 +118,7 @@ for (const dropdown of dropdowns) {
     function filterItems() {
         const terms = filter.value.trim().toLowerCase().split(/\s+/);
         items.forEach((item) => {
-            const itemValue = item.textContent.toLowerCase()
+            const itemValue = item.textContent.toLowerCase();
             const match = terms.length === 0 || !terms.find((term) => !itemValue.includes(term));
             item.classList.toggle('hidden', !match);
         });
@@ -187,12 +192,12 @@ for (const dropdown of dropdowns) {
                 closeMenu();
                 selectOption(event.currentTarget.getAttribute('data-value'));
             }
-        })
+        });
 
         item.addEventListener('click', (event) => {
             closeMenu();
             selectOption(event.currentTarget.getAttribute('data-value'));
-        })
+        });
     }
 
     if (input.form) input.form.addEventListener('reset', () => {
@@ -280,7 +285,7 @@ if (printSelect) {
 
     function updatePrintSelectCheckbox(checkbox) {
         selectedCodes[checkbox.value] = checkbox.checked;
-        const count = Object.values(selectedCodes).filter((checked) => checked).length
+        const count = Object.values(selectedCodes).filter((checked) => checked).length;
         selectedCodeCount.textContent = `(${count})`;
         printButton.disabled = count === 0;
         selectAllCheckbox.checked = count === codeCheckboxes.length;

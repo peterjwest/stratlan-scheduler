@@ -1,10 +1,10 @@
 import {
-    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, uniqueIndex, AnyPgColumn
+    integer, pgTable, boolean, varchar, json, date, timestamp, index, pgEnum, check, unique, primaryKey, uniqueIndex, AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
-import { NullToUndefined } from './util';
-import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants';
+import { NullToUndefined } from './util.js';
+import { SCORE_TYPES, INTRO_CHALLENGE_TYPES } from './constants.js';
 
 export const User = pgTable('User', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),

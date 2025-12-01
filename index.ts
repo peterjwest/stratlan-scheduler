@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/node';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
-import { getContext } from './context';
+import { getContext } from './context.js';
 import {
     splitByDay,
     getLanDays,
@@ -23,13 +23,13 @@ import {
     addMinutes,
     dateIsValid,
     getEventEnd,
-} from './util';
-import setupCommands from './commands';
-import adminRouter from './admin';
-import steamRouter from './steam';
-import authRouter, { getCurrentUserLan } from './auth';
-import helpers from './helpers';
-import getCsrf from './csrf';
+} from './util.js';
+import setupCommands from './commands.js';
+import adminRouter from './admin.js';
+import steamRouter from './steam.js';
+import authRouter, { getCurrentUserLan } from './auth.js';
+import helpers from './helpers.js';
+import getCsrf from './csrf.js';
 import {
     getDatabaseClient,
     getUser,
@@ -56,14 +56,14 @@ import {
     getEventByCode,
     getEventCodeScore,
     createEventCodeScore,
-} from './database';
-import { chooseTeam } from './teams';
-import { watchPresenceUpdates, loginClient, assignTeamRole } from './discordApi';
-import { scoreCommunityGames, getIsNextSlotReady } from './communityGame';
-import { startLan, getIsLanStarted, endLan, getIsLanEnded } from './lanEvents';
-import { sendScoreUpdates } from './scores';
+} from './database.js';
+import { chooseTeam } from './teams.js';
+import { watchPresenceUpdates, loginClient, assignTeamRole } from './discordApi.js';
+import { scoreCommunityGames, getIsNextSlotReady } from './communityGame.js';
+import { startLan, getIsLanStarted, endLan, getIsLanEnded } from './lanEvents.js';
+import { sendScoreUpdates } from './scores.js';
 
-import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment';
+import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment.js';
 import {
     DISCORD_AUTH_URL,
     INTRO_CHALLENGE_POINTS,
@@ -71,15 +71,15 @@ import {
     SECRETS_BY_CODE,
     CONTENT_SECURITY_POLICY,
     HIDDEN_CODE_BONUS_POINTS,
-} from './constants';
-import { getExpressSession, getConditionalSession } from './session';
-import routes from './routes';
+} from './constants.js';
+import { getExpressSession, getConditionalSession } from './session.js';
+import routes from './routes.js';
 
 Sentry.init({ dsn: SENTRY_DSN, environment: ENVIRONMENT, enableLogs: true, sendDefaultPii: false });
 
 const csrf = getCsrf();
 
-const db = await getDatabaseClient();
+const db = getDatabaseClient();
 
 const app = express();
 const httpServer = createServer(app);
@@ -156,10 +156,10 @@ app.use(async (request, response, next) => {
 
 app.use(authRouter(db, discordClient, expressSession));
 
-app.use(routes.privacy, async (request, response) => response.render('privacy', getContext(request)));
+app.use(routes.privacy, (request, response) => response.render('privacy', getContext(request)));
 
 /** Require current LAN for following routes */
-app.use(async (request, response, next) => {
+app.use((request, response, next) => {
     const context = getContext(request);
     if (!context.currentLan) {
         return response.render('unscheduled', context);
@@ -177,7 +177,7 @@ app.get(routes.home, async (request, response) => {
     });
 });
 
-app.get(routes.dashboard, async (request, response) => {
+app.get(routes.dashboard, async (request: Request, response) => {
     const context = getContext(request, 'WITH_LAN');
 
     const lastDashboard = new Date(Number(request.cookies['dashboard-last-open']));
@@ -271,7 +271,7 @@ app.get(routes.event, async (request, response) => {
     response.render('event', { ...context, score, event, existing: false });
 });
 
-app.get(routes.secret, async (request: Request, response: Response, next: NextFunction) => {
+app.get(routes.secret, async (request: Request, response: Response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
@@ -284,14 +284,14 @@ app.get(routes.secret, async (request: Request, response: Response, next: NextFu
         return response.render('secret', { ...context, valid: true, alreadyFound: true });
     }
 
-    const score = await createSecretScore(db, context.currentLan, context.user, secretNumber)
+    const score = await createSecretScore(db, context.currentLan, context.user, secretNumber);
     io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
 
     response.render('secret', { ...context, valid: true, secretPoints: SECRET_POINTS });
 });
 
 /** Require login for following routes */
-app.use(async (request, response, next) => {
+app.use((request, response, next) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(404).render('404', context);
     next();
@@ -308,7 +308,7 @@ app.use((request: Request, response: Response) => {
 Sentry.setupExpressErrorHandler(app);
 
 /** Error handler */
-app.use((error: any, request: Request, response: Response, next: NextFunction) => {
+app.use((error: Error, request: Request, response: Response, _next: NextFunction) => {
     if (!isUserError(error)) console.error('Server error', error);
     response.status(500).render('500', { ...getContext(request), error, code: response.sentry });
 });
@@ -328,7 +328,7 @@ const shutDown = lodash.once(async () => {
     for (const cancelTask of tasks) cancelTask();
     console.log('Tasks cancelled');
 
-    await promisify(server.close);
+    promisify<void>((callback) => server.close(callback));
     console.log('Server closed');
 
     await discordClient.destroy();
@@ -340,5 +340,5 @@ const shutDown = lodash.once(async () => {
     process.exit();
 });
 
-process.on('SIGINT', shutDown);
-process.on('SIGTERM', shutDown);
+process.on('SIGINT', () => void shutDown());
+process.on('SIGTERM', () => void shutDown());

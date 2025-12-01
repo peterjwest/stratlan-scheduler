@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { Server } from 'socket.io';
 
-import { Csrf } from './csrf';
-import { getContext } from 'context';
+import { Csrf } from './csrf.js';
+import { getContext } from './context.js';
 import {
     getTeam,
     UserError,
@@ -13,10 +13,10 @@ import {
     getDayStart,
     getDayEnd,
     randomCode,
-} from './util';
-import { randomiseTeams } from './teams';
-import { PAGE_SIZE } from './constants';
-import { User, UserTeams, Team } from './schema';
+} from './util.js';
+import { randomiseTeams } from './teams.js';
+import { PAGE_SIZE } from './constants.js';
+import { User, UserTeams, Team } from './schema.js';
 import {
     getLanUsersWithGroups,
     getUser,
@@ -50,7 +50,7 @@ import {
     updateHiddenCode,
     getScoresDetails,
     DatabaseClient,
-} from './database';
+} from './database.js';
 import {
     LanData,
     EventData,
@@ -59,9 +59,9 @@ import {
     HiddenCodeData,
     DuplicateGameData,
     EventQuery,
-} from './validation';
+} from './validation.js';
 
-import routes, { routeUrl } from './routes';
+import routes, { routeUrl } from './routes.js';
 
 export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
     const router = Router();
@@ -74,7 +74,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         });
     });
 
-    router.get(routes.admin.lans.create, async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.create, (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/create', context);
     });
@@ -157,7 +157,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         const event = await getEvent(db, context.currentLan, Number(request.params.eventId));
         if (!event) throw new UserError('Event not found.');
 
-        const now = new Date()
+        const now = new Date();
         if (now > event.startTime) {
             if (Number(data.startTime) != Number(event.startTime)) {
                 throw new UserError('Start time can\'t be changed after the event starts.');
@@ -298,7 +298,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/codes/list', { ...context, hiddenCodes });
     });
 
-    router.get(routes.admin.codes.create, async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.create, (request: Request, response: Response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         response.render('admin/codes/create', context);

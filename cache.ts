@@ -1,8 +1,8 @@
 import { eq, and } from 'drizzle-orm';
 import zod from 'zod';
 
-import { Cache } from './schema';
-import { get, DatabaseClient } from './database';
+import { Cache } from './schema.js';
+import { get, DatabaseClient } from './database.js';
 
 const SessionTokenCache = zod.string();
 export type SessionTokenCache = zod.infer<typeof SessionTokenCache>;

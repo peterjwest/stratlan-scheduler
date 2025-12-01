@@ -1,7 +1,8 @@
-import { assignTeamRoles, unassignTeamRoles } from './discordApi';
-import { getCurrentLan, getCurrentLanCached, updateLan, DatabaseClient, getLanUsers } from './database';
-import { addDays, withLanStatus } from './util';
 import { Client } from 'discord.js';
+
+import { assignTeamRoles, unassignTeamRoles } from './discordApi.js';
+import { getCurrentLan, getCurrentLanCached, updateLan, DatabaseClient, getLanUsers } from './database.js';
+import { addDays, withLanStatus } from './util.js';
 
 export async function startLan(db: DatabaseClient, discordClient: Client) {
     const currentLan = withLanStatus(await getCurrentLan(db));
@@ -17,7 +18,7 @@ export async function startLan(db: DatabaseClient, discordClient: Client) {
 export async function getIsLanStarted(db: DatabaseClient) {
     let currentLan = withLanStatus(await getCurrentLanCached(db));
     return function isLanStarted() {
-        getCurrentLanCached(db).then((lan) => currentLan = withLanStatus(lan));
+        void getCurrentLanCached(db).then((lan) => currentLan = withLanStatus(lan));
         return Boolean(currentLan && currentLan.isActive && !currentLan.isStartProcessed);
     };
 }
@@ -35,7 +36,7 @@ export async function endLan(db: DatabaseClient, discordClient: Client) {
 export async function getIsLanEnded(db: DatabaseClient) {
     let currentLan = withLanStatus(await getCurrentLanCached(db));
     return function isLandEnded() {
-        getCurrentLanCached(db).then((lan) => currentLan = withLanStatus(lan));
+        void getCurrentLanCached(db).then((lan) => currentLan = withLanStatus(lan));
         return Boolean(currentLan && new Date() > addDays(currentLan.eventEnd, 2) && !currentLan.isEndProcessed);
     };
 }

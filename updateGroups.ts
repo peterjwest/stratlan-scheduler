@@ -1,11 +1,11 @@
-import { getDatabaseClient, getCurrentLan } from './database';
-import { loginClient } from './discordApi';
-import { DISCORD_TOKEN, REMOTE_DISCORD_GUILD_ID, DISCORD_GUILD_ID } from './environment';
-import { updateGroups } from './teams';
+import { getDatabaseClient, getCurrentLan } from './database.js';
+import { loginClient } from './discordApi.js';
+import { DISCORD_TOKEN, REMOTE_DISCORD_GUILD_ID, DISCORD_GUILD_ID } from './environment.js';
+import { updateGroups } from './teams.js';
 
 const isRemote = process.argv[2] === '--remote';
 
-const db = await getDatabaseClient(isRemote);
+const db = getDatabaseClient(isRemote);
 const discordClient = await loginClient(DISCORD_TOKEN);
 const currentLan = await getCurrentLan(db);
 

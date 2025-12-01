@@ -18,9 +18,9 @@ import {
     createSecretCode,
     getEventEnd,
     absoluteUrl,
-} from './util';
-import { getAvatarUrl } from './discordApi';
-import { routeUrl } from './routes';
+} from './util.js';
+import { getAvatarUrl } from './discordApi.js';
+import { routeUrl } from './routes.js';
 
 const helpers = {
     formatDate,
@@ -44,7 +44,7 @@ const helpers = {
     getEventEnd,
     absoluteUrl,
     routeUrl,
-}
+};
 
 export type Helpers = typeof helpers;
 export default helpers;

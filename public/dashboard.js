@@ -92,7 +92,7 @@ export function renderTeamScore(container) {
         actualMaxPoints = Math.max(...Object.values(window.teamPoints));
     }, 0);
 
-    const progress = getTeamProgress(actualPoints, actualLanProgress, actualMaxPoints)
+    const progress = getTeamProgress(actualPoints, actualLanProgress, actualMaxPoints);
     const cylinderHeight = getCylinderHeight(progress);
     pointsMarker.style.bottom = `${round(progress * (47 - 7.3) + 7.3, 2)}%`;
 
@@ -261,7 +261,7 @@ export function renderTeamScore(container) {
                 mesh.position.set(
                     positions[positionIndex],
                     positions[positionIndex + 1],
-                    positions[positionIndex + 2]
+                    positions[positionIndex + 2],
                 );
 
                 const quaternionIndex = i * 4;
@@ -269,7 +269,7 @@ export function renderTeamScore(container) {
                     quaternions[quaternionIndex],
                     quaternions[quaternionIndex + 1],
                     quaternions[quaternionIndex + 2],
-                    quaternions[quaternionIndex + 3]
+                    quaternions[quaternionIndex + 3],
                 );
             }
 
@@ -370,11 +370,6 @@ export function renderTeamScore(container) {
         worker.postMessage({ type: MESSAGE_TYPES.STEP, targetCylinderHeight });
         renderer.render(scene, camera);
     }
-
-    // container.addEventListener('click', () => {
-    //     cubeQueue = Math.min(cubeQueue + 1, CUBE_QUEUE_MAX);
-    //     actualPoints += 25;
-    // });
 
     renderer.render(scene, camera);
 

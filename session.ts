@@ -1,9 +1,9 @@
-import  { RequestHandler } from 'express';
+import  { RequestHandler, Request } from 'express';
 import expressSession from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 
-import { SECURE_COOKIE, SESSION_SECRET, DATABASE_URL } from './environment';
-import { COOKIE_MAX_AGE } from './constants';
+import { SECURE_COOKIE, SESSION_SECRET, DATABASE_URL } from './environment.js';
+import { COOKIE_MAX_AGE } from './constants.js';
 
 export function getExpressSession(): RequestHandler {
     const SessionStore = connectPgSimple(expressSession);
@@ -17,10 +17,10 @@ export function getExpressSession(): RequestHandler {
 }
 
 export function getConditionalSession(expressSession: RequestHandler): RequestHandler {
-    return (request, response, next) => {
+    return (request: Request, response, next) => {
         if ('connect.sid' in request.cookies) {
             return expressSession(request, response, next);
         }
         next();
-    }
+    };
 }

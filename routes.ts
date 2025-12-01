@@ -1,13 +1,13 @@
-import { buildQueryString } from './util';
+import { buildQueryString } from './util.js';
 
 type ExtractParams<Value extends string> = (
-    Value extends `${infer _Start}/:${infer Param}/${infer End}`
+    Value extends `${infer _Start}/:${infer _Param}/${infer End}`
     ? [string | number, ...ExtractParams<`/${End}`>]
-    : (Value extends `${infer _Start}/:${infer Param}` ? [string | number] : [])
+    : (Value extends `${infer _Start}/:${infer _Param}` ? [string | number] : [])
 );
 
 export function routeUrl<Value extends string>(route: Value, ...args: [...ExtractParams<Value>, Record<string, string>?]): string {
-    const paramNames = route.match(/:[^\/]+/g) || [];
+    const paramNames = route.match(/:[^/]+/g) || [];
     const index = args.findIndex((arg) => typeof arg !== 'string' && typeof arg !== 'number');
     const params = (index === -1 ? args : args.slice(0, index)) as ExtractParams<Value>;
     const query = (index === -1 ? undefined : args[index]) as Record<string, string> | undefined;
@@ -75,5 +75,5 @@ export default {
                 delete: '/admin/games/:gameId/duplicates/:duplicateId/delete',
             },
         },
-    }
+    },
 } as const;

@@ -1,4 +1,4 @@
-import { Context } from './context';
+import { Context } from './context.js';
 
 /** Augments the session with userId */
 declare module 'express-session' {

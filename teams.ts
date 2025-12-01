@@ -1,11 +1,11 @@
 import { Client } from 'discord.js';
 import lodash from 'lodash';
 
-import { discordDataToUser, Required } from './util';
-import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker';
-import { getDiscordGuildMembers } from './discordApi';
-import { Group, User, UserTeams, UserGroups, Lan, Team } from './schema';
-import { createOrUpdateSeatPickerUsers, createGroups, replaceUserGroups, DatabaseClient } from './database';
+import { discordDataToUser, Required } from './util.js';
+import { getSeatPickerData, matchSeatPickerUsers, SeatPickerUser } from './seatPicker.js';
+import { getDiscordGuildMembers } from './discordApi.js';
+import { Group, User, UserTeams, UserGroups, Lan, Team } from './schema.js';
+import { createOrUpdateSeatPickerUsers, createGroups, replaceUserGroups, DatabaseClient } from './database.js';
 
 interface SubGroup {
   groupIds: Set<number>;
@@ -91,7 +91,7 @@ function incrementDistribution(distribution: GroupTeamDistribution, assignedTeam
 }
 
 function groupBalanceDiff(distribution: GroupTeamDistribution): number {
-    const [largestTeamId, largestCount] = lodash.maxBy(Object.entries(distribution), ([teamId, count]) => count)!;
+    const [largestTeamId, largestCount] = lodash.maxBy(Object.entries(distribution), ([_teamId, count]) => count)!;
     return lodash.sum(Object.entries(distribution).map(([teamId, count]) => {
         if (teamId === largestTeamId) return 0;
         return largestCount - count;
@@ -108,7 +108,7 @@ export function pickBestTeam(teams: Team[], groupDistributions: GroupDistributio
         return [team, lodash.sum(groupIds.map((groupId) => {
             return groupBalanceDiff(incrementDistribution(groupDistributions[groupId]!, team));
         }))];
-    }), ([team, score]) => score);
+    }), ([_team, score]) => score);
     return possibleChoices[0]![0];
 }
 

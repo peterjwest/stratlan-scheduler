@@ -1,13 +1,13 @@
 
 import zod from 'zod';
 
-import { ScoreType } from './constants';
+import { ScoreType } from './constants.js';
 
 const dateType = (
     zod.string()
     .transform((date) => new Date(date))
     .refine((value) => !isNaN(Number(value)), {
-        error: 'Expected a valid datetime'
+        error: 'Expected a valid datetime',
     })
 );
 
@@ -15,7 +15,7 @@ const integerType = (
     zod.string()
     .transform((id) => parseInt(id, 10))
     .refine((value) => Number.isInteger(value), {
-        error: 'Expected an integer'
+        error: 'Expected an integer',
     })
 );
 
@@ -23,7 +23,7 @@ const integerTypeOptional = (
     zod.string()
     .transform((id) => id === '' ? undefined : parseInt(id, 10))
     .refine((value) => value === undefined || Number.isInteger(value), {
-        error: 'Expected an integer'
+        error: 'Expected an integer',
     })
 );
 
@@ -31,10 +31,10 @@ const positiveIntegerTypeOptional = (
     zod.string()
     .transform((id) => id === '' ? undefined : parseInt(id, 10))
     .refine((value) => value === undefined || Number.isInteger(value), {
-        error: 'Expected an integer'
+        error: 'Expected an integer',
     })
     .refine((value) => value === undefined || value > 0, {
-        error: 'Must be greater than zero'
+        error: 'Must be greater than zero',
     })
 );
 
@@ -94,5 +94,5 @@ export type DuplicateGameData = zod.infer<typeof DuplicateGameData>;
 
 export const EventQuery = zod.object({
     returnTo: zod.union([zod.literal('schedule'), zod.literal('')]).optional(),
-})
+});
 export type EventQuery = zod.infer<typeof EventQuery>;

@@ -1,6 +1,6 @@
 import { defineConfig } from 'drizzle-kit';
 
-import { DATABASE_URL } from './environment';
+import { DATABASE_URL } from './environment.js';
 
 export default defineConfig({
   dialect: 'postgresql',

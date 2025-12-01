@@ -3,8 +3,8 @@ import querystring from 'node:querystring';
 import zod from 'zod';
 import lodash from 'lodash';
 
-import { HOST, DISCORD_CLIENT_ID, SECRET_ONE } from './environment';
-import { parseUrl } from './util';
+import { HOST, DISCORD_CLIENT_ID, SECRET_ONE } from './environment.js';
+import { parseUrl } from './util.js';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 

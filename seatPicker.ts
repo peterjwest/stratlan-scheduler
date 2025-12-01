@@ -2,11 +2,11 @@ import { setTimeout } from 'node:timers/promises';
 import zod from 'zod';
 import puppeteer, { Page } from 'puppeteer';
 
-import { DiscordGuildMember } from './discordApi';
-import { DatabaseClient } from './database';
-import { getCache, setCache } from './cache';
-import { Lan } from './schema';
-import { withinThreshold, isEdgeSubstring, normaliseName } from './util';
+import { DiscordGuildMember } from './discordApi.js';
+import { DatabaseClient } from './database.js';
+import { getCache, setCache } from './cache.js';
+import { Lan } from './schema.js';
+import { withinThreshold, isEdgeSubstring, normaliseName } from './util.js';
 import {
     DISCORD_LOGIN_URL,
     DISCORD_HOMEPAGE_URL,
@@ -14,8 +14,8 @@ import {
     SEATPICKER_LOGIN_URL,
     SEATPICKER_URL,
     SEATPICKER_SEATING_URL,
-} from './constants';
-import { SEATPICKER_DISCORD_USERNAME, SEATPICKER_DISCORD_PASSWORD } from './environment';
+} from './constants.js';
+import { SEATPICKER_DISCORD_USERNAME, SEATPICKER_DISCORD_PASSWORD } from './environment.js';
 
 const PAGE_LOAD_TIMEOUT = 1000 * 15; // 15 seconds
 

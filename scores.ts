@@ -1,8 +1,8 @@
 import { Server } from 'socket.io';
 import lodash from 'lodash';
 
-import { teamsWithPoints, getCurrentLanCached, DatabaseClient } from './database';
-import { withLanStatus } from './util';
+import { teamsWithPoints, getCurrentLanCached, DatabaseClient } from './database.js';
+import { withLanStatus } from './util.js';
 
 export async function sendScoreUpdates(db: DatabaseClient, io: Server) {
     const currentLan = withLanStatus(await getCurrentLanCached(db));

@@ -5,18 +5,18 @@ import zod from 'zod';
 import { Client } from 'discord.js';
 import lodash from 'lodash';
 
-import { Lan, LanTeams } from './schema';
-import { regenerateSession, saveSession, destroySession, withLanStatus, discordDataToUser, UserError } from './util';
-import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } from './database';
-import { getGuild, getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember, DiscordGuildMember } from './discordApi';
-import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment';
-import { DISCORD_RETURN_URL } from './constants';
-import routes from './routes';
+import { Lan, LanTeams } from './schema.js';
+import { regenerateSession, saveSession, destroySession, withLanStatus, discordDataToUser, UserError } from './util.js';
+import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } from './database.js';
+import { getGuild, getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember, DiscordGuildMember } from './discordApi.js';
+import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment.js';
+import { DISCORD_RETURN_URL } from './constants.js';
+import routes from './routes.js';
 
 export default function (db: DatabaseClient, discordClient: Client, expressSession: RequestHandler) {
     const router = Router();
 
-    router.get(routes.auth.login, async (request, response) => {
+    router.get(routes.auth.login, async (request: Request, response) => {
         const query = zod.object({ code: zod.string() }).parse(request.query);
 
         // Check access token is valid by fetching user
@@ -31,7 +31,7 @@ export default function (db: DatabaseClient, discordClient: Client, expressSessi
         let discordMember: DiscordGuildMember;
         try {
             discordMember = await getDiscordGuildMember(discordClient, DISCORD_GUILD_ID, discordUser.id);
-        } catch (error) {
+        } catch (_error) {
             const guild = await getGuild(discordClient, DISCORD_GUILD_ID);
             throw new UserError(`You must be part of "${guild.name}" Discord to take part`);
         }
@@ -50,7 +50,7 @@ export default function (db: DatabaseClient, discordClient: Client, expressSessi
         request.session.userId = user.id;
         await saveSession(request);
 
-        response.redirect(request.cookies['login-redirect'] || routes.home);
+        response.redirect(String(request.cookies['login-redirect']) || routes.home);
     });
 
     router.get(routes.auth.logout, async (request, response) => {

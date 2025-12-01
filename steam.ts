@@ -1,11 +1,11 @@
 import SteamAuth from 'node-steam-openid';
 import { Router } from 'express';
 
-import { updateUser, DatabaseClient } from './database';
-import { HOST, STEAM_API_KEY } from './environment';
-import { getContext } from './context';
-import { absoluteUrl } from './util';
-import routes from './routes';
+import { updateUser, DatabaseClient } from './database.js';
+import { HOST, STEAM_API_KEY } from './environment.js';
+import { getContext } from './context.js';
+import { absoluteUrl } from './util.js';
+import routes from './routes.js';
 
 const steamAuth = new SteamAuth({
     realm: HOST,
@@ -16,7 +16,7 @@ const steamAuth = new SteamAuth({
 export default function (db: DatabaseClient) {
     const router = Router();
 
-    router.get(routes.steam.login, async (request, response) => {
+    router.get(routes.steam.login, async (_request, response) => {
         response.redirect(await steamAuth.getRedirectUrl());
     });
 

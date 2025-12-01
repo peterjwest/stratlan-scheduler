@@ -40,7 +40,7 @@ async function putCommands(discordClient: Client, clientId: string, commands: Sl
 export default async function setupCommands(discordClient: Client, clientId: string) {
     await putCommands(discordClient, clientId, [command]);
 
-    discordClient.on(Events.InteractionCreate, async (interaction) => {
+    async function createCommands(interaction: Interaction<CacheType>) {
         if (!interaction.isChatInputCommand()) return;
 
         const command = commands.get(interaction.commandName);
@@ -60,5 +60,7 @@ export default async function setupCommands(discordClient: Client, clientId: str
                 await interaction.reply({ content: COMMAND_ERROR, flags: MessageFlags.Ephemeral });
             }
         }
-    });
+    }
+
+    discordClient.on(Events.InteractionCreate, (interaction) => void createCommands(interaction));
 }
