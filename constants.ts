@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import zod from 'zod';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
+export const ASSET_CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 1 month 🌛
 
 export const MODERATOR_ROLES = ['RVB Admin'] as const;
 

@@ -80,6 +80,7 @@ import {
     INTRO_CHALLENGE_POINTS,
     SECRET_POINTS,
     HIDDEN_CODE_BONUS_POINTS,
+    ASSET_CACHE_MAX_AGE,
 } from './constants.js';
 import { getExpressSession, getConditionalSession } from './session.js';
 import routes from './routes.js';
@@ -120,7 +121,7 @@ app.use(getConditionalSession(expressSession));
 app.use(compression());
 
 app.use(express.urlencoded());
-app.use(express.static('build'));
+app.use(express.static('build', { maxAge: ASSET_CACHE_MAX_AGE, immutable: true }));
 app.set('view engine', 'pug');
 
 app.use(async (request: Request, response, next) => {
