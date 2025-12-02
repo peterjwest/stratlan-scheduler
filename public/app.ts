@@ -3,7 +3,9 @@ import * as Sentry from "@sentry/browser";
 import '../css/style.css';
 import { setCookie, assertExists } from './util.js';
 
-Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, environment: import.meta.env.MODE });
+if (import.meta.env.MODE !== 'development') {
+    Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, environment: import.meta.env.MODE });
+}
 
 const pointsForm = document.querySelector<HTMLFormElement>('[data-points-form]');
 if (pointsForm) {

@@ -75,7 +75,9 @@ import {
 import { getExpressSession, getConditionalSession } from './session.js';
 import routes from './routes.js';
 
-Sentry.init({ dsn: SENTRY_DSN, environment: ENVIRONMENT, enableLogs: true, sendDefaultPii: false });
+if (ENVIRONMENT !== 'development') {
+    Sentry.init({ dsn: SENTRY_DSN, environment: ENVIRONMENT, enableLogs: true, sendDefaultPii: false });
+}
 
 const csrf = getCsrf();
 
@@ -305,7 +307,9 @@ app.use((request: Request, response: Response) => {
     response.status(404).render('404', getContext(request));
 });
 
-Sentry.setupExpressErrorHandler(app);
+if (ENVIRONMENT !== 'development') {
+    Sentry.setupExpressErrorHandler(app);
+}
 
 /** Error handler */
 app.use((error: Error, request: Request, response: Response, _next: NextFunction) => {

@@ -7,4 +7,5 @@ block body
     else
         h1(class="text-2xl font-semibold mb-4") An unexpected error occurred :(
         p(class="mb-4") Please contact @baconsmoothie if this keeps happening.
-        code(class="text-sm")=`Sentry ID: ${code}`
+        if code
+            code(class="text-sm")=`Sentry ID: ${code}`
