@@ -124,6 +124,13 @@ app.use(express.urlencoded());
 app.use(express.static('build', { maxAge: ASSET_CACHE_MAX_AGE, immutable: true }));
 app.set('view engine', 'pug');
 
+app.use((_request: Request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.setHeader('Pragma', 'no-cache');
+    response.setHeader('Expires', '0');
+    next();
+});
+
 app.use(async (request: Request, response, next) => {
     const nonce = randomCode();
     response.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY.replace(/<NONCE>/g, nonce));
