@@ -9,8 +9,7 @@ import { Lan, LanTeams } from './schema.js';
 import { regenerateSession, saveSession, destroySession, withLanStatus, discordDataToUser, UserError } from './util.js';
 import { DatabaseClient, createOrUpdateUser, updateRoles, getCurrentLanCached } from './database.js';
 import { getGuild, getGuildRoles, mapRoleIds, getDiscordAccessToken, getDiscordUser, getDiscordGuildMember, DiscordGuildMember } from './discordApi.js';
-import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID } from './environment.js';
-import { DISCORD_RETURN_URL } from './constants.js';
+import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_GUILD_ID, DISCORD_RETURN_URL } from './environment.js';
 import routes from './routes.js';
 
 export default function (db: DatabaseClient, discordClient: Client, expressSession: RequestHandler) {

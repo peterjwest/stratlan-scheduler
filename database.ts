@@ -55,7 +55,6 @@ import {
     fromNulls,
     toNulls,
     formatName,
-    absoluteUrl,
     randomCode,
     addGroups,
     NullToUndefined,
@@ -843,7 +842,7 @@ export async function getHiddenCodes(db: DatabaseClient, lan: Lan): Promise<Arra
         where: eq(HiddenCode.lanId, lan.id),
         orderBy: [HiddenCode.number],
     }));
-    return data.map((item) => ({ ...item, url: absoluteUrl(`/code/${item.code}`) }));
+    return data.map((item) => ({ ...item, url: `/code/${item.code}` }));
 }
 
 export async function getHiddenCode(
@@ -852,7 +851,7 @@ export async function getHiddenCode(
     const data = await get(db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.id, hiddenCodeId), eq(HiddenCode.lanId, lan.id)),
     }));
-    return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
+    return data ? { ...data, url: `/code/${data.code}` } : undefined;
 }
 
 export async function getHiddenCodeByCode(
@@ -861,7 +860,7 @@ export async function getHiddenCodeByCode(
     const data = await get(db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.code, hiddenCode), eq(HiddenCode.lanId, lan.id)),
     }));
-    return data ? { ...data, url: absoluteUrl(`/code/${data.code}`) } : undefined;
+    return data ? { ...data, url: `/code/${data.code}` } : undefined;
 }
 
 export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: HiddenCodeData) {

@@ -6,7 +6,6 @@ import { REST, Routes, Activity, Client, Events, GuildMember, GatewayIntentBits,
 
 import { User, UserTeams, Lan, LanTeams, Team } from './schema.js';
 import { withLanStatus, fromNulls } from './util.js';
-import { DISCORD_GUILD_ID } from './environment.js';
 import {
     getCurrentLanCached,
     startGameActivities,
@@ -181,8 +180,8 @@ export function addUserMembers(users: Array<User & UserTeams>, members: Collecti
     });
 }
 
-export async function assignTeamRoles(discordClient: Client, lan: Lan & LanTeams, baseUsers: Array<User & UserTeams>) {
-    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+export async function assignTeamRoles(discordClient: Client, guildId: string, lan: Lan & LanTeams, baseUsers: Array<User & UserTeams>) {
+    const guild = discordClient.guilds.cache.get(guildId);
     if (!guild) throw new Error('Guild not found');
 
     const teams = addTeamRoles(lan.teams, guild.roles.cache);
@@ -206,8 +205,8 @@ export async function assignTeamRoles(discordClient: Client, lan: Lan & LanTeams
     return assignedTeamCount;
 }
 
-export async function assignTeamRole(discordClient: Client, lan: Lan & LanTeams, user: User & UserTeams) {
-    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+export async function assignTeamRole(discordClient: Client, guildId: string, lan: Lan & LanTeams, user: User & UserTeams) {
+    const guild = discordClient.guilds.cache.get(guildId);
     if (!guild) throw new Error('Guild not found');
 
     const teams = addTeamRoles(lan.teams, guild.roles.cache);
@@ -226,8 +225,8 @@ export async function assignTeamRole(discordClient: Client, lan: Lan & LanTeams,
     }
 }
 
-export async function unassignTeamRoles(discordClient: Client, lan: Lan & LanTeams) {
-    const guild = discordClient.guilds.cache.get(DISCORD_GUILD_ID);
+export async function unassignTeamRoles(discordClient: Client, guildId: string, lan: Lan & LanTeams) {
+    const guild = discordClient.guilds.cache.get(guildId);
     if (!guild) throw new Error('Guild not found');
 
     const teams = addTeamRoles(lan.teams, guild.roles.cache);

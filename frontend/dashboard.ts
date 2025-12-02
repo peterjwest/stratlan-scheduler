@@ -244,7 +244,7 @@ export function renderTeamScore(container: HTMLElement): void {
 
     scene.add(cylinder);
 
-    const worker = new Worker('./physicsWorker.js', { type: 'module' });
+    const worker = new Worker(new URL('./physicsWorker.js', import.meta.url), { type: 'module' });
 
     const cubeMeshes = new Map<number, THREE.Mesh>();
 

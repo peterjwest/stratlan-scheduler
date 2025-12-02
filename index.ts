@@ -14,7 +14,6 @@ import {
     parseUrl,
     isUserError,
     withLanStatus,
-    absoluteUrl,
     userIntroCode,
     randomCode,
     repeatTask,
@@ -23,6 +22,10 @@ import {
     addMinutes,
     dateIsValid,
     getEventEnd,
+    getViteManifest,
+    getViteManifestCached,
+    absoluteUrl,
+    assetUrl,
 } from './util.js';
 import setupCommands from './commands.js';
 import adminRouter from './admin.js';
@@ -60,13 +63,21 @@ import { scoreCommunityGames, getIsNextSlotReady } from './communityGame.js';
 import { startLan, getIsLanStarted, endLan, getIsLanEnded } from './lanEvents.js';
 import { sendScoreUpdates } from './scores.js';
 
-import { ENVIRONMENT, PORT, HOST, DISCORD_TOKEN, DISCORD_CLIENT_ID, SENTRY_DSN } from './environment.js';
 import {
+    ENVIRONMENT,
+    PORT,
+    HOST,
+    DISCORD_TOKEN,
+    DISCORD_CLIENT_ID,
+    DISCORD_GUILD_ID,
+    SENTRY_DSN,
     DISCORD_AUTH_URL,
+    SECRETS,
+    CONTENT_SECURITY_POLICY,
+} from './environment.js';
+import {
     INTRO_CHALLENGE_POINTS,
     SECRET_POINTS,
-    SECRETS_BY_CODE,
-    CONTENT_SECURITY_POLICY,
     HIDDEN_CODE_BONUS_POINTS,
 } from './constants.js';
 import { getExpressSession, getConditionalSession } from './session.js';
@@ -113,6 +124,8 @@ app.use(async (request: Request, response, next) => {
     const nonce = randomCode();
     response.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY.replace(/<NONCE>/g, nonce));
 
+    const manifest = await (ENVIRONMENT === 'development' ? getViteManifest() : getViteManifestCached());
+
     const userId = request.session?.userId;
     const currentPath = parseUrl(request.originalUrl).path;
     const currentUrl = request.originalUrl;
@@ -142,7 +155,7 @@ app.use(async (request: Request, response, next) => {
                 user.team = chooseTeam(currentLan.teams, groups, users, user.id);
                 await updateUserTeam(tx, currentLan, user, user.team);
             });
-            await assignTeamRole(discordClient, currentLan, user);
+            await assignTeamRole(discordClient, DISCORD_GUILD_ID, currentLan, user);
         }
 
         // Hide current team until event has started
@@ -151,7 +164,22 @@ app.use(async (request: Request, response, next) => {
         }
     }
     request.context = {
-        currentPath, currentUrl, routes, nonce, csrfToken, discordAuthUrl, user, points, isAdmin, currentLan, lans, helpers,
+        currentPath,
+        currentUrl,
+        routes,
+        nonce,
+        csrfToken,
+        discordAuthUrl,
+        user,
+        points,
+        isAdmin,
+        currentLan,
+        lans,
+        helpers: {
+            ...helpers,
+            absoluteUrl: (url) => absoluteUrl(HOST, url),
+            assetUrl: (path) => assetUrl(manifest, path),
+        },
     };
 
     next();
@@ -175,7 +203,7 @@ app.get(routes.home, async (request, response) => {
     response.render('guide', {
         ...context,
         constants: { INTRO_CHALLENGE_POINTS },
-        hiddenCode: context.user ? absoluteUrl(`/intro/code/${userIntroCode(context.user)}`) : undefined,
+        hiddenCode: context.user ? `/intro/code/${userIntroCode(context.user)}` : undefined,
         introChallenges: await getIntroChallenges(db, context.currentLan, context.user),
     });
 });
@@ -278,7 +306,7 @@ app.get(routes.secret, async (request, response) => {
 
     if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
-    const secretNumber = SECRETS_BY_CODE[request.params.secretCode || ''];
+    const secretNumber = SECRETS[request.params.secretCode];
     if (!secretNumber) return response.render('secret', { ...context, valid: false });
 
     const score = await createSecretScore(db, context.currentLan, context.user, secretNumber);

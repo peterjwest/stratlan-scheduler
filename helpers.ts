@@ -17,7 +17,6 @@ import {
     round,
     createSecretCode,
     getEventEnd,
-    absoluteUrl,
 } from './util.js';
 import { getAvatarUrl } from './discordApi.js';
 import { routeUrl } from './routes.js';
@@ -42,7 +41,6 @@ const helpers = {
     round,
     createSecretCode,
     getEventEnd,
-    absoluteUrl,
     routeUrl,
 };
 

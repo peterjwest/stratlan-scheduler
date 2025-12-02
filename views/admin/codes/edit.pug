@@ -16,12 +16,12 @@ block body
                         input(type="submit" name="submit" value="Save" class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight")
 
             div(class="flex flex-col items-center gap-3")
-                div(class="h-50 w-50 mt-2" data-qr-code=code.url data-qr-code-size=200)
+                div(class="h-50 w-50 mt-2" data-qr-code=helpers.absoluteUrl(code.url) data-qr-code-size=200)
                 button(class="py-1.5 px-3 rounded-md border border-border/80 bg-highlight" data-print-button)
                     | Print
 
 block print
     div(class="w-full h-[1000px] flex items-center justify-center")
         div
-            div(class="h-100 w-100" data-qr-code=code.url data-qr-code-size=400)
+            div(class="h-100 w-100" data-qr-code=helpers.absoluteUrl(code.url) data-qr-code-size=400)
             p(class="text-center my-2 text-black text-lg")=`#${code.number}`

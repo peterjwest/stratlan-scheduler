@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/browser";
 
-import '../css/style.css';
 import { setCookie, assertExists } from './util.js';
 
 if (import.meta.env.MODE !== 'development') {

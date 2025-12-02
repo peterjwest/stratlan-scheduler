@@ -9,7 +9,7 @@ import routes from './routes.js';
 
 const steamAuth = new SteamAuth({
     realm: HOST,
-    returnUrl: absoluteUrl(routes.steam.authenticate),
+    returnUrl: absoluteUrl(HOST, routes.steam.authenticate),
     apiKey: STEAM_API_KEY,
 });
 

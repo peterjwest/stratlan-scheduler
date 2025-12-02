@@ -1,10 +1,6 @@
-import querystring from 'node:querystring';
+import { join } from 'node:path';
 
 import zod from 'zod';
-import lodash from 'lodash';
-
-import { HOST, DISCORD_CLIENT_ID, SECRET_ONE } from './environment.js';
-import { parseUrl } from './util.js';
 
 export const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days 😱
 
@@ -47,17 +43,6 @@ export const HIDDEN_CODE_POINTS = 25;
 
 export const SECRET_POINTS = 200;
 
-export const SECRETS = { 1: SECRET_ONE } as const;
-export const SECRETS_BY_CODE = lodash.mapValues(lodash.invert(SECRETS), (value) => Number(value));
-
-export const DISCORD_RETURN_URL = `${HOST}/auth/login`;
-export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
-    client_id: DISCORD_CLIENT_ID,
-    response_type: 'code',
-    redirect_uri: DISCORD_RETURN_URL,
-    scope: 'identify',
-});
-
 export const DISCORD_LOGIN_URL = 'https://discord.com/login';
 export const DISCORD_HOMEPAGE_URL = 'https://discord.com';
 export const DISCORD_ASSET_URL = 'https://discord.com/assets/favicon.ico';
@@ -76,14 +61,6 @@ export const REPEAT_INTERVAL = 10 * 1000; // 10 seconds
 
 export const PAGE_SIZE = 20;
 
-export const CONTENT_SECURITY_POLICY = [
-    "base-uri 'none'",
-    "form-action 'self'",
-    "default-src 'none'",
-    "img-src 'self' data: https://cdn.discordapp.com",
-    "style-src 'self' 'unsafe-inline'",
-    "font-src 'self'",
-    "script-src 'nonce-<NONCE>'",
-    `connect-src 'self' wss://${parseUrl(HOST).host} *.sentry.io`,
-    "worker-src 'self'",
-].join('; ');
+export const BUILD_DIRECTORY =  './build';
+export const PUBLIC_DIRECTORY =  './public';
+export const VITE_MANIFEST_PATH = join(BUILD_DIRECTORY, '/.vite/manifest.json');

@@ -4,24 +4,24 @@ doctype html
 html(lang="en" class="h-full")
     head
         title StratLAN Red vs. Blue
-        link(rel="stylesheet" href="/style.css?v=2")
-        link(rel="shortcut icon" href="/favicon.png")
+        link(rel="stylesheet" href=helpers.assetUrl('css/style.css'))
+        link(rel="shortcut icon" href=helpers.assetUrl('public/favicon.png'))
         meta(name="viewport" content="width=device-width, initial-scale=1.0")
     body(class="min-h-[100vh] min-w-[400px] bg-linear-150 from-bg-red via-bg-purple to-bg-blue via-50% bg-fixed text-white flex flex-col")
         div(class="print:hidden fullscreen-heading hidden flex items-center py-4")
-            img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[70px] ml-4 mr-2")
-            img(src="/red-vs-blue.png" class="mb-2 h-[70px]")
+            img(src=helpers.assetUrl('public/stratlan-logo.webp') alt="StratLAN" class="h-[70px] ml-4 mr-2")
+            img(src=helpers.assetUrl('public/red-vs-blue.png') class="mb-2 h-[70px]")
         div(class="print:hidden flex-grow flex")
             nav(class="hidden md:block w-60 bg-linear-150 from-bg-red-nav from-10% via-bg-purple-nav via-25% to-bg-blue-nav to-70% bg-fixed z-3 -mr-60 md:mr-0")
                 div(class="sticky top-0")
                     button(class="md:hidden p-2" data-menu)
-                        img(src="/menu.svg" class="p-2 w-12 h-12")
+                        img(src=helpers.assetUrl('public/menu.svg') class="p-2 w-12 h-12")
                     div(class="top-0 w-60")
                         div(class="p-2 px-2 md:pt-4 -mt-4 md:mt-0")
                             h1(class="")
                                 a(href=routes.home)
-                                    img(src="/stratlan-logo.webp" alt="StratLAN" class="h-[93px] mb-1.5")
-                            img(src="/red-vs-blue.png" class="h-[46px] px-2")
+                                    img(src=helpers.assetUrl('public/stratlan-logo.webp') alt="StratLAN" class="h-[93px] mb-1.5")
+                            img(src=helpers.assetUrl('public/red-vs-blue.png') class="h-[46px] px-2")
 
                         div(class="px-5 pb-4 space-y-3")
                             section
@@ -48,7 +48,7 @@ html(lang="en" class="h-full")
                         header(class="flex h-16")
                             div(class="flex-grow flex")
                                 button(class="md:hidden p-2" data-menu)
-                                    img(src="/menu.svg" class="p-2 w-12 h-12")
+                                    img(src=helpers.assetUrl('public/menu.svg') class="p-2 w-12 h-12")
 
                             div(class="flex sticky right-0 z-2")
                                 if isAdmin
@@ -69,7 +69,7 @@ html(lang="en" class="h-full")
                                             if user.discordAvatarId
                                                 img(src=helpers.getAvatarUrl(user) class="h-8 w-8 rounded-md")
                                             p(class="mr-4")= user.discordUsername
-                                            img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
+                                            img(src=helpers.assetUrl('public/discord-logo.svg') class="bg-discord p-1 h-8 w-8 rounded-md")
                                         div(class="hidden absolute left-0 right-0 top-full backdrop-blur-xl bg-highlight/60 rounded-b" data-user-menu)
                                             //- if user.steamUsername
                                             //-     div(class="flex flex-grow items-center py-3 px-5.5 space-x-2 border-t border-border/30")
@@ -84,7 +84,7 @@ html(lang="en" class="h-full")
                                 else
                                     a(href=discordAuthUrl data-login class="flex items-center py-4 px-5.5 space-x-2 backdrop-blur-xl hover:backdrop-brightness-160 cursor-pointer rounded-b" data-user-menu-button)
                                         span Login with Discord
-                                        img(src="/discord-logo.svg" class="bg-discord p-1 h-8 w-8 rounded-md")
+                                        img(src=helpers.assetUrl('public/discord-logo.svg') class="bg-discord p-1 h-8 w-8 rounded-md")
 
                         div(class="flex-grow px-8 py-3")
                             block body
@@ -96,7 +96,7 @@ html(lang="en" class="h-full")
         div(class="hidden print:block")
             block print
 
-        script(type="module" src="/app.js?v=2" nonce=nonce)
+        script(type="module" src=helpers.assetUrl('frontend/app.ts') nonce=nonce)
 
         div(class="hidden")
-            =helpers.createSecretCode()
+            =helpers.createSecretCode(helpers.absoluteUrl(`/secret/${SECRET_ONE}`))

@@ -1,4 +1,8 @@
+import querystring from 'node:querystring';
+
 import zod from 'zod';
+
+import { parseUrl } from './util.js';
 
 export const Environment = zod.object({
     ENVIRONMENT: zod.string(),
@@ -39,3 +43,25 @@ export const {
     SECRET_ONE,
     SENTRY_DSN,
 } = Environment.parse(process.env);
+
+export const DISCORD_RETURN_URL = `${HOST}/auth/login`;
+export const DISCORD_AUTH_URL = 'https://discord.com/oauth2/authorize?' + querystring.encode({
+    client_id: DISCORD_CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: DISCORD_RETURN_URL,
+    scope: 'identify',
+});
+
+export const CONTENT_SECURITY_POLICY = [
+    "base-uri 'none'",
+    "form-action 'self'",
+    "default-src 'none'",
+    "img-src 'self' data: https://cdn.discordapp.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
+    "script-src 'nonce-<NONCE>'",
+    `connect-src 'self' wss://${parseUrl(HOST).host} *.sentry.io`,
+    "worker-src 'self'",
+].join('; ');
+
+export const SECRETS = { [SECRET_ONE]: 1 } as const;

@@ -16,7 +16,10 @@ export type Context = {
     isAdmin: boolean;
     currentLan: Lan & LanTeams & LanProgress | undefined;
     lans: Array<Lan & LanTeams>;
-    helpers: Helpers;
+    helpers: Helpers & {
+        absoluteUrl: (url: string) => string,
+        assetUrl: (path: string) => string,
+    };
 }
 
 type ContextWithLan = Context & {

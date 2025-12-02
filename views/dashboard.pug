@@ -31,8 +31,8 @@ block body
                                             div(data-user-score-template class="hidden absolute top-0 right-0 font-bold text-[#ffe2a0] bg-[#dc7a11] py-1 px-2 rounded-lg transition-user-score")
 
                 div(class="flex justify-center pt-4")
-                    img(class="max-h-[100px]" src=team.name === "Red" ? "/red.png" : "/blue.png")
+                    img(class="max-h-[100px]" src=team.name === "Red" ? helpers.assetUrl('public/red.png') : helpers.assetUrl('public/blue.png'))
 
         div(data-syncing class="hidden absolute inset-0 flex flex-col justify-center items-center")
             span(class="text-lg") Syncing
-            img(class="inline h-8 animate-spin" src="refresh.svg")
+            img(class="inline h-8 animate-spin" src=helpers.assetUrl('public/refresh.svg'))

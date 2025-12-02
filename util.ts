@@ -1,5 +1,8 @@
 import { promisify } from 'node:util';
+import { promises as fs } from 'node:fs';
 import crypto from 'node:crypto';
+import { dirname } from 'node:path';
+
 import { Request } from 'express';
 import lodash from 'lodash';
 import md5 from 'md5';
@@ -15,8 +18,8 @@ import {
     SCORE_TYPE_NAMES,
     ScoreType,
     REPEAT_INTERVAL,
+    VITE_MANIFEST_PATH,
 } from './constants.js';
-import { HOST, SECRET_ONE } from './environment.js';
 import { DiscordUser, DiscordGuildMember } from './discordApi.js';
 
 type DayEvents = {
@@ -273,12 +276,14 @@ export function withLanStatus(lan: Lan & LanTeams | undefined): Lan & LanTeams &
     return { ...lan, isStarted, isEnded, isActive, progress };
 }
 
-export function cacheCall<Value, T extends (...args: any) => Promise<Value>>(func: T): [T, () => void] {
+export function cacheCall<Value, T extends (...args: any) => Promise<Value>>(
+    func: T, minutes = 1,
+): [T, () => void] {
     let cachedValue: Value | undefined;
     let lastUpdate: Date | undefined;
     return [
         (async (...args: Parameters<T>) => {
-            if (!lastUpdate || new Date() > addMinutes(lastUpdate, 1)) {
+            if (!lastUpdate || (minutes !== Infinity && new Date() > addMinutes(lastUpdate, minutes))) {
                 cachedValue = await func(...args);
                 lastUpdate = new Date();
             }
@@ -364,8 +369,8 @@ export function round(value: number, decimalPlaces: number) {
     return Math.round(value * (10 ** decimalPlaces)) / multiplier;
 }
 
-export function absoluteUrl(relativeUrl: string) {
-    return `${HOST}${relativeUrl}`;
+export function absoluteUrl(host: string, relativeUrl: string) {
+    return `${host}${relativeUrl}`;
 }
 
 export function userIntroCode(user: User) {
@@ -382,8 +387,8 @@ export function randomCode() {
     }).join('');
 }
 
-export function createSecretCode() {
-    const data = QRCode.create(absoluteUrl(`/secret/${SECRET_ONE}`));
+export function createSecretCode(url: string) {
+    const data = QRCode.create(url);
     return Array.from(data.modules.data).map((value) => value === 1 ? '.' : '-').join('');
 }
 
@@ -441,4 +446,29 @@ export async function repeatTask(
 
 export function dateIsValid(date: Date) {
     return !isNaN(date.getTime());
+}
+
+type ManifestEntry = {
+    file: string;
+    src?: string;
+};
+
+export type Manifest = Record<string, ManifestEntry>;
+
+export async function getViteManifest(): Promise<Manifest> {
+    const manifestContent = await fs.readFile(VITE_MANIFEST_PATH, 'utf-8');
+    return JSON.parse(manifestContent) as Manifest;
+}
+
+export const [getViteManifestCached] = cacheCall(getViteManifest, Infinity);
+
+export async function saveViteManifest(manifest: Manifest) {
+    await fs.mkdir(dirname(VITE_MANIFEST_PATH), { recursive: true });
+    await fs.writeFile(VITE_MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+}
+
+export function assetUrl(manifest: Manifest, path: string): string {
+    const entry = manifest[path];
+    if (!entry) throw new Error(`Unknown static asset ${path}`);
+    return `/${entry.file}`;
 }

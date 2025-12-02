@@ -7,7 +7,6 @@
 - "Now" marker on schedule
 - Restructure files
   - Backend files
-  - Frontend JS
   - Frontend images
 
 ## Nice to have

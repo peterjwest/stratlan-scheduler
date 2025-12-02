@@ -22,10 +22,10 @@ block body
                         if user.discordAvatarId
                             img(src=helpers.getAvatarUrl(user) class="ml-3 h-12 w-12 rounded-md float-right")
                         span=`Logged in as ${user.discordUsername}`
-                        img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                        img(src=helpers.assetUrl('public/tick.svg') class="w-6 absolute top-2 right-2 bg-white rounded-full border")
                 else
                     a(href=discordAuthUrl data-login class="block relative p-5 h-full bg-highlight clearfix rounded-lg border border-highlight-accent")
-                        img(src="/discord-logo.svg" class="bg-discord p-1 ml-3 h-12 w-12 rounded-md float-right")
+                        img(src=helpers.assetUrl('public/discord-logo.svg') class="bg-discord p-1 ml-3 h-12 w-12 rounded-md float-right")
                         | Login with Discord
 
                 span(class="inline-block -rotate-3 absolute -bottom-3 -right-2 z-1")
@@ -35,7 +35,7 @@ block body
                 div(class="relative p-5 h-full bg-highlight rounded-lg border border-highlight-accent")
                     if currentLan && currentLan.isStarted
                         | Event started!
-                        img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                        img(src=helpers.assetUrl('public/tick.svg') class="w-6 absolute top-2 right-2 bg-white rounded-full border")
                     else
                         =`Event starts at ${helpers.formatDateShort(currentLan.eventStart)}`
 
@@ -45,7 +45,7 @@ block body
                         span="You're on team "
                         span(class=`inline-block px-1.5 py-1 -my-1 mr-2.5 rounded-lg ${helpers.getTeamBackground(user.team)}`)
                             =user.team.name
-                        img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                        img(src=helpers.assetUrl('public/tick.svg') class="w-6 absolute top-2 right-2 bg-white rounded-full border")
                     else
                         | Find out your team
             li(class="flex-grow flex-1 mb-3")
@@ -53,7 +53,7 @@ block body
                     | Go earn points!
 
                     if points > 0
-                        img(src="/tick.svg" class="w-6 absolute top-2 right-2 bg-white rounded-full border")
+                        img(src=helpers.assetUrl('public/tick.svg') class="w-6 absolute top-2 right-2 bg-white rounded-full border")
 
     section
         h2(class="text-2xl font-semibold mb-3") How to earn points:
@@ -70,11 +70,11 @@ block body
             h4(class="text-md font-semibold mt-6 mb-3") How to enable Activity Sharing
             ol(class="list-decimal ml-6")
                 li
-                    img(src="/discord-screenshots/settings.png" class="mb-3 max-h-[71px] sm:min-w-[192px] border border-highlight-accent")
+                    img(src=helpers.assetUrl('public/discord-screenshots/settings.png') class="mb-3 max-h-[71px] sm:min-w-[192px] border border-highlight-accent")
                 li
-                    img(src="/discord-screenshots/activity-privacy.png" class="mb-3 max-h-[350px] sm:min-w-[333px] border border-highlight-accent")
+                    img(src=helpers.assetUrl('public/discord-screenshots/activity-privacy.png') class="mb-3 max-h-[350px] sm:min-w-[333px] border border-highlight-accent")
                 li
-                    img(src="/discord-screenshots/stratlan.png" class="mb-3 max-h-[75px] sm:min-w-[361px] border border-highlight-accent")
+                    img(src=helpers.assetUrl('public/discord-screenshots/stratlan.png') class="mb-3 max-h-[75px] sm:min-w-[361px] border border-highlight-accent")
                 li
                     p(class="mb-2")
                         ="Check it's working by launching a game to "
@@ -98,7 +98,7 @@ block body
                 span(class="inline-block -rotate-3")
                     +introPointsButton(introChallenges.HiddenCode, constants.INTRO_CHALLENGE_POINTS.HiddenCode)
             if hiddenCode
-                div(class="mt-5 mb-2 h-50 w-50" data-qr-code=hiddenCode data-qr-code-size=200)
+                div(class="mt-5 mb-2 h-50 w-50" data-qr-code=helpers.absoluteUrl(hiddenCode) data-qr-code-size=200)
             else
                 div(class="mt-5 mb-2 h-50 w-50 border border-4 border-dashed")
 
