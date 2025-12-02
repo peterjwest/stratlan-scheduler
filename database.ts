@@ -930,21 +930,14 @@ export async function getEventByCode(
     }));
 }
 
-
-export async function findSecretScoreByLan(
-    db: DatabaseClient, lan: Lan, secretNumber: number,
-): Promise<Score | undefined> {
-    return get(db.query.Score.findFirst({
-        where: and(eq(Score.type, 'Secret'), eq(Score.lanId, lan.id), eq(Score.secretNumber, secretNumber)),
-    }));
-}
-
-export async function createSecretScore(db: DatabaseClient, lan: Lan, user: User, secretNumber: number) {
-    return get(db.insert(Score).values({
+export async function createSecretScore(db: DatabaseClient, lan: Lan, user: User, secretNumber: number): Promise<Score | undefined> {
+    const result = await list(db.insert(Score).values({
         type: 'Secret',
         lanId: lan.id,
         userId: user.id,
         points: SECRET_POINTS,
         secretNumber,
-    }).returning());
+    }).onConflictDoNothing().returning());
+
+    return result[0];
 }

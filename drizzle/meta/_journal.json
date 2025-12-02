@@ -449,6 +449,13 @@
       "when": 1764353541813,
       "tag": "0063_event_score",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1764941689954,
+      "tag": "0064_secret_score_unique",
+      "breakpoints": true
     }
   ]
 }

@@ -128,6 +128,7 @@ export const Score = pgTable('Score', {
         sql`(${Score.teamId} IS NOT NULL AND ${Score.userId} IS NULL) OR (${Score.teamId} IS NULL AND ${Score.userId} IS NOT NULL)`,
     ),
     uniqueIndex("Score_community_game").on(Score.userId, Score.timeslotId).where(sql`${Score.type} = 'CommunityGame'`),
+    uniqueIndex("Score_secret").on(Score.lanId, Score.secretNumber).where(sql`${Score.type} = 'Secret'`),
 ]);
 export type Score = NullToUndefined<typeof Score.$inferSelect>;
 export type ScoreReferences = {

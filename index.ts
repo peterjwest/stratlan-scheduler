@@ -46,7 +46,6 @@ import {
     getHiddenCodeByCode,
     getHiddenCodeScore,
     createHiddenCodeScore,
-    findSecretScoreByLan,
     createSecretScore,
     getGroups,
     getLanUsersWithGroups,
@@ -282,15 +281,14 @@ app.get(routes.secret, async (request: Request, response: Response) => {
     if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
     const secretNumber = SECRETS_BY_CODE[request.params.secretCode || ''];
-    if (!secretNumber) return response.render('secret', { ...context });
+    if (!secretNumber) return response.render('secret', { ...context, valid: false });
 
-    if (await findSecretScoreByLan(db, context.currentLan, secretNumber)) {
+    const score = await createSecretScore(db, context.currentLan, context.user, secretNumber);
+    if (!score) {
         return response.render('secret', { ...context, valid: true, alreadyFound: true });
     }
 
-    const score = await createSecretScore(db, context.currentLan, context.user, secretNumber);
     io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
-
     response.render('secret', { ...context, valid: true, secretPoints: SECRET_POINTS });
 });
 

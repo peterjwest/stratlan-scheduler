@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "Score_secret" ON "Score" USING btree ("lanId","secretNumber") WHERE "Score"."type" = 'Secret';
