@@ -1,6 +1,7 @@
 import { promisify } from 'node:util';
 
 import express, { Request, Response, NextFunction } from 'express';
+import compression from 'compression';
 import { parseCookie } from 'cookie';
 import lodash from 'lodash';
 import * as Sentry from '@sentry/node';
@@ -115,6 +116,8 @@ app.use((request: Request, _response, next) => {
 const expressSession = getExpressSession();
 
 app.use(getConditionalSession(expressSession));
+
+app.use(compression());
 
 app.use(express.urlencoded());
 app.use(express.static('build'));
