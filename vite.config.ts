@@ -1,14 +1,29 @@
-import { defineConfig } from 'vite';
+import { defineConfig, PluginOption } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-import wasm from "vite-plugin-wasm";
+import wasm from 'vite-plugin-wasm';
+import topLevelAwait from "vite-plugin-top-level-await";
+
+function castPlugin(plugin: unknown) {
+    return (plugin as () => PluginOption);
+}
 
 export default defineConfig({
-    plugins: [tailwindcss(), wasm()],
+    plugins: [
+        castPlugin(wasm)(),
+        castPlugin(topLevelAwait)(),
+        tailwindcss(),
+    ],
+    worker: {
+        plugins: () => [
+            castPlugin(wasm)(),
+            castPlugin(topLevelAwait)(),
+        ],
+    },
     build: {
         minify: 'terser',
         sourcemap: true,
         lib: {
-            entry: 'public/app.js',
+            entry: 'public/app.ts',
             formats: ['es'],
             fileName: 'app',
             cssFileName: 'style',
@@ -17,8 +32,8 @@ export default defineConfig({
 
         rollupOptions: {
             input: {
-                app: 'public/app.js',
-                'physicsWorker': 'public/physicsWorker.js',
+                app: 'public/app.ts',
+                'physicsWorker': 'public/physicsWorker.ts',
             },
             output: {
                 entryFileNames: '[name].js',

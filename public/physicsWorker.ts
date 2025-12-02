@@ -1,5 +1,5 @@
-import RAPIER from '@dimforge/rapier3d';
 import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d';
 
 import {
     MESSAGE_TYPES,
@@ -22,10 +22,44 @@ import {
     WALL_HEIGHT,
     TARGET_MIN_CUBES,
     TARGET_MAX_CUBES,
-} from './constants';
+} from './constants.js';
+
+interface Cube {
+    rigidBody: RAPIER.RigidBody;
+    collider: RAPIER.Collider;
+    type: number;
+    size: number;
+    shouldSplit: boolean;
+    canSplit: boolean;
+    restTime: number;
+    isSinking: boolean;
+    sinkingProgress: number;
+    lastVelocity?: RAPIER.Vector;
+    initialSinkPosition?: number;
+    boundingHeight?: number;
+}
+
+interface StepMessage {
+    type: typeof MESSAGE_TYPES.STEP;
+    targetCylinderHeight: number;
+}
+
+interface CreateCubeMessage {
+    type: typeof MESSAGE_TYPES.CREATE_CUBE;
+}
+
+type WorkerMessage = StepMessage | CreateCubeMessage;
+
+interface StepResult {
+    positions: Float32Array;
+    quaternions: Float32Array;
+    cubeIds: Float64Array;
+    cubeTypes: Uint8Array;
+    cylinderHeight: number;
+}
 
 const BINARY_POSITIONS = [-1, 1];
-const SUB_CUBE_OFFSETS = [];
+const SUB_CUBE_OFFSETS: THREE.Vector3[] = [];
 for (const x of BINARY_POSITIONS) {
     for (const y of BINARY_POSITIONS) {
         for (const z of BINARY_POSITIONS) {
@@ -34,11 +68,11 @@ for (const x of BINARY_POSITIONS) {
     }
 }
 
-function getBoundingHeight(rotation, size) {
+function getBoundingHeight(rotation: RAPIER.Rotation, size: number): number {
     const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     const halfSize = size / 2;
 
-    const cornerHeights = [];
+    const cornerHeights: number[] = [];
     for (const x of BINARY_POSITIONS) {
         for (const y of BINARY_POSITIONS) {
             for (const z of BINARY_POSITIONS) {
@@ -56,11 +90,11 @@ function getBoundingHeight(rotation, size) {
 
 const world = new RAPIER.World({ x: 0, y: -GRAVITY, z: 0 });
 
-let eventQueue = new RAPIER.EventQueue(true);
+const eventQueue = new RAPIER.EventQueue(true);
 
-function createCylinderDesc(height, radius, segments) {
-    const vertices = [];
-    const indices = [];
+function createCylinderDesc(height: number, radius: number, segments: number): RAPIER.ColliderDesc {
+    const vertices: number[] = [];
+    const indices: number[] = [];
 
     // Create vertices for top and bottom of walls
     for (let i = 0; i <= segments; i++) {
@@ -100,14 +134,14 @@ const cylinderColliderDesc = RAPIER.ColliderDesc.cylinder(
 
 world.createCollider(cylinderColliderDesc);
 
-let targetCylinderHeight;
-let cylinderHeight;
+let targetCylinderHeight: number;
+let cylinderHeight: number | undefined;
 let cubeStartAngle = 0;
 let cubesAdded = 0;
 
-const cubes = new Map();
+const cubes = new Map<number, Cube>();
 
-function createSubCube(parentCube, offset) {
+function createSubCube(parentCube: Cube, offset: THREE.Vector3): Cube {
     const position = parentCube.collider.translation();
     const rotation = parentCube.collider.rotation();
 
@@ -124,7 +158,7 @@ function createSubCube(parentCube, offset) {
     .setRotation(rotation);
 
     const rigidBody = world.createRigidBody(rigidBodyDesc);
-    rigidBody.setLinvel(parentCube.lastVelocity);
+    rigidBody.setLinvel(parentCube.lastVelocity!, true);
 
     const colliderDesc = RAPIER.ColliderDesc.cuboid(
         CUBE_SMALL / 2,
@@ -135,7 +169,7 @@ function createSubCube(parentCube, offset) {
     .setRestitution(0.05)
     .setFriction(0.7);
 
-    const data = {
+    const data: Cube = {
         rigidBody,
         collider: world.createCollider(colliderDesc, rigidBody),
         type: CUBE_TYPES.SMALL,
@@ -151,8 +185,8 @@ function createSubCube(parentCube, offset) {
     return data;
 }
 
-function splitCube(cube) {
-    const subCubes = [];
+function splitCube(cube: Cube): number[] {
+    const subCubes: Cube[] = [];
     for (const offset of SUB_CUBE_OFFSETS) {
         subCubes.push(createSubCube(cube, offset));
     }
@@ -163,7 +197,7 @@ function splitCube(cube) {
     return subCubes.map(cube => cube.collider.handle);
 }
 
-function createCube() {
+function createCube(): void {
     cubeStartAngle = (cubeStartAngle + Math.PI * 2 / CUBE_START_POSITIONS) % (Math.PI * 2);
     const distance = CYLINDER_RADIUS - CUBE_LARGE * 2;
 
@@ -179,12 +213,12 @@ function createCube() {
         x: (Math.random() - 0.5) * 2,
         y: (Math.random() - 0.5) * 2,
         z: (Math.random() - 0.5) * 2,
-    });
+    }, true);
     rigidBody.setLinvel({
         x: 0,
         y: -2,
         z: 0,
-    });
+    }, true);
 
     const colliderDesc = RAPIER.ColliderDesc.cuboid(CUBE_LARGE / 2, CUBE_LARGE / 2, CUBE_LARGE / 2)
     .setDensity(1.0)
@@ -194,7 +228,7 @@ function createCube() {
 
     const collider = world.createCollider(colliderDesc, rigidBody);
 
-    const data = {
+    const data: Cube = {
         rigidBody,
         collider,
         type: CUBE_TYPES.LARGE,
@@ -210,7 +244,7 @@ function createCube() {
     cubesAdded = (cubesAdded + 1) % CUBE_SPLIT_PERIOD;
 }
 
-function stepPhysics() {
+function stepPhysics(): StepResult {
     const shouldSink = cubes.size > TARGET_MIN_CUBES;
     const sinkRate = Math.min(1, Math.max(0, cubes.size - TARGET_MIN_CUBES) / (TARGET_MAX_CUBES - TARGET_MIN_CUBES));
     const sinkSpeed = sinkRate * (MAX_SINK_SPEED - MIN_SINK_SPEED) + MIN_SINK_SPEED;
@@ -240,8 +274,8 @@ function stepPhysics() {
 
                     cube.boundingHeight = getBoundingHeight(cube.collider.rotation(), cube.size) + 0.01;
 
-                    cube.rigidBody.setLinvel({ x: 0, y: 0, z: 0 });
-                    cube.rigidBody.setAngvel({ x: 0, y: 0, z: 0 });
+                    cube.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                    cube.rigidBody.setAngvel({ x: 0, y: 0, z: 0 }, true);
                     cube.rigidBody.setBodyType(RAPIER.RigidBodyType.KinematicVelocityBased, true);
                 }
             }
@@ -250,11 +284,11 @@ function stepPhysics() {
         if (cube.isSinking) {
             const cubeY = cube.collider.translation().y;
             if (shouldSink) cube.rigidBody.wakeUp();
-            cube.rigidBody.setLinvel({ x: 0, y: shouldSink ? -sinkSpeed : 0, z: 0 });
+            cube.rigidBody.setLinvel({ x: 0, y: shouldSink ? -sinkSpeed : 0, z: 0 }, true);
 
-            const target = -cube.boundingHeight;
+            const target = -(cube.boundingHeight ?? 0);
             cube.sinkingProgress = (
-                (cube.initialSinkPosition - cubeY) / (cube.initialSinkPosition - target)
+                ((cube.initialSinkPosition ?? cubeY) - cubeY) / ((cube.initialSinkPosition ?? cubeY) - target)
             );
 
             if (cube.sinkingProgress >= 1) {
@@ -294,7 +328,7 @@ function stepPhysics() {
     const cubeTypes = new Uint8Array(cubeArray.length);
 
     for (let i = 0; i < cubeArray.length; i++) {
-        const cube = cubeArray[i];
+        const cube = cubeArray[i]!;
         const position = cube.rigidBody.translation();
         const quaternion = cube.rigidBody.rotation();
 
@@ -320,7 +354,7 @@ function stepPhysics() {
     };
 }
 
-self.addEventListener('message', ({ data }) => {
+self.addEventListener('message', ({ data }: MessageEvent<WorkerMessage>) => {
     if (data.type === MESSAGE_TYPES.STEP) {
         targetCylinderHeight = data.targetCylinderHeight;
         if (cylinderHeight === undefined) {
@@ -328,12 +362,12 @@ self.addEventListener('message', ({ data }) => {
         }
 
         const result = stepPhysics();
-        self.postMessage({ type: MESSAGE_TYPES.STEP_RESULT, ...result }, [
+        self.postMessage({ type: MESSAGE_TYPES.STEP_RESULT, ...result }, { transfer: [
             result.positions.buffer,
             result.quaternions.buffer,
             result.cubeIds.buffer,
             result.cubeTypes.buffer,
-        ]);
+        ] });
         return;
     }
 
@@ -342,5 +376,5 @@ self.addEventListener('message', ({ data }) => {
         return;
     }
 
-    throw new Error(`Unexpected message type ${data.type}`);
+    throw new Error(`Unexpected message type ${(data as { type: string }).type}`);
 });

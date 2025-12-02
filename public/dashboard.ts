@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
 import {
     MESSAGE_TYPES,
@@ -20,10 +20,48 @@ import {
     SCORE_UNIT,
     CUBE_QUEUE_MAX,
     MAX_USER_MESSAGES,
-} from './constants';
-import { setCookie } from './util';
+} from './constants.js';
+import { setCookie, assertExists } from './util.js';
 
-function seek(value, target, increment) {
+declare global {
+    interface Window {
+        teamPoints: Record<string, number>;
+        syncing: Set<number>;
+    }
+}
+
+interface ScoreData {
+    teamId: number;
+    username?: string;
+    points: number;
+}
+
+interface ScoreUpdateData {
+    teams: {
+        [teamId: number]: {
+            points: number;
+        };
+    };
+    maxPoints: number;
+    lanProgress: number;
+}
+
+interface StepResultMessage {
+    type: typeof MESSAGE_TYPES.STEP_RESULT;
+    positions: Float32Array;
+    quaternions: Float32Array;
+    cubeIds: Float64Array;
+    cubeTypes: Uint8Array;
+    cylinderHeight: number;
+}
+
+interface CubeLandedMessage {
+    type: typeof MESSAGE_TYPES.CUBE_LANDED;
+}
+
+type WorkerMessage = StepResultMessage | CubeLandedMessage;
+
+function seek(value: number, target: number, increment: number): number {
     if (target > value) {
         return Math.min(value + increment, target);
     }
@@ -33,39 +71,39 @@ function seek(value, target, increment) {
     return value;
 }
 
-function withCommas(value) {
+function withCommas(value: number): string {
     return value >= 10000 ? Math.round(value).toLocaleString() : String(Math.round(value));
 }
 
-function round(value, decimalPlaces) {
+function round(value: number, decimalPlaces: number): number {
     const multiplier = 10 ** decimalPlaces;
     return Math.round(value * (10 ** decimalPlaces)) / multiplier;
 }
 
-function getTeamProgress(currentPoints, lanProgress, maxPoints) {
+function getTeamProgress(currentPoints: number, lanProgress: number, maxPoints: number): number {
     return Math.min(1, lanProgress * currentPoints / maxPoints);
 }
 
-function getCylinderHeight(progress) {
+function getCylinderHeight(progress: number): number {
     return INITIAL_CYLINDER_HEIGHT + progress * MAX_CYLINDER_HEIGHT;
 }
 
 window.teamPoints = {};
 window.syncing = new Set();
 
-export function renderTeamScore(container) {
+export function renderTeamScore(container: HTMLElement): void {
     const teamId = Number(container.dataset.teamId);
     const teamName = container.dataset.teamName;
 
-    const syncingMessage = document.querySelector('[data-syncing]');
+    const syncingMessage = assertExists(document.querySelector<HTMLElement>('[data-syncing]'));
 
-    const pointsMarker = container.querySelector('[data-points-marker]');
+    const pointsMarker = assertExists(container.querySelector<HTMLElement>('[data-points-marker]'));
     pointsMarker.classList.remove('hidden');
 
-    const pointsMarkerText = pointsMarker.querySelector('[data-text]');
+    const pointsMarkerText = assertExists(pointsMarker.querySelector<HTMLElement>('[data-text]'));
 
-    const userScores = pointsMarker.querySelector('[data-user-scores]');
-    const useScoreTemplate = pointsMarker.querySelector('[data-user-score-template]');
+    const userScores = assertExists(pointsMarker.querySelector<HTMLElement>('[data-user-scores]'));
+    const useScoreTemplate = assertExists(pointsMarker.querySelector<HTMLElement>('[data-user-score-template]'));
 
     const colourPrimary = teamName === 'Red' ? 0xff0000 : 0x3344ff;
     const colourSecondary = teamName === 'Red' ? 0x0000ee : 0x990000;
@@ -80,8 +118,8 @@ export function renderTeamScore(container) {
     let targetPoints = actualPoints;
     let currentPoints = actualPoints;
 
-    let userQueueQueue = [];
-    let userQueue = [];
+    let userQueueQueue: ScoreData[] = [];
+    const userQueue: ScoreData[] = [];
 
     let cubeQueue = 0;
 
@@ -96,10 +134,11 @@ export function renderTeamScore(container) {
     const cylinderHeight = getCylinderHeight(progress);
     pointsMarker.style.bottom = `${round(progress * (47 - 7.3) + 7.3, 2)}%`;
 
-    const socket = io(window.location.origin);
+    const socket: Socket = io(window.location.origin);
 
-    socket.on('SCORE_UPDATE', (data) => {
+    socket.on('SCORE_UPDATE', (data: ScoreUpdateData) => {
         const team = data.teams[teamId];
+        if (!team) return;
         actualMaxPoints = data.maxPoints;
         actualLanProgress = data.lanProgress;
         actualPoints = team.points;
@@ -120,10 +159,10 @@ export function renderTeamScore(container) {
         }
     });
 
-    socket.on('NEW_SCORES', (scores) => {
+    socket.on('NEW_SCORES', (scores: ScoreData[]) => {
         const teamScores = scores.filter((score) => score.teamId === teamId);
         if (teamScores.length > 0) {
-            let totalPoints = teamScores.reduce((sum, score) => sum + score.points, 0);
+            const totalPoints = teamScores.reduce((sum, score) => sum + score.points, 0);
             cubeQueue = Math.min(cubeQueue + Math.ceil(totalPoints / SCORE_UNIT), CUBE_QUEUE_MAX);
             actualPoints += totalPoints;
         }
@@ -131,10 +170,13 @@ export function renderTeamScore(container) {
     });
 
     // Add latest scores from embedded data
-    const latestScores = JSON.parse(document.querySelector('[data-latest-scores]').dataset.latestScores);
+    const latestScoresElement = assertExists(document.querySelector<HTMLElement>('[data-latest-scores]'));
+
+    // TODO: Use zod here
+    const latestScores = JSON.parse(latestScoresElement.dataset.latestScores || '[]') as ScoreData[];
     const teamScores = latestScores.filter((score) => score.teamId === teamId);
     if (teamScores.length > 0) {
-        let totalPoints = teamScores.reduce((sum, score) => sum + score.points, 0);
+        const totalPoints = teamScores.reduce((sum, score) => sum + score.points, 0);
         cubeQueue = Math.min(cubeQueue + Math.ceil(totalPoints / SCORE_UNIT), CUBE_QUEUE_MAX);
         actualPoints += totalPoints;
     }
@@ -204,9 +246,9 @@ export function renderTeamScore(container) {
 
     const worker = new Worker('./physicsWorker.js', { type: 'module' });
 
-    const cubeMeshes = new Map();
+    const cubeMeshes = new Map<number, THREE.Mesh>();
 
-    function createCubeMesh(cubeId, cubeType) {
+    function createCubeMesh(cubeId: number, cubeType: number): void {
         const mesh = new THREE.Mesh(cubeType === CUBE_TYPES.LARGE ? cubeGeometry : subCubeGeometry, material);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -215,7 +257,7 @@ export function renderTeamScore(container) {
         cubeMeshes.set(cubeId, mesh);
     }
 
-    function removeCubeMesh(cubeId) {
+    function removeCubeMesh(cubeId: number): void {
         const mesh = cubeMeshes.get(cubeId);
         if (mesh) {
             scene.remove(mesh);
@@ -223,7 +265,7 @@ export function renderTeamScore(container) {
         }
     }
 
-    worker.addEventListener('message', ({ data }) => {
+    worker.addEventListener('message', ({ data }: MessageEvent<WorkerMessage>) => {
         if (data.type === MESSAGE_TYPES.CUBE_LANDED) {
             targetPoints = Math.min(targetPoints + SCORE_UNIT, actualPoints);
 
@@ -237,9 +279,9 @@ export function renderTeamScore(container) {
 
             // Add new cubes
             for (let i = 0; i < cubeIds.length; i++) {
-                const cubeId = cubeIds[i];
+                const cubeId = cubeIds[i]!;
                 if (!cubeMeshes.has(cubeId)) {
-                    createCubeMesh(cubeId, cubeTypes[i]);
+                    createCubeMesh(cubeId, cubeTypes[i]!);
                 }
             }
 
@@ -253,23 +295,23 @@ export function renderTeamScore(container) {
 
             // Update positions and rotations for all existing cubes
             for (let i = 0; i < cubeIds.length; i++) {
-                const cubeId = cubeIds[i];
+                const cubeId = cubeIds[i]!;
                 const mesh = cubeMeshes.get(cubeId);
                 if (!mesh) continue;
 
                 const positionIndex = i * 3;
                 mesh.position.set(
-                    positions[positionIndex],
-                    positions[positionIndex + 1],
-                    positions[positionIndex + 2],
+                    positions[positionIndex]!,
+                    positions[positionIndex + 1]!,
+                    positions[positionIndex + 2]!,
                 );
 
                 const quaternionIndex = i * 4;
                 mesh.quaternion.set(
-                    quaternions[quaternionIndex],
-                    quaternions[quaternionIndex + 1],
-                    quaternions[quaternionIndex + 2],
-                    quaternions[quaternionIndex + 3],
+                    quaternions[quaternionIndex]!,
+                    quaternions[quaternionIndex + 1]!,
+                    quaternions[quaternionIndex + 2]!,
+                    quaternions[quaternionIndex + 3]!,
                 );
             }
 
@@ -278,12 +320,12 @@ export function renderTeamScore(container) {
             return;
         }
 
-        throw new Error(`Unexpected message type ${data.type}`);
+        throw new Error(`Unexpected message type ${(data as { type: string }).type}`);
     });
 
     let queueFrameCount = 0;
 
-    function animate() {
+    function animate(): void {
         requestAnimationFrame(animate);
 
         const anySyncing = window.syncing.size > 0;
@@ -299,30 +341,34 @@ export function renderTeamScore(container) {
 
             const user = userQueue.shift();
             if (user) {
-
-                for (const userScore of userScores.children) {
-                    userScore.style.top = (parseInt(userScore.style.top) + 30) + 'px';
+                for (const userScore of Array.from(userScores.children)) {
+                    const element = userScore as HTMLElement;
+                    const currentTop = parseInt(element.style.top) || 0;
+                    element.style.top = (currentTop + 30) + 'px';
                 }
 
-                const newUserScore = useScoreTemplate.cloneNode();
+                const newUserScore = useScoreTemplate.cloneNode(true) as HTMLElement;
                 newUserScore.classList.remove('hidden');
                 newUserScore.textContent = `${user.username} +${user.points}`;
-                newUserScore.style.opacity = 0;
-                newUserScore.style.top = 0;
+                newUserScore.style.opacity = '0';
+                newUserScore.style.top = '0';
                 userScores.prepend(newUserScore);
                 setTimeout(() => {
-                    newUserScore.style.opacity = 1;
+                    newUserScore.style.opacity = '1';
                 }, 20);
 
                 setTimeout(() => {
-                    newUserScore.style.opacity = 0;
+                    newUserScore.style.opacity = '0';
                     setTimeout(() => newUserScore.remove(), 500);
                 }, 20 * 1000);
 
                 if (userScores.children.length > MAX_USER_MESSAGES + 1) {
                     const last = userScores.children[MAX_USER_MESSAGES];
-                    last.style.opacity = 0;
-                    setTimeout(() => last.remove(), 500);
+                    if (last) {
+                        const lastElement = last as HTMLElement;
+                        lastElement.style.opacity = '0';
+                        setTimeout(() => lastElement.remove(), 500);
+                    }
                 }
             }
         }

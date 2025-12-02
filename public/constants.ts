@@ -3,7 +3,7 @@ export const MESSAGE_TYPES = {
     STEP_RESULT: 'STEP_RESULT',
     CREATE_CUBE: 'CREATE_CUBE',
     CUBE_LANDED: 'CUBE_LANDED',
-};
+} as const;
 
 export const FRAME_TIME = 1 / 60;
 export const GRAVITY = 5;
@@ -38,7 +38,7 @@ export const MAX_SINK_SPEED = 0.09;
 export const CONTAINER_HEIGHT = 12;
 export const INITIAL_CYLINDER_HEIGHT = 0.3;
 
-export const CUBE_TYPES = { LARGE: 2, SMALL: 1 };
+export const CUBE_TYPES = { LARGE: 2, SMALL: 1 } as const;
 export const CUBE_LARGE = 0.5;
 export const CUBE_SMALL = CUBE_LARGE / 2;
 

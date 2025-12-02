@@ -1,6 +1,5 @@
 # TODO:
 
-- Front-end Typescript
 - React instead of pug
 - DRY CSS
 - Use tabs
