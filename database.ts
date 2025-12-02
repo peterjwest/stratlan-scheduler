@@ -36,6 +36,7 @@ import schema, {
 import { LanData, EventData, HiddenCodeData } from './validation.js';
 import {
     TeamName,
+    TEAMS,
     ScoreType,
     IntroChallengeType,
     INTRO_CHALLENGE_TYPES,
@@ -327,17 +328,7 @@ export async function createGroups(db: DatabaseClient, groups: string[]) {
 export async function createTeams(
     db: DatabaseClient, lan: Lan, teamNames: readonly TeamName[],
 ): Promise<Team[]> {
-    const existingTeams = await db.query.Team.findMany();
-
-    if (existingTeams.length === 0) {
-        return db.insert(Team).values(teamNames.map((name) => ({ name, lanId: lan.id }))).returning();
-    }
-
-    const existingTeamNames = new Set(existingTeams.map((team) => team.name));
-    if (existingTeamNames.difference(new Set(teamNames)).size > 0) {
-        throw new Error('Incompatible teams have already been created on this database');
-    }
-    return existingTeams;
+    return list(db.insert(Team).values(teamNames.map((name) => ({ name, lanId: lan.id }))).returning());
 }
 
 export async function awardScore(
@@ -620,7 +611,8 @@ export async function getLan(db: DatabaseClient, lanId: number): Promise<Lan & L
 }
 
 export async function createLan(db: DatabaseClient, data: LanData) {
-    await db.insert(Lan).values(toNulls(data));
+    const lan = await get(db.insert(Lan).values(toNulls(data)).returning());
+    await createTeams(db, lan, TEAMS);
 
     clearCurrentLanCache();
     clearLansCache();
