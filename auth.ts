@@ -50,7 +50,7 @@ export default function (db: DatabaseClient, discordClient: Client, expressSessi
         request.session.userId = user.id;
         await saveSession(request);
 
-        response.redirect(String(request.cookies['login-redirect']) || routes.home);
+        response.redirect(request.cookies['login-redirect'] || routes.home);
     });
 
     router.get(routes.auth.logout, async (request, response) => {

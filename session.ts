@@ -1,4 +1,4 @@
-import  { RequestHandler, Request } from 'express';
+import { RequestHandler, Request } from 'express';
 import expressSession from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 

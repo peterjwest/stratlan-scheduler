@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { Server } from 'socket.io';
 
 import { Csrf } from './csrf.js';
@@ -66,7 +66,7 @@ import routes, { routeUrl } from './routes.js';
 export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
     const router = Router();
 
-    router.get(routes.admin.lans.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/list', {
             ...context,
@@ -74,19 +74,19 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         });
     });
 
-    router.get(routes.admin.lans.create, (request: Request, response: Response) => {
+    router.get(routes.admin.lans.create, (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/lans/create', context);
     });
 
-    router.post(routes.admin.lans.create, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.lans.create, csrf.protect, async (request, response) => {
         const data = LanData.parse(request.body);
 
         await createLan(db, data);
         response.redirect(routeUrl(routes.admin.lans.list));
     });
 
-    router.get(routes.admin.lans.get, async (request: Request, response: Response) => {
+    router.get(routes.admin.lans.get, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const lan = await getLan(db, Number(request.params.lanId));
         if (!lan) throw new UserError('Lan not found.');
@@ -94,7 +94,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/lans/edit', { ...context, lan });
     });
 
-    router.post(routes.admin.lans.get, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.lans.get, csrf.protect, async (request, response) => {
         const data = LanData.parse(request.body);
         const lan = await getLan(db, Number(request.params.lanId));
         if (!lan) throw new UserError('Lan not found.');
@@ -103,14 +103,14 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routeUrl(routes.admin.lans.list));
     });
 
-    router.get(routes.admin.events.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.events.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const events = await getEvents(db, context.currentLan);
 
         response.render('admin/events/list', { ...context, events });
     });
 
-    router.get(routes.admin.events.create, async (request: Request, response: Response) => {
+    router.get(routes.admin.events.create, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const query = EventQuery.parse(request.query);
 
@@ -121,7 +121,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/events/create', { ...context, games, query, scheduleStart, scheduleEnd });
     });
 
-    router.post(routes.admin.events.create, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.events.create, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = EventData.parse(request.body);
         const query = EventQuery.parse(request.query);
@@ -134,7 +134,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(query.returnTo === 'schedule' ? routes.schedule : routes.admin.events.list);
     });
 
-    router.get(routes.admin.events.get, async (request: Request, response: Response) => {
+    router.get(routes.admin.events.get, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const query = EventQuery.parse(request.query);
 
@@ -149,7 +149,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/events/edit', { ...context, event, games, query, scheduleStart, scheduleEnd });
     });
 
-    router.post(routes.admin.events.get, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.events.get, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = EventData.parse(request.body);
         const query = EventQuery.parse(request.query);
@@ -175,7 +175,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(query.returnTo === 'schedule' ? '/schedule' : routeUrl(routes.admin.events.list));
     });
 
-    router.get(routes.admin.players.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.players.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const groups = await getGroups(db);
         const players =  await getLanUsersWithPoints(db, context.currentLan, groups);
@@ -184,7 +184,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/players/list', { ...context, teams, players });
     });
 
-    router.get(routes.admin.players.get, async (request: Request, response: Response) => {
+    router.get(routes.admin.players.get, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const query = PointsQuery.parse(request.query);
 
@@ -192,7 +192,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         if (!player) throw new UserError('User not found.');
 
         const filters = getScoreFilters(
-            routeUrl(routes.admin.players.get, request.params.playerId!),
+            routeUrl(routes.admin.players.get, request.params.playerId),
             ['Awarded', 'CommunityGame', 'IntroChallenge', 'HiddenCode'],
         );
         const pages = getPages(await countUserScores(db, context.currentLan, player, query.type), PAGE_SIZE);
@@ -200,7 +200,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/players/view', { ...context, filters, query, pages, player, scores });
     });
 
-    router.get(routes.admin.points.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.points.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const query = PointsQuery.parse(request.query);
 
@@ -213,7 +213,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/points/list', { ...context, filters, query, pages, scores });
     });
 
-    router.get(routes.admin.points.create, async (request: Request, response: Response) => {
+    router.get(routes.admin.points.create, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         const events = await getMinimalEvents(db, context.currentLan);
@@ -221,7 +221,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/points/create', { ...context, events, users });
     });
 
-    router.post(routes.admin.points.create, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.points.create, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (context.currentLan?.isEnded) {
@@ -258,7 +258,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routes.admin.points.list);
     });
 
-    router.post(routes.admin.players.randomise, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.players.randomise, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         if (context.currentLan.isStarted) {
@@ -277,7 +277,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routes.admin.players.list);
     });
 
-    router.post(routes.admin.players.switch, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.players.switch, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         const user = await getUserWithTeam(db, context.currentLan, Number(request.params.playerId));
@@ -291,20 +291,20 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routes.admin.players.list);
     });
 
-    router.get(routes.admin.codes.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const hiddenCodes = await getHiddenCodes(db, context.currentLan);
 
         response.render('admin/codes/list', { ...context, hiddenCodes });
     });
 
-    router.get(routes.admin.codes.create, (request: Request, response: Response) => {
+    router.get(routes.admin.codes.create, (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
 
         response.render('admin/codes/create', context);
     });
 
-    router.post(routes.admin.codes.create, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.codes.create, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = HiddenCodeData.parse(request.body);
 
@@ -312,7 +312,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routes.admin.codes.list);
     });
 
-    router.get(routes.admin.codes.get, async (request: Request, response: Response) => {
+    router.get(routes.admin.codes.get, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
         if (!code) throw new UserError('Hidden code not found.');
@@ -320,7 +320,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/codes/edit', { ...context, code });
     });
 
-    router.post(routes.admin.codes.get, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.codes.get, csrf.protect, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const data = HiddenCodeData.parse(request.body);
         const code = await getHiddenCode(db, context.currentLan, Number(request.params.codeId));
@@ -330,7 +330,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routes.admin.codes.list);
     });
 
-    router.get(routes.admin.games.list, async (request: Request, response: Response) => {
+    router.get(routes.admin.games.list, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         response.render('admin/games/list', {
             ...context,
@@ -338,7 +338,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         });
     });
 
-    router.get(routes.admin.games.get, async (request: Request, response: Response) => {
+    router.get(routes.admin.games.get, async (request, response) => {
         const context = getContext(request, 'LOGGED_IN');
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
@@ -348,7 +348,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.render('admin/games/edit', { ...context, game, games });
     });
 
-    router.post(routes.admin.games.duplicates.create, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.games.duplicates.create, csrf.protect, async (request, response) => {
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
         if (game.parentId) throw new UserError('Game is a duplicate.');
@@ -366,7 +366,7 @@ export default function (db: DatabaseClient, csrf: Csrf, io: Server) {
         response.redirect(routeUrl(routes.admin.games.get, request.params.gameId!));
     });
 
-    router.post(routes.admin.games.duplicates.delete, csrf.protect, async (request: Request, response: Response) => {
+    router.post(routes.admin.games.duplicates.delete, csrf.protect, async (request, response) => {
         const game = await getGameWithDuplicates(db, Number(request.params.gameId));
         if (!game) throw new UserError('Game not found.');
 

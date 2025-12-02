@@ -1,7 +1,7 @@
 import { promisify } from 'node:util';
 
 import express, { Request, Response, NextFunction } from 'express';
-import cookieParser from 'cookie-parser';
+import { parseCookie } from 'cookie';
 import lodash from 'lodash';
 import * as Sentry from '@sentry/node';
 import { createServer } from 'http';
@@ -95,7 +95,11 @@ const tasks = [
     await repeatTask(async () => await sendScoreUpdates(db, io), true, 60 * 1000),
 ];
 
-app.use(cookieParser());
+app.use((request: Request, _response, next) => {
+    // TODO: Use zod
+    request.cookies = parseCookie(request.headers.cookie || '');
+    next();
+});
 
 const expressSession = getExpressSession();
 
@@ -105,7 +109,7 @@ app.use(express.urlencoded());
 app.use(express.static('build'));
 app.set('view engine', 'pug');
 
-app.use(async (request, response, next) => {
+app.use(async (request: Request, response, next) => {
     const nonce = randomCode();
     response.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY.replace(/<NONCE>/g, nonce));
 
@@ -268,7 +272,7 @@ app.get(routes.event, async (request, response) => {
     response.render('event', { ...context, score: createdScore, event, existing: false });
 });
 
-app.get(routes.secret, async (request: Request, response: Response) => {
+app.get(routes.secret, async (request, response) => {
     const context = getContext(request, 'WITH_LAN');
     if (!context.user) return response.status(403).render('403', context);
 
@@ -297,7 +301,7 @@ app.use(steamRouter(db));
 app.use(adminRouter(db, csrf, io));
 
 /** 404 handler */
-app.use((request: Request, response: Response) => {
+app.use((request, response) => {
     response.status(404).render('404', getContext(request));
 });
 
