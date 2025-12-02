@@ -251,10 +251,6 @@ export async function getUserByDiscordId(db: DatabaseClient, discordId: string):
     return get(db.query.User.findFirst({ where: eq(User.discordId, discordId) }));
 }
 
-export async function getUsersByDiscordIds(db: DatabaseClient, discordIds: string[]): Promise<User[]> {
-    return list(db.query.User.findMany({ where: inArray(User.discordId, discordIds) }));
-}
-
 interface MinimalEvent {
     id: number;
     name: string;
@@ -456,14 +452,6 @@ export async function getUserScores(
     });
 }
 
-export async function getEventCodeScore(
-    db: DatabaseClient, user: User, event: Event,
-): Promise<Score | undefined> {
-    return get(db.query.Score.findFirst({
-        where: and(eq(Score.userId, user.id), eq(Score.eventId, event.id), eq(Score.attendedEvent, true)),
-    }));
-}
-
 export async function createEventCodeScore(
     db: DatabaseClient, user: User, event: Event,
 ): Promise<Score | undefined> {
@@ -477,14 +465,6 @@ export async function createEventCodeScore(
     }).onConflictDoNothing().returning());
 
     return result[0];
-}
-
-export async function getHiddenCodeScore(
-    db: DatabaseClient, user: User, code: HiddenCode,
-): Promise<Score | undefined> {
-    return get(db.query.Score.findFirst({
-        where: and(eq(Score.userId, user.id), eq(Score.hiddenCodeId, code.id)),
-    }));
 }
 
 export async function createHiddenCodeScore(
@@ -667,10 +647,6 @@ export async function getOrCreateGames(
     return games;
 }
 
-export async function getGame(db: DatabaseClient, gameId: number): Promise<Game | undefined> {
-    return get(db.query.Game.findFirst({ where: eq(Game.id, gameId) }));
-}
-
 export async function getGameWithDuplicates(db: DatabaseClient, gameId: number): Promise<GameWithDuplicates | undefined> {
     return get(db.query.Game.findFirst({
         where: eq(Game.id, gameId),
@@ -692,18 +668,6 @@ export async function getGames(db: DatabaseClient): Promise<Game[]> {
 
 export async function updateGame(db: DatabaseClient, gameId: number, data: Partial<Game>): Promise<void> {
     await db.update(Game).set(toNulls(data)).where(eq(Game.id, gameId));
-}
-
-export async function getGameActivity(
-    db: DatabaseClient, lan: Lan, user: User, game: Game,
-): Promise<GameActivity | undefined> {
-    return get(db.query.GameActivity.findFirst({
-        where: and(
-            eq(GameActivity.lanId, lan.id),
-            eq(GameActivity.userId, user.id),
-            eq(GameActivity.gameId, game.id),
-        ),
-    }));
 }
 
 export async function startGameActivities(
@@ -743,10 +707,6 @@ export async function getTimeslotActivities(
             or(isNull(GameActivity.endTime), gt(GameActivity.endTime, eventTimeslot.time)),
         ))
     );
-}
-
-export async function getTimeslot(db: DatabaseClient, timeslotId: number): Promise<EventTimeslot | undefined> {
-    return db.query.EventTimeslot.findFirst({ where: eq(EventTimeslot.id, timeslotId) });
 }
 
 export async function getIncompleteCommunityEvents(db: DatabaseClient, lan: Lan): Promise<EventWithTimeslots[]> {
