@@ -475,15 +475,17 @@ export async function getEventCodeScore(
 
 export async function createEventCodeScore(
     db: DatabaseClient, user: User, event: Event,
-): Promise<Score> {
-    return get(db.insert(Score).values({
+): Promise<Score | undefined> {
+    const result = await list(db.insert(Score).values({
         type: 'AttendedEvent',
         userId: user.id,
         lanId: event.lanId,
         eventId: event.id,
         attendedEvent: true,
         points: event.eventPoints,
-    }).returning());
+    }).onConflictDoNothing().returning());
+
+    return result[0];
 }
 
 export async function getHiddenCodeScore(

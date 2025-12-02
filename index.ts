@@ -52,7 +52,6 @@ import {
     getScores,
     getScoresDetails,
     getEventByCode,
-    getEventCodeScore,
     createEventCodeScore,
 } from './database.js';
 import { chooseTeam } from './teams.js';
@@ -260,15 +259,13 @@ app.get(routes.event, async (request, response) => {
     if (now < event.startTime) throw new UserError('This event hasn\'t started yet.');
     if (now > getEventEnd(event)) throw new UserError('This event has ended.');
 
-    const existingScore = await getEventCodeScore(db, context.user, event);
-    if (existingScore) {
+    const createdScore = await createEventCodeScore(db, context.user, event);
+    if (!createdScore) {
         return response.render('event', { ...context, event, existing: true });
     }
 
-    const score = await createEventCodeScore(db, context.user, event);
-    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
-
-    response.render('event', { ...context, score, event, existing: false });
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [createdScore]));
+    response.render('event', { ...context, score: createdScore, event, existing: false });
 });
 
 app.get(routes.secret, async (request: Request, response: Response) => {

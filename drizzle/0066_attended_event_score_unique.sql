@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "Score_attended_event" ON "Score" USING btree ("userId","eventId") WHERE "Score"."type" = 'AttendedEvent';
