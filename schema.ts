@@ -122,7 +122,6 @@ export const Score = pgTable('Score', {
     secretNumber: integer(),
     createdAt: timestamp({ withTimezone: true }).defaultNow(),
 }, (Score) => [
-    // TODO: More constraints
     check(
         "Score_teamId_or_userId",
         sql`(${Score.teamId} IS NOT NULL AND ${Score.userId} IS NULL) OR (${Score.teamId} IS NULL AND ${Score.userId} IS NOT NULL)`,
