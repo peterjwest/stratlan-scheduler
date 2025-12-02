@@ -334,8 +334,11 @@ const shutDown = lodash.once(async () => {
     for (const cancelTask of tasks) cancelTask();
     console.log('Tasks cancelled');
 
-    promisify<void>((callback) => server.close(callback));
+    await promisify(server.close.bind(server))();
     console.log('Server closed');
+
+    await io.close();
+    console.log('Socket.io closed');
 
     await discordClient.destroy();
     console.log('Disconnected from Discord');
