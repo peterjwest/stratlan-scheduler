@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "Score_hidden_code" ON "Score" USING btree ("userId","hiddenCodeId") WHERE "Score"."type" = 'HiddenCode';

@@ -129,8 +129,10 @@ export const Score = pgTable('Score', {
     ),
     uniqueIndex("Score_community_game").on(Score.userId, Score.timeslotId).where(sql`${Score.type} = 'CommunityGame'`),
     uniqueIndex("Score_secret").on(Score.lanId, Score.secretNumber).where(sql`${Score.type} = 'Secret'`),
+    uniqueIndex("Score_hidden_code").on(Score.userId, Score.hiddenCodeId).where(sql`${Score.type} = 'HiddenCode'`),
 ]);
 export type Score = NullToUndefined<typeof Score.$inferSelect>;
+export type ScoreBonus = { hasBonus: boolean };
 export type ScoreReferences = {
     team: Team | undefined,
     event: Event | undefined,

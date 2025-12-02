@@ -44,7 +44,6 @@ import {
     checkIsEligible,
     getOrCreateUserLan,
     getHiddenCodeByCode,
-    getHiddenCodeScore,
     createHiddenCodeScore,
     createSecretScore,
     getGroups,
@@ -239,15 +238,13 @@ app.get(routes.code, async (request, response) => {
     const code = await getHiddenCodeByCode(db, context.currentLan, request.params.hiddenCode);
     if (!code) throw new UserError('Not a valid code, sorry!');
 
-    const existingScore = await getHiddenCodeScore(db, context.user, code);
-    if (existingScore) {
+    const createdScore = await createHiddenCodeScore(db, context.user, code);
+    if (!createdScore) {
         return response.render('code', { ...context, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: true });
     }
 
-    const score = await createHiddenCodeScore(db, context.user, code);
-    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
-
-    response.render('code', { ...context, score, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: false });
+    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [createdScore]));
+    response.render('code', { ...context, score: createdScore, code, bonus: HIDDEN_CODE_BONUS_POINTS, existing: false });
 });
 
 app.get(routes.event, async (request, response) => {

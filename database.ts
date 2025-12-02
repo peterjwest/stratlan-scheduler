@@ -16,6 +16,7 @@ import schema, {
     Team,
     TeamScore,
     Score,
+    ScoreBonus,
     ScoreReferences,
     Event,
     EventTimeslot,
@@ -83,6 +84,11 @@ export async function get<Type>(query: Promise<Type[] | Type>): Promise<NullToUn
 export async function list<Type>(query: Promise<Type[]>): Promise<NullToUndefined<Type[]>> {
     const data = await query;
     return fromNulls(data);
+}
+
+export async function getCount(query: Promise<Array<{ count: number }>>): Promise<number> {
+    const data = await query;
+    return data[0]?.count || 0;;
 }
 
 export function getDatabaseClient(isRemote = false): DatabaseClient {
@@ -365,13 +371,13 @@ export async function awardScore(
 export async function countScores(db: DatabaseClient, lan: Lan, type: ScoreType | undefined) {
     const conditions = [eq(Score.lanId, lan.id)];
     if (type) conditions.push(eq(Score.type, type));
-    return (await db.select({ count: count() }).from(Score).where(and(...conditions)))[0]?.count || 0;
+    return await getCount(db.select({ count: count() }).from(Score).where(and(...conditions)));
 }
 
 export async function countUserScores(db: DatabaseClient, lan: Lan, user: User, type: ScoreType | undefined) {
     const conditions = [eq(Score.userId, user.id), eq(Score.lanId, lan.id)];
     if (type) conditions.push(eq(Score.type, type));
-    return (await db.select({ count: count() }).from(Score).where(and(...conditions)))[0]?.count || 0;
+    return await getCount(db.select({ count: count() }).from(Score).where(and(...conditions)));
 }
 
 export async function getScoresPaged(
@@ -490,21 +496,24 @@ export async function getHiddenCodeScore(
 
 export async function createHiddenCodeScore(
     db: DatabaseClient, user: User, code: HiddenCode,
-): Promise<Score & { hasBonus: boolean }> {
+): Promise<Score & ScoreBonus | undefined> {
     return db.transaction(async (tx) => {
-        const existingScores = (
-            await tx.select({ count: count() }).from(Score).where(eq(Score.hiddenCodeId, code.id))
-        )[0]?.count || 0;
+        const existingScores = await getCount(
+            tx.select({ count: count() }).from(Score).where(eq(Score.hiddenCodeId, code.id)),
+        );
 
-        const score = await get(tx.insert(Score).values({
+        const hasBonus = existingScores === 0;
+        const points = hasBonus ? HIDDEN_CODE_POINTS + HIDDEN_CODE_BONUS_POINTS : HIDDEN_CODE_POINTS;
+
+        const result = await list(tx.insert(Score).values({
             type: 'HiddenCode',
             userId: user.id,
             lanId: code.lanId,
             hiddenCodeId: code.id,
-            points: existingScores === 0 ? HIDDEN_CODE_POINTS + HIDDEN_CODE_BONUS_POINTS : HIDDEN_CODE_POINTS,
-        }).returning());
+            points,
+        }).onConflictDoNothing().returning());
 
-        return { ...score, hasBonus: existingScores === 0 };
+        return result[0] ? { ...result[0], hasBonus } : undefined;
     });
 }
 
