@@ -45,10 +45,11 @@ export function getMissingTimeslots(event: EventWithTimeslots, expectedTimeslots
     const erroneousTimeslots: EventTimeslot[] = [];
     let currentIndex = 0;
     for (const timeslotTime of timeslotTimes) {
-        const timeslot = event.timeslots[currentIndex];
+        let timeslot = event.timeslots[currentIndex];
         while (timeslot && timeslot.time < timeslotTime) {
             erroneousTimeslots.push(event.timeslots[currentIndex]!);
             currentIndex++;
+            timeslot = event.timeslots[currentIndex];
         }
         if (event.timeslots[currentIndex] && datesEqual(event.timeslots[currentIndex]!.time, timeslotTime)) {
             currentIndex++;
