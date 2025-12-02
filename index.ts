@@ -307,13 +307,21 @@ app.use((request: Request, response: Response) => {
     response.status(404).render('404', getContext(request));
 });
 
+/** UserError handler */
+app.use((error: Error, request: Request, response: Response, next: NextFunction) => {
+    if (isUserError(error)) {
+        return response.status(500).render('500', { ...getContext(request), error, code: response.sentry });
+    }
+    next(error);
+});
+
 if (ENVIRONMENT !== 'development') {
     Sentry.setupExpressErrorHandler(app);
 }
 
 /** Error handler */
 app.use((error: Error, request: Request, response: Response, _next: NextFunction) => {
-    if (!isUserError(error)) console.error('Server error', error);
+    console.error('Server error', error);
     response.status(500).render('500', { ...getContext(request), error, code: response.sentry });
 });
 
