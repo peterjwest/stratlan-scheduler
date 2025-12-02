@@ -790,28 +790,43 @@ export async function getIntroChallenges(
     return challenges;
 }
 
-export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, challengeId: number) {
-    const introChallenge = await get(db.query.IntroChallenge.findFirst({
-        where: and(
-            eq(IntroChallenge.lanId, lan.id),
-            eq(IntroChallenge.userId, user.id),
-            eq(IntroChallenge.id, challengeId),
-        ),
-    }));
-    if (!introChallenge) {
-        throw new Error(`IntroChallenge#${challengeId} does not exist for User#${user.id}, Lan#${lan.id}`);
-    }
+export async function claimChallenge(db: DatabaseClient, lan: Lan, user: User, challengeId: number): Promise<Score | undefined> {
+    return db.transaction(async (tx) => {
+        const introChallenge = await get(tx.query.IntroChallenge.findFirst({
+            where: and(
+                eq(IntroChallenge.lanId, lan.id),
+                eq(IntroChallenge.userId, user.id),
+                eq(IntroChallenge.id, challengeId),
+            ),
+        }));
+        if (!introChallenge) {
+            throw new Error(`IntroChallenge#${challengeId} does not exist for User#${user.id}, Lan#${lan.id}`);
+        }
+        if (introChallenge.scoreId) {
+            return undefined;
+        }
 
-    const score = await get(db.insert(Score).values({
-        type: 'IntroChallenge',
-        lanId: lan.id,
-        userId: user.id,
-        points: INTRO_CHALLENGE_POINTS[introChallenge.type],
-    }).returning());
+        const score = await get(tx.insert(Score).values({
+            type: 'IntroChallenge',
+            lanId: lan.id,
+            userId: user.id,
+            points: INTRO_CHALLENGE_POINTS[introChallenge.type],
+        }).returning());
 
-    await db.update(IntroChallenge).set({ scoreId: score.id }).where(eq(IntroChallenge.id, challengeId));
+        const updated = await tx.update(IntroChallenge)
+            .set({ scoreId: score.id })
+            .where(and(
+                eq(IntroChallenge.id, challengeId),
+                isNull(IntroChallenge.scoreId),
+            ))
+            .returning();
 
-    return score;
+        if (updated.length === 0) {
+            return undefined;
+        }
+
+        return score;
+    });
 }
 
 export async function getOrCreateUserLan(db: DatabaseClient, user: User, lan: Lan): Promise<UserLan> {

@@ -225,7 +225,9 @@ app.get(routes.intro.claim, async (request, response) => {
     if (context.currentLan.isEnded) throw new UserError('Too late! The event is over.');
 
     const score = await claimChallenge(db, context.currentLan, context.user, Number(request.params.challengeId));
-    io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
+    if (score) {
+        io.emit('NEW_SCORES', await getScoresDetails(db, context.currentLan, [score]));
+    }
     response.redirect(routes.home);
 });
 
