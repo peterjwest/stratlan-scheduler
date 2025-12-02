@@ -61,5 +61,5 @@ block body
 block print
     div(class="w-full h-[1000px] flex items-center justify-center")
         div
-            div(class="h-100 w-100" data-hidden-code=helpers.absoluteUrl(helpers.routeUrl(routes.event, event.eventCode))  data-hidden-code-size=400)
+            div(class="h-100 w-100" data-qr-code=helpers.absoluteUrl(helpers.routeUrl(routes.event, event.eventCode))  data-qr-code-size=400)
             p(class="text-center my-2 text-black text-lg")=`${event.name}`

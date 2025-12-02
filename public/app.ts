@@ -370,15 +370,14 @@ if (scoreContainers.length) {
     scoreContainers.forEach(renderTeamScore);
 }
 
-// TODO: Rename since these are not just for hidden codes
-const hiddenCodes = Array.from(document.querySelectorAll<HTMLElement>('[data-hidden-code]'));
-if (hiddenCodes.length) {
+const qrCodeElements = Array.from(document.querySelectorAll<HTMLElement>('[data-qr-code]'));
+if (qrCodeElements.length) {
     const QRCode = await import('qrcode');
-    hiddenCodes.forEach((element) => {
+    qrCodeElements.forEach((element) => {
         const canvas = document.createElement('canvas');
         element.appendChild(canvas);
-        const options = { margin: 1, width: Number(element.dataset.hiddenCodeSize) };
-        QRCode.toCanvas(canvas, element.dataset.hiddenCode || '', options, (error) => {
+        const options = { margin: 1, width: Number(element.dataset.qrCodeSize) };
+        QRCode.toCanvas(canvas, element.dataset.qrCode || '', options, (error) => {
             if (error) console.error(error);
             canvas.style.width = '100%';
             canvas.style.height = '100%';

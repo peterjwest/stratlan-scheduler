@@ -30,5 +30,5 @@ block print
     div(class="flex flex-wrap")
         each code of hiddenCodes
             div(class="px-14 pt-11" data-print-code=code.id)
-                div(class="h-70 w-70" data-hidden-code=code.url data-hidden-code-size=400)
+                div(class="h-70 w-70" data-qr-code=code.url data-qr-code-size=400)
                 p(class="text-center my-2 text-black text-lg")=`#${code.number}`
