@@ -83,7 +83,7 @@ import {
     ASSET_CACHE_MAX_AGE,
 } from './constants.js';
 import { getExpressSession, getConditionalSession } from './session.js';
-import routes from './routes.js';
+import routes, { routeUrl } from './routes.js';
 
 if (ENVIRONMENT !== 'development') {
     Sentry.init({ dsn: SENTRY_DSN, environment: ENVIRONMENT, enableLogs: true, sendDefaultPii: false });
@@ -214,7 +214,7 @@ app.get(routes.home, async (request, response) => {
     response.render('guide', {
         ...context,
         constants: { INTRO_CHALLENGE_POINTS },
-        hiddenCode: context.user ? `/intro/code/${userIntroCode(context.user)}` : undefined,
+        hiddenCode: context.user ? routeUrl(routes.intro.code, userIntroCode(context.user)) : undefined,
         introChallenges: await getIntroChallenges(db, context.currentLan, context.user),
     });
 });

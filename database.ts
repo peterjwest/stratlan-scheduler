@@ -59,6 +59,7 @@ import {
     addGroups,
     NullToUndefined,
 } from './util.js';
+import routes, { routeUrl } from './routes.js';
 import { ApplicationActivity } from './discordApi.js';
 import { DATABASE_URL, REMOTE_DATABASE_URL } from './environment.js';
 
@@ -842,7 +843,7 @@ export async function getHiddenCodes(db: DatabaseClient, lan: Lan): Promise<Arra
         where: eq(HiddenCode.lanId, lan.id),
         orderBy: [HiddenCode.number],
     }));
-    return data.map((item) => ({ ...item, url: `/code/${item.code}` }));
+    return data.map((item) => ({ ...item, url: routeUrl(routes.code, item.code) }));
 }
 
 export async function getHiddenCode(
@@ -851,7 +852,7 @@ export async function getHiddenCode(
     const data = await get(db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.id, hiddenCodeId), eq(HiddenCode.lanId, lan.id)),
     }));
-    return data ? { ...data, url: `/code/${data.code}` } : undefined;
+    return data ? { ...data, url: routeUrl(routes.code, data.code) } : undefined;
 }
 
 export async function getHiddenCodeByCode(
@@ -860,7 +861,7 @@ export async function getHiddenCodeByCode(
     const data = await get(db.query.HiddenCode.findFirst({
         where: and(eq(HiddenCode.code, hiddenCode), eq(HiddenCode.lanId, lan.id)),
     }));
-    return data ? { ...data, url: `/code/${data.code}` } : undefined;
+    return data ? { ...data, url: routeUrl(routes.code, data.code) } : undefined;
 }
 
 export async function createHiddenCode(db: DatabaseClient, lan: Lan, data: HiddenCodeData) {

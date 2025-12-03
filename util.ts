@@ -2,6 +2,7 @@ import { promisify } from 'node:util';
 import { promises as fs } from 'node:fs';
 import crypto from 'node:crypto';
 import { dirname } from 'node:path';
+import querystring from 'node:querystring';
 
 import { Request } from 'express';
 import lodash from 'lodash';
@@ -409,7 +410,7 @@ export function getScoreFilters(pageUrl: string, scoreTypes: ScoreType[]) {
         ...scoreTypes.map((type) => ({
             name: formatScoreType(type),
             type,
-            url: `${pageUrl}?type=${type}`,
+            url: `${pageUrl}?${querystring.encode({ type })}`,
         })),
     ];
 }
