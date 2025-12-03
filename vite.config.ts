@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from "vite-plugin-top-level-await";
 
-import { castPlugin, publicAssetsPlugin } from './plugins.js';
+import { castPlugin, publicAssetsPlugin } from './backend/plugins.js';
 
 export default defineConfig(({ mode }) => {
     const isDev = mode === 'development';

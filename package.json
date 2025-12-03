@@ -14,8 +14,8 @@
     "url": "git+https://github.com/peterjwest/stratlan.git"
   },
   "scripts": {
-    "start": "tsx index.ts",
-    "start:dev": "tsx watch --env-file=.env index.ts",
+    "start": "tsx backend/index.ts",
+    "start:dev": "tsx watch --env-file=.env backend/index.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development --watch",
     "db:generate": "rm -f drizzle/meta/.DS_Store && NODE_OPTIONS='--import tsx' drizzle-kit generate",

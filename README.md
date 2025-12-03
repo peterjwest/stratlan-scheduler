@@ -5,9 +5,6 @@
 - Use tabs
 - Winner animation!
 - "Now" marker on schedule
-- Restructure files
-  - Backend files
-  - Frontend images
 
 ## Nice to have
 
@@ -20,6 +17,7 @@
 - Show animation for your own scores
 - Schedule
   - Colour code by location
+- External URL for printing
 
 ## LATER:
 

@@ -1,6 +1,7 @@
 import { Cookies } from 'cookie';
+import "@total-typescript/ts-reset";
 
-import { Context } from './context.js';
+import { Context } from './backend/context.js';
 
 /** Augments the session with userId */
 declare module 'express-session' {
